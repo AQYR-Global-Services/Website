@@ -139,6 +139,10 @@ for (const route of routes) {
       assert.match(article, /class="case-context"/);
       assert.match(article, /class="case-work"/);
       assert.match(article, /class="case-outcome"/);
+      assert.match(article, /class="case-challenge"/);
+      assert.match(article, /data-zh="关键问题"/);
+      assert.match(article, /data-zh="处理方法"/);
+      assert.match(article, /data-zh="材料依据"/);
     }
     assert.match(source, /Some examples draw on the work of our predecessor, Hiremii Global Services/);
     assert.match(source, /id="historical-cases"/, "Keep earlier case links working");
@@ -164,6 +168,21 @@ for (const route of routes) {
     assert.match(source, /data-en="Senior Migration Operations Manager" data-zh="高级移民运营经理"/);
     assert.match(source, /data-en="Accounts and Admin Officer" data-zh="账务与行政专员"/);
     assert.doesNotMatch(source, /Clients &amp; Coordination Manager|Accounts &amp; Finance/);
+    assert.match(source, /As a registered migration agent/);
+    assert.equal((source.match(/class="bio"/g) || []).length, 8);
+  }
+  if (route === "") {
+    const trust = source.match(/<aside class="home-trust"[\s\S]*?<\/aside>/)?.[0];
+    assert(trust, "Lightweight home-page evidence strip");
+    assert.match(trust, /<strong>200\+<\/strong>/);
+    assert.match(trust, /datetime="2026-10-01"/);
+    assert.match(trust, /href="\/stories#sponsorship-experience"/);
+    assert(source.indexOf(trust) < source.indexOf('data-en="For businesses. For individuals."'), "Evidence is immediately below the hero");
+  }
+  if (route === "talent") {
+    assert.equal((source.match(/class="visa-service-teaser"/g) || []).length, 4);
+    assert.equal((source.match(/class="visa-service-icon"/g) || []).length, 4);
+    assert.match(source, /id="visitor-visas" open/);
   }
   if (route === "employers") {
     assert.match(source, /id="hiring-review"/);
@@ -172,12 +191,12 @@ for (const route of routes) {
       assert(source.includes('data-en="' + heading + '"'), "Pre-recruitment planning: " + heading);
     }
     assert.match(source, /available market information/);
-    for (const topic of ["01 / TALENT MOBILITY", "02 / EMPLOYER COMPLIANCE", "03 / POLICY &amp; PLANNING"]) {
+    for (const topic of ["01 / OVERSEAS HIRES", "02 / SPONSOR RESPONSIBILITIES", "03 / CHANGING RULES"]) {
       assert(source.includes('data-en="' + topic + '"'), "Employer advisory topic: " + topic);
     }
     assert.match(source, /data-zh="全球人才流动，/);
     assert.match(source, /Australian migration requirements/);
-    assert.match(source, /employment-law or tax advisers/);
+    assert.match(source, /employment advisers/);
     assert.match(source, /when it takes effect/);
     assert.equal((source.match(/<details class="faq-item">/g) || []).length, 5);
   }
