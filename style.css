@@ -344,10 +344,14 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .footer-main{display:grid;grid-template-columns:minmax(220px,.9fr) minmax(0,2.4fr);gap:clamp(32px,4vw,64px);align-items:start}
 .footer-brand{min-width:0}.footer-brand p{max-width:280px}
 .footer-links .footer-social-link{margin-top:6px;align-self:flex-start}
-.footer-social-link{--social-ink:#09233d;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:var(--social-ink);color:#fff;text-decoration:none;transition:background .2s ease}
-.footer-social-link .linkedin-glyph{fill:var(--social-ink)}
-.footer-social-link:hover,.footer-social-link:focus-visible{--social-ink:var(--night)}
-@media(prefers-reduced-motion:reduce){.footer-social-link{transition:none}}
+/* The visible tile is 36px; retain a 44px click/tap target. */
+.footer-social-link{--social-surface:#e7eee3;position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:0 0 44px;border-radius:14px;color:var(--night);text-decoration:none;transition:color .2s ease}
+.footer-social-link:before{content:"";position:absolute;inset:4px;z-index:-1;border:1px solid #a2b7a6;border-radius:11px;background:var(--social-surface);box-shadow:0 1px 3px #1f44340a;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease}
+.footer-social-link svg{width:18px;height:18px}
+.footer-social-link .linkedin-glyph{fill:var(--social-surface)}
+.footer-social-link:hover,.footer-social-link:focus-visible{--social-surface:var(--night);color:var(--white)}
+.footer-social-link:hover:before,.footer-social-link:focus-visible:before{border-color:var(--night);box-shadow:0 3px 9px #1f44341a}
+@media(prefers-reduced-motion:reduce){.footer-social-link,.footer-social-link:before{transition:none}}
 .footer-links{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,3vw,40px)}
 .footer-links>div{min-width:0}.footer-links a{overflow-wrap:anywhere}
 @media(max-width:1000px){.footer-main{grid-template-columns:1fr;gap:32px}.footer-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:32px}}
