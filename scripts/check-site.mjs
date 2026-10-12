@@ -55,6 +55,9 @@ for (const route of routes) {
   assert.equal(offices.length, 3);
   assert.deepEqual(offices.map((office) => office?.address.addressCountry), ["AU", "AU", "CN"]);
   assert.equal(organization.address.postalCode, "3128");
+  assert.equal(organization.address.streetAddress, "Office 121, Level 1 / 847 Whitehorse Road");
+  assert.equal(offices[1].address.streetAddress, "Level 1 / 251 St Georges Terrace");
+  assert.equal(offices[1].address.postalCode, "6000");
   assert.deepEqual(offices[0].address, organization.address);
   assert.match(html, /property="og:title" content="AQYR Global Services"/);
   assert.match(html, /property="og:image" content="https?:[^\"]*\/share-cover\.png"/);
@@ -223,6 +226,9 @@ for (const route of routes) {
     assert.equal((source.match(/class="step reveal"/g) || []).length, 5);
   }
   if (route === "contact") {
+    assert.match(html, /Office 121, Level 1 \/ 847 Whitehorse Road<br\s*\/?>(?:<!--[^>]*-->)*Box Hill VIC 3128/);
+    assert.match(html, /Level 1 \/ 251 St Georges Terrace<br\s*\/?>(?:<!--[^>]*-->)*Perth WA 6000/);
+    assert.doesNotMatch(source, /L1\/251 St Georges Tce|Box Hill, Victoria 3128/);
     assert.match(source, /<textarea[^>]*aria-describedby="enquiry-privacy-hint"/);
     assert.equal((source.match(/id="enquiry-privacy-hint"/g) || []).length, 1);
     assert(source.indexOf('id="enquiry-privacy-hint"') < source.indexOf('class="button enquiry-submit"'),

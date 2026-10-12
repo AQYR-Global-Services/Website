@@ -8,7 +8,7 @@ const registerUrl =
   "https://portal.mara.gov.au/search-the-register-of-migration-agents/register-of-migration-agent-details/?ContactID=78f1ef82-d715-e711-9404-005056ab0eca";
 const melbourneAddress = {
   "@type": "PostalAddress",
-  streetAddress: "Office 121, 847 Whitehorse Road",
+  streetAddress: "Office 121, Level 1 / 847 Whitehorse Road",
   addressLocality: "Box Hill",
   addressRegion: "VIC",
   postalCode: "3128",
@@ -28,7 +28,7 @@ const offices = [
     name: `${brandName} — Perth office`,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Level 1, 251 St Georges Terrace",
+      streetAddress: "Level 1 / 251 St Georges Terrace",
       addressLocality: "Perth",
       addressRegion: "WA",
       postalCode: "6000",
