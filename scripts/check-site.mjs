@@ -92,6 +92,18 @@ for (const route of routes) {
   assert(!primaryNavigation.includes(processingTimesUrl), "No processing-time item in primary navigation");
   const servedFooter = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
   assert(servedFooter && !servedFooter.includes(processingTimesUrl), "Served footer stays uncluttered: " + route);
+  const linkedInUrl = "https://www.linkedin.com/company/hiremii-global-services";
+  const linkedInLink = footer.match(/<a class="footer-social-link"[^>]*>[\s\S]*?<\/a>/)?.[0];
+  assert(linkedInLink, "LinkedIn icon in every footer: " + route);
+  assert.match(footer, /<strong data-en="Get in touch"[^>]*>[\s\S]*?href="tel:\+61430907019"[^>]*>[\s\S]*?<\/a><a class="footer-social-link"/);
+  assert.doesNotMatch(footer.match(/<div class="footer-brand">[\s\S]*?<\/div>/)?.[0] || "", /footer-social-link/);
+  assert(linkedInLink.includes('href="' + linkedInUrl + '"'));
+  assert.match(linkedInLink, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(linkedInLink, /data-aria-label-en="[^"]*LinkedIn[^"]*new tab/);
+  assert.match(linkedInLink, /data-aria-label-zh="[^"]*LinkedIn[^"]*新标签页/);
+  assert.match(linkedInLink, /<svg[^>]*aria-hidden="true"/);
+  assert.equal((servedFooter.match(/class="footer-social-link"/g) || []).length, 1);
+  assert(servedFooter.includes(linkedInUrl));
   if (["talent", "sponsorship"].includes(route)) {
     const processingEntry = source.match(/<div class="processing-times-entry" id="processing-times">[\s\S]*?<\/div>/)?.[0];
     assert(processingEntry, "Lightweight processing-time entry: " + route);
