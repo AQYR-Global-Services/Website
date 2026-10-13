@@ -28,7 +28,7 @@ export const pages = {
 } as const;
 export type PageSlug = keyof typeof pages;
 export function pageMetadata(title: string, description: string, pathname: string): Metadata {
-  const fullTitle = `${title} | ${brandName}`;
+  const fullTitle = `${brandName} — ${title}`;
   return {
     title: { absolute: fullTitle }, description,
     alternates: { canonical: `${siteUrl}${pathname}` },

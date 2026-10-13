@@ -7,12 +7,12 @@ import { siteStructuredData } from "@/lib/structured-data";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   icons: {
-    icon: "/aqyr-github-avatar.svg",
+    icon: { url: "/aqyr-favicon.webp", type: "image/webp", sizes: "any" },
     apple: "/aqyr-github-avatar.png",
   },
   title: {
     default: "AQYR Global Services",
-    template: "%s | AQYR Global Services",
+    template: "AQYR Global Services — %s",
   },
   description:
     "Australian visa, employer sponsorship and workforce support from AQYR Global Services, a subsidiary of AQYR.",

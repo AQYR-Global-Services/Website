@@ -11,6 +11,7 @@ for (const slug of files) {
     (_, page, suffix = "") => `href="${page}.html${suffix}"`);
   source = source.replace(/href="\/"/g, 'href="index.html"')
     .replace(/href="\/style.css"/g, 'href="style.css"')
+    .replace(/href="\/aqyr-favicon.webp"/g, 'href="public/aqyr-favicon.webp"')
     .replace(/src="\/script.js"/g, 'src="script.js"')
     .replace(/src="\/(?!script.js)([^"]+)"/g, 'src="public/$1"');
   source = source.replace(/srcset="([^"]+)"/g, (_, candidates) =>
