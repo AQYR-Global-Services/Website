@@ -10,7 +10,7 @@
   const caseMapDetail = caseMap?.querySelector('#case-map-detail');
   const caseMapStages = [...(caseMap?.querySelectorAll('.case-map-stage') || [])];
   const caseMapToggle = caseMap?.querySelector('.case-map-toggle');
-  const caseMapInterval = 5000;
+  const caseMapInterval = 3000;
   let caseMapIndex = Math.max(0, caseMapStages.findIndex(stage => stage.getAttribute('aria-pressed') === 'true'));
   let caseMapTimer = 0;
   let caseMapPaused = motionPreference.matches;

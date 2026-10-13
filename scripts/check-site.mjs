@@ -359,7 +359,7 @@ assert.doesNotMatch(script, /你/, "Runtime Chinese copy uses polite address");
 assert.equal(script, await readFile(resolve(root, "script.js"), "utf8"), "Preview script must match deployed script");
 assert.match(script, /mailto:info@hiremiiglobal.com/);
 assert.match(script, /caseMapStages\.forEach/);
-assert.match(script, /const caseMapInterval = 5000/);
+assert.match(script, /const caseMapInterval = 3000/);
 assert.match(script, /\(caseMapIndex \+ 1\) % caseMapStages\.length/);
 assert.match(script, /caseMap\.contains\(document\.activeElement\)/);
 assert.match(script, /document\.addEventListener\('visibilitychange', scheduleCaseMap\)/);
