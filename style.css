@@ -399,6 +399,18 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .visa-guide-answer p:last-child{margin-bottom:0}
 .visa-guide-answer .visa-timing{font-weight:700;color:var(--night)}
 .visa-english-summary{margin:22px 0 24px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.visa-english-summary[hidden]{display:none}
+.visa-english-trigger{position:relative;display:inline;padding:0 1px;border:0;border-bottom:1px dotted var(--brand-teal);border-radius:2px;background:transparent;color:var(--brand-teal);font:inherit;line-height:inherit;text-align:inherit;white-space:nowrap;vertical-align:baseline;cursor:pointer}
+.visa-english-trigger:after{content:"";display:inline-block;width:5px;height:5px;margin:0 3px 3px 7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg)}
+.visa-english-trigger[aria-expanded=true]:after{transform:rotate(225deg);margin-bottom:0}
+.visa-english-trigger:before{content:"";position:absolute;inset:-8px -3px}
+.visa-english-trigger:disabled{color:inherit;border:0;cursor:default}
+.visa-english-trigger:disabled:after,.visa-english-trigger:disabled:before{display:none}
+.visa-english-trigger:hover,.visa-english-trigger[aria-expanded=true]{color:var(--night);border-bottom-style:solid}
+.visa-english-trigger:focus-visible{outline:2px solid var(--brand-teal);outline-offset:3px}
+.visa-english-summary[id]{margin:16px 0 22px;padding:18px 20px;border:0;border-left:2px solid var(--brand-teal);border-radius:0 12px 12px 0;background:#f3f7f1}
+.visa-english-summary[id] .visa-guide-source{margin:16px 0 0}
+@media(max-width:600px){.visa-english-summary[id]{padding:16px;margin-block:14px 20px}.visa-english-trigger:before{inset:-9px -4px}}
 .visa-english-summary h4{margin:0 0 14px;font-size:17px;line-height:1.5;color:var(--night);letter-spacing:0}
 .visa-english-summary dl{margin:0;display:grid;gap:12px}
 .visa-english-summary dl>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px}

@@ -6,6 +6,11 @@
   const form = document.querySelector('#enquiry-form');
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const siteHeader = document.querySelector('.top');
+  const englishHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const englishGuides = [...document.querySelectorAll('.visa-english-summary[id]')].map(panel => ({
+    panel, question: panel.closest('.faq-item'), button: null,
+    pinned: false, hovered: false, focused: false, suppressed: false, closeTimer: 0,
+  }));
   const caseMap = document.querySelector('.case-map');
   const caseMapDetail = caseMap?.querySelector('#case-map-detail');
   const caseMapStages = [...(caseMap?.querySelectorAll('.case-map-stage') || [])];
@@ -179,11 +184,93 @@
     }
     updateMenuLabel();
     updateCaseMapControl();
+    initialiseEnglishGuides();
     backToTop.setAttribute('aria-label', language === 'en' ? 'Back to top' : '返回顶部');
     backToTop.title = language === 'en' ? 'Back to top' : '返回顶部';
     scheduleScrollUpdate();
     try { localStorage.setItem('aqyr-demo-language', language); } catch {}
   }
+
+  function updateEnglishGuide(state) {
+    const open = state.question.open && (state.pinned || (!state.suppressed && (state.hovered || state.focused)));
+    const changed = state.panel.hidden === open;
+    state.panel.hidden = !open;
+    state.button?.setAttribute('aria-expanded', String(open));
+    if (changed) scheduleScrollUpdate();
+  }
+
+  function closeEnglishGuide(state, dismissed = false) {
+    clearTimeout(state.closeTimer);
+    state.pinned = state.hovered = state.focused = false;
+    state.suppressed = dismissed;
+    updateEnglishGuide(state);
+  }
+
+  function initialiseEnglishGuides() {
+    englishGuides.forEach(state => {
+      clearTimeout(state.closeTimer);
+      // Translation replaces the paragraph markup; rebind its new inline button.
+      const button = state.question.querySelector('.visa-english-trigger');
+      if (!button) return;
+      state.button = button;
+      state.hovered = state.focused = state.suppressed = false;
+      button.disabled = false;
+      const hoverIn = event => {
+        if (!englishHover.matches || event.pointerType !== 'mouse') return;
+        clearTimeout(state.closeTimer);
+        state.hovered = true;
+        state.suppressed = false;
+        updateEnglishGuide(state);
+      };
+      const hoverOut = event => {
+        if (event.pointerType !== 'mouse') return;
+        state.hovered = false;
+        clearTimeout(state.closeTimer);
+        // A short grace period lets the pointer cross into the reading panel.
+        state.closeTimer = setTimeout(() => updateEnglishGuide(state), 220);
+      };
+      const updateFocus = event => {
+        // relatedTarget keeps the panel open during the native blur → focus hand-off.
+        const next = event.type === 'blur' || event.type === 'focusout' ? event.relatedTarget : event.target;
+        state.focused = state.panel.contains(next) ||
+          (next === state.button && state.button.matches(':focus-visible'));
+        if (next && !state.focused && !state.hovered) state.suppressed = false;
+        updateEnglishGuide(state);
+      };
+      button.addEventListener('pointerenter', hoverIn);
+      button.addEventListener('pointerleave', hoverOut);
+      button.addEventListener('focus', updateFocus);
+      button.addEventListener('blur', updateFocus);
+      button.addEventListener('click', () => {
+        state.pinned = !state.pinned;
+        state.suppressed = !state.pinned;
+        updateEnglishGuide(state);
+      });
+      if (!state.bound) {
+        state.panel.addEventListener('pointerenter', hoverIn);
+        state.panel.addEventListener('pointerleave', hoverOut);
+        state.panel.addEventListener('focusin', updateFocus);
+        state.panel.addEventListener('focusout', updateFocus);
+        state.question.addEventListener('toggle', () => {
+          if (!state.question.open) closeEnglishGuide(state);
+        });
+        state.question.addEventListener('keydown', event => {
+          if (event.key !== 'Escape' || state.panel.hidden) return;
+          event.preventDefault();
+          state.button?.focus({ preventScroll: true });
+          closeEnglishGuide(state, true);
+        });
+        state.bound = true;
+      }
+      updateEnglishGuide(state);
+    });
+  }
+
+  document.addEventListener('pointerdown', event => {
+    englishGuides.forEach(state => {
+      if (!state.button?.contains(event.target) && !state.panel.contains(event.target)) closeEnglishGuide(state);
+    });
+  });
 
   function updateMenuLabel() {
     const open = menuButton?.getAttribute('aria-expanded') === 'true';

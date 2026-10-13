@@ -296,6 +296,12 @@ for (const route of routes) {
       assert(html.includes('class="visa-english-summary"'), "Rendered page includes current English score summary");
       const english = source.match(new RegExp('<details[^>]*id="' + id + '"[\\s\\S]*?<\\/details>'))?.[0];
       assert.match(english, /class="visa-english-summary"/);
+      const panelId = id + '-english';
+      assert(english.includes('aria-controls="' + panelId + '" aria-expanded="true" disabled'), "Progressively enhanced inline English control: " + id);
+      assert(english.includes('id="' + panelId + '" role="region" aria-labelledby="' + panelId + '-heading"'), "English panel has an accessible heading: " + id);
+      const panel = english.match(/<div class="visa-english-summary"[\s\S]*?<p class="visa-guide-source">[\s\S]*?<\/p><\/div>/)?.[0];
+      assert(panel, "Official English source stays inside the on-demand panel: " + id);
+      assert(!panel.includes(' hidden'), "English requirements stay readable without JavaScript");
       assert.match(english, /<dt>IELTS<\/dt>/);
       assert.match(english, /<dt>PTE Academic<\/dt>/);
       if (id === "482-requirements") {
@@ -399,7 +405,20 @@ assert.match(script, /if \(node\.contains\(event\.target\)\) showModule\(node, t
 assert.match(script, /event\.propertyName === 'opacity'/);
 assert.match(script, /node\.dataset\.ariaLabelZh/);
 assert.match(script, /node\.dataset\.altZh/);
+assert.match(script, /initialiseEnglishGuides\(\);/);
+assert.match(script, /button\.disabled = false/);
+assert.match(script, /state\.panel\.hidden = !open/);
+assert.match(script, /state\.button\?\.setAttribute\('aria-expanded', String\(open\)\)/);
+assert.match(script, /englishHover\.matches/);
+assert.match(script, /state\.panel\.addEventListener\('pointerenter', hoverIn\)/);
+assert.match(script, /button\.addEventListener\('click'/);
+assert.match(script, /button\.addEventListener\('focus', updateFocus\)/);
+assert.match(script, /event\.relatedTarget : event\.target/);
+assert.match(script, /state\.button\?\.focus\(\{ preventScroll: true \}\);\s*closeEnglishGuide\(state, true\)/);
+assert.match(script, /event\.key !== 'Escape' \|\| state\.panel\.hidden/);
 const sharedStyles = await readFile(resolve(root, "style.css"), "utf8");
+assert.match(sharedStyles, /\.visa-english-summary\[hidden\]\{display:none\}/);
+assert.match(sharedStyles, /\.visa-english-trigger:focus-visible\{/);
 assert.doesNotMatch(sharedStyles, /--ochre|var\(--ochre\)|#8a6637|#71542d|#b7a181/i, "Editorial accents use brand colours");
 assert.doesNotMatch(sharedStyles, /ui-monospace|Consolas|Courier|monospace/i, "Brand display text does not use an unrelated monospace face");
 assert.match(sharedStyles, /\.person \.role\{color:var\(--brand-teal\)\}/);
