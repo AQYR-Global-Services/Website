@@ -198,7 +198,7 @@ for (const route of routes) {
   if (route === "team") {
     assert.match(source, /AQYR Global Services is a subsidiary of AQYR\./);
     assert.match(source, /data-en="Senior Migration Operations Manager" data-zh="高级移民运营经理"/);
-    assert.match(source, /data-en="Accounts and Admin Officer" data-zh="账务与行政专员"/);
+    assert.match(source, /data-en="Accounts &amp; Admin Officer" data-zh="账务与行政专员"/);
     assert.doesNotMatch(source, /Clients &amp; Coordination Manager|Accounts &amp; Finance/);
     assert.match(source, /As a registered migration agent/);
     assert.equal((source.match(/class="bio"/g) || []).length, 9);
