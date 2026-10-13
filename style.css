@@ -93,9 +93,27 @@ html[data-lang=zh] body{font-family:'Albert Sans','PingFang SC','Microsoft YaHei
 
 /* Quiet feedback and reading aids; no loading overlay or interaction blocking. */
 html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','Microsoft YaHei',Arial,sans-serif}
-.motion-ready .reveal{transition-delay:var(--reveal-delay,0ms)}
-.motion-ready .hero-content{animation:hero-enter .65s ease-out both}
-.motion-ready .hero-photo{animation:hero-enter .75s .1s ease-out both}
+.motion-ready .reveal[data-reveal]{--reveal-x:0px;--reveal-y:16px;--reveal-scale:1;opacity:0;transform:translate(var(--reveal-x),var(--reveal-y)) scale(var(--reveal-scale));transition:opacity .6s cubic-bezier(.22,1,.36,1),transform .6s cubic-bezier(.22,1,.36,1);transition-delay:var(--reveal-delay,0ms)}
+.motion-ready .reveal[data-reveal=fade]{--reveal-y:0px;transition-duration:.48s}
+.motion-ready .reveal[data-reveal=side]{--reveal-x:-14px;--reveal-y:0px;transition-duration:.65s}
+.motion-ready .reveal[data-reveal=settle]{--reveal-y:10px;--reveal-scale:.985;transition-duration:.68s}
+.motion-ready .reveal.on{opacity:1;transform:none}
+@media(max-width:600px){
+  .motion-ready .reveal[data-reveal]{--reveal-y:12px;transition-delay:0ms;transition-duration:.5s}
+  .motion-ready .reveal[data-reveal=side]{--reveal-x:0px;--reveal-y:10px}
+  .motion-ready .reveal[data-reveal=settle]{--reveal-scale:.995;--reveal-y:8px}
+}
+@media(prefers-reduced-motion:reduce){.motion-ready .reveal[data-reveal]{opacity:1;transform:none;transition:none}}
+.hero .brand-transition{margin:24px 0 0;font-size:13px;font-weight:400;line-height:1.65;color:#bdd4c6;text-wrap:pretty}
+/* A short, staggered entrance like the group site; never a loading screen. */
+.entrance-ready .hero-content> :is(.eyebrow,h1,p,.actions){animation:hero-enter 1s var(--entrance-delay,0s) cubic-bezier(.22,1,.36,1) both}
+.entrance-ready .hero-content>.eyebrow{--entrance-delay:0s}
+.entrance-ready .hero-content>h1{--entrance-delay:.08s}
+.entrance-ready .hero-content>p{--entrance-delay:.18s}
+.entrance-ready .hero-content>.actions{--entrance-delay:.28s}
+.entrance-ready .hero-content>.brand-transition{--entrance-delay:.36s}
+.entrance-ready .hero-layout> :is(.hero-photo,.hero-visual,.case-map){animation:hero-enter 1.1s .15s cubic-bezier(.22,1,.36,1) both}
+.entrance-ready .hero :is(a,button):focus-visible,.entrance-ready .hero-content>.actions:focus-within{animation:none}
 .hero-visual{animation:none}
 .link-icon{transition:transform .22s ease}
 .audience,.office,.person,.case-study,.specialism-card{transition:border-color .25s,box-shadow .25s}
@@ -115,7 +133,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .back-to-top:hover{background:#2b5b46}
 .page-jump a{transition:background .2s,border-color .2s}
 .page-jump a[aria-current=location]{background:var(--night);border-color:var(--night);color:#fff}
-@keyframes hero-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes hero-enter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 @keyframes answer-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media(hover:hover) and (pointer:fine){
   .specialism-card:hover{border-color:#236c4966;box-shadow:0 10px 30px #1f44340a}
@@ -133,7 +151,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
   .back-to-top{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px}
 }
 @media(prefers-reduced-motion:reduce){
-  .motion-ready .hero-content,.motion-ready .hero-photo,.faq-item[open] p{animation:none}
+  .entrance-ready .hero-content> :is(.eyebrow,h1,p,.actions),.entrance-ready .hero-layout> :is(.hero-photo,.hero-visual,.case-map),.faq-item[open] p{animation:none}
   .motion-ready .reveal,.link-icon,.audience,.office,.person,.case-study,.specialism-card,.faq-item,.faq-item summary,.faq-mark:after,.field input,.field select,.field textarea,.back-to-top,.page-jump a{transition:none}
 }
 
@@ -317,7 +335,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .hero-personal-photo img{object-position:50% 78%}
 .personal-photo-note{position:absolute;bottom:18px;left:18px;right:18px;padding:14px 18px;color:#fff;background:#133b33e8;border:1px solid #c4efdc33;border-radius:12px;backdrop-filter:blur(10px);font-size:14px}
 .hero-visual{background:radial-gradient(ellipse at 100% 0%,#447e6759,transparent 70%),linear-gradient(135deg,#204e40ed,#123c35ed);box-shadow:0 28px 50px -20px #071d1a99,inset 0 1px 0 #d2eadc30;border-color:#b6f1d14d}
-.motion-ready .case-lens{animation:lens-enter .7s .25s ease-out both}
+.entrance-ready .case-lens{animation:lens-enter .8s .3s ease-out both}
 @keyframes lens-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:900px){.hero-case-photo img{aspect-ratio:16/11}.hero-personal-photo img{object-position:50% 78%}}
 @media(max-width:600px){
@@ -328,7 +346,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
   .personal-photo-note{font-size:12px;padding:11px 14px;left:12px;right:12px;bottom:12px}
   .hero-personal-photo img{aspect-ratio:4/3}
 }
-@media(prefers-reduced-motion:reduce){.motion-ready .case-lens{animation:none}.service-entry .audience,.choice-cards>.audience{transition:none}}
+@media(prefers-reduced-motion:reduce){.entrance-ready .case-lens{animation:none}.service-entry .audience,.choice-cards>.audience{transition:none}}
 
 /* Company and historical cases: open editorial layouts, with one quiet outcome panel. */
 .page-about .legal-hero .wrap{max-width:900px}

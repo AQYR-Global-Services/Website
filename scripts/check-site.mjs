@@ -68,6 +68,18 @@ for (const route of routes) {
   assert.match(html, /id="main-content"/);
   assert.equal((html.match(/<h1\b/g) || []).length, 1, "One main heading: " + route);
   const source = await readFile(resolve(root, "content", (route || "index") + ".html"), "utf8");
+  if (route === "") {
+    const notice = source.match(/<p class="brand-transition"[^>]*>[\s\S]*?<\/p>/)?.[0];
+    assert(notice, "Homepage has a quiet brand-transition notice");
+    assert.match(notice, /data-en="Hiremii Global Services is now AQYR Global Services\."/);
+    assert.match(notice, /data-zh="Hiremii Global Services 现已更名为 AQYR Global Services。"/);
+    assert.doesNotMatch(notice, /邮箱|@|email/i);
+    assert(source.indexOf(notice) > source.indexOf('<div class="actions">'));
+    assert(source.indexOf(notice) < source.indexOf('<figure class="hero-photo'));
+    assert.match(html, /class="brand-transition"/);
+  } else {
+    assert(!source.includes('class="brand-transition"'), "Rename notice is homepage-only");
+  }
   assert.match(source, /data-en="Global Services"/);
   assert.match(source, /data-aria-label-en="AQYR Global Services home" data-aria-label-zh="AQYR Global Services 首页"/);
   assert.match(source, /data-aria-label-en="Main navigation" data-aria-label-zh="主导航"/);
@@ -366,9 +378,34 @@ assert.match(script, /document\.addEventListener\('visibilitychange', scheduleCa
 assert.match(script, /caseMapDetail\.setAttribute\('aria-live', manual \? 'polite' : 'off'\)/);
 assert.match(script, /siteHeader\?\.classList\.toggle\('is-compact'/);
 assert.match(script, /motionPreference\.matches/);
+assert.match(script, /!motionPreference\.matches && performance\.now\(\) - pageInteractiveAt < 1800 && window\.scrollY < 40/);
+assert.match(script, /root\.classList\.add\('entrance-ready'\)/);
+assert.match(script, /root\.classList\.remove\('entrance-ready'\), 1500/);
+assert.match(script, /const moduleMotion = new Map\(\)/);
+assert.match(script, /registerMotion\('\.legal-copy>\*/);
+assert.match(script, /registerMotion\('\.faq-item, \.comparison-wrap, \.form-demo[^']*', 'fade'\)/);
+assert.match(script, /registerMotion\('\.step', 'side'\)/);
+assert.match(script, /node\.closest\('\.hero, \.page-jump, \.case-directory'\)/);
+assert.match(script, /moduleMotion\.has\(parent\)/);
+assert.match(script, /observer\.unobserve\(node\)/);
+assert.match(script, /document\.addEventListener\('focusin'/);
+assert.match(script, /window\.addEventListener\('hashchange'/);
+assert.match(script, /if \(node\.contains\(event\.target\)\) showModule\(node, true\)/);
+assert.match(script, /event\.propertyName === 'opacity'/);
 assert.match(script, /node\.dataset\.ariaLabelZh/);
 assert.match(script, /node\.dataset\.altZh/);
 const sharedStyles = await readFile(resolve(root, "style.css"), "utf8");
+assert.match(sharedStyles, /\.hero \.brand-transition\{[^}]*font-size:13px/);
+assert.match(sharedStyles, /--entrance-delay:\.08s/);
+assert.match(sharedStyles, /--entrance-delay:\.18s/);
+assert.match(sharedStyles, /--entrance-delay:\.28s/);
+for (const effect of ['fade', 'side', 'settle']) {
+  assert(sharedStyles.includes('[data-reveal=' + effect + ']'), 'Module appearance variant: ' + effect);
+}
+assert.match(sharedStyles, /\.motion-ready \.reveal\.on\{opacity:1;transform:none\}/);
+assert.match(sharedStyles, /@media\(max-width:600px\)\{\s*\.motion-ready \.reveal\[data-reveal\]\{[^}]*transition-delay:0ms/);
+assert.match(sharedStyles, /@media\(prefers-reduced-motion:reduce\)\{\.motion-ready \.reveal\[data-reveal\]\{opacity:1;transform:none;transition:none\}\}/);
+assert.match(sharedStyles, /@media\(prefers-reduced-motion:reduce\)\{\s*\.entrance-ready[^}]*animation:none/);
 assert.match(sharedStyles, /--focus-on-dark:#b8edcf/);
 assert.match(sharedStyles, /outline-color:var\(--focus-on-dark\)/);
 assert.match(sharedStyles, /\.legal-copy\{max-width:68ch\}/);

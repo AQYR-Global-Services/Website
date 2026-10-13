@@ -329,6 +329,17 @@
     });
   }
 
+  // Do not re-hide a page someone has already read while slow scripts were loading.
+  // The entrance changes only opacity/transform; links and anchor navigation stay available.
+  const pageInteractiveAt = performance.getEntriesByType('navigation')[0]?.domInteractive || 0;
+  if (!motionPreference.matches && performance.now() - pageInteractiveAt < 1800 && window.scrollY < 40) {
+    root.classList.add('entrance-ready');
+    window.setTimeout(() => root.classList.remove('entrance-ready'), 1500);
+    motionPreference.addEventListener('change', event => {
+      if (event.matches) root.classList.remove('entrance-ready');
+    });
+  }
+
   // Content stays visible when JavaScript is unavailable; motion is progressive enhancement.
   const caseCounter = document.querySelector('[data-count-to]');
   if (caseCounter && 'IntersectionObserver' in window && !motionPreference.matches) {
@@ -371,25 +382,88 @@
   }
 
   if ('IntersectionObserver' in window && !motionPreference.matches) {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('on');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.06 });
-    root.classList.add('motion-ready');
-    document.querySelectorAll('.grid2, .grid3, .specialism-grid, .team-support, .partner-grid').forEach(group => {
+    // Animate reading-sized blocks, never a whole long section or a sticky navigation.
+    const moduleMotion = new Map();
+    const registerMotion = (selector, effect) => {
+      document.querySelectorAll(selector).forEach(node => moduleMotion.set(node, effect));
+    };
+    registerMotion('main .reveal', 'rise');
+    document.querySelectorAll('.intro, .scene-intro, .experience-track, .case-detailed').forEach(group => {
+      moduleMotion.delete(group);
+      group.classList.remove('reveal', 'on');
+    });
+    registerMotion('.intro>div, .intro>p, .planning-heading, .case-group-intro, .case-heading', 'fade');
+    registerMotion('.scene-copy', 'side');
+    registerMotion('.scene-photo, .audience, .specialism-card, .office, .partner-logo, .comparison-card, .experience-volume, .case-outcome', 'settle');
+    registerMotion('.person, .judgement-notes>article, .planning-columns>article, .company-service-columns>article, .experience-insights>article, .case-context, .case-work', 'rise');
+    registerMotion('.step', 'side');
+    registerMotion('.faq-item, .comparison-wrap, .form-demo, .processing-times-entry, .service-links, .planning-note, .planning-review>p', 'fade');
+    registerMotion('.legal-copy>*, .section>.wrap>.label, .section>.wrap>h2, .section>.wrap>.note, .trust-row>*, .cta-inner>*, .footer-main, .footer-compliance, .footer-bottom', 'fade');
+
+    // Neighbouring cards have a small stagger; text never waits in a long queue.
+    document.querySelectorAll('.grid2, .grid3, .specialism-grid, .team-support, .partner-grid, .planning-columns, .company-service-columns, .cta-inner, .trust-row').forEach(group => {
       [...group.children].forEach((node, index) => {
-        if (node.matches('.reveal')) node.style.setProperty('--reveal-delay', Math.min(index % 3, 2) * 65 + 'ms');
+        if (moduleMotion.has(node)) node.style.setProperty('--reveal-delay', Math.min(index % 3, 2) * 85 + 'ms');
       });
     });
-    document.querySelectorAll('.reveal').forEach(node => observer.observe(node));
+
+    const revealNodes = [...moduleMotion.keys()].filter(node => {
+      if (node.closest('.hero, .page-jump, .case-directory')) return false;
+      // Avoid double movement when a module already includes its own children.
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+        if (moduleMotion.has(parent)) return false;
+      }
+      return true;
+    });
+    const showModule = (node, immediate = false) => {
+      node.classList.add('on');
+      observer.unobserve(node);
+      if (immediate) node.classList.remove('reveal');
+    };
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) showModule(entry.target);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
+    revealNodes.forEach(node => {
+      node.classList.add('reveal');
+      node.dataset.reveal = moduleMotion.get(node);
+      // Return completed cards to their original hover/focus transition rules.
+      node.addEventListener('transitionend', event => {
+        if (event.target === node && event.propertyName === 'opacity' && node.classList.contains('on')) {
+          node.classList.remove('reveal');
+        }
+      });
+      // Already-read content and an initial deep link should never disappear.
+      if (node.getBoundingClientRect().top < window.innerHeight) {
+        node.classList.add('on');
+        node.classList.remove('reveal');
+      }
+      else observer.observe(node);
+    });
+    root.classList.add('motion-ready');
+    document.addEventListener('focusin', event => {
+      revealNodes.forEach(node => {
+        if (node.contains(event.target)) showModule(node, true);
+      });
+    });
+    window.addEventListener('hashchange', () => {
+      let target;
+      try { target = document.getElementById(decodeURIComponent(location.hash.slice(1))); }
+      catch { return; }
+      if (!target) return;
+      revealNodes.forEach(node => {
+        if (target.contains(node) || node.contains(target)) showModule(node, true);
+      });
+    });
     motionPreference.addEventListener('change', event => {
       if (event.matches) {
         root.classList.remove('motion-ready');
         observer.disconnect();
+        revealNodes.forEach(node => {
+          node.classList.add('on');
+          node.classList.remove('reveal');
+        });
       }
     });
   }
