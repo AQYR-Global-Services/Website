@@ -184,7 +184,13 @@ for (const route of routes) {
     assert.match(source, /data-en="Accounts and Admin Officer" data-zh="账务与行政专员"/);
     assert.doesNotMatch(source, /Clients &amp; Coordination Manager|Accounts &amp; Finance/);
     assert.match(source, /As a registered migration agent/);
-    assert.equal((source.match(/class="bio"/g) || []).length, 8);
+    assert.equal((source.match(/class="bio"/g) || []).length, 9);
+    const teamNames = [...source.matchAll(/<article class="person[^>]*>[\s\S]*?<h3>([^<]+)<\/h3>/g)].map(([, name]) => name);
+    assert.deepEqual(teamNames, ["Leon Gao", "Romeo Ye", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Catherian Zhang", "Barry Zhang"]);
+    assert.match(source, /data-en="Automation &amp; Digital Specialist" data-zh="自动化与数字化专员"/);
+    assert.match(source, /id="barry-zhang"/);
+    assert.match(source, /automation and digital marketing/);
+    assert.match(html, /\/team\/barry-zhang-480\.webp/);
   }
   if (route === "") {
     const trust = source.match(/<aside class="home-trust"[\s\S]*?<\/aside>/)?.[0];
