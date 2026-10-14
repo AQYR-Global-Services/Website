@@ -1,0 +1,41 @@
+{
+  "checked": "2026-10-14",
+  "notes": "Brand assets are kept locally at source resolution. Do not regenerate the low-resolution 280x170 partner thumbnails. Brand names and artwork belong to their respective owners.",
+  "logos": [
+    {
+      "file": "mastlink.png",
+      "source": "https://www.mastlink.com.au/wp-content/uploads/2024/10/mastlink蓝色-无底.png",
+      "dimensions": [666, 375],
+      "notes": "Official transparent PNG, same mark as the user-provided JPEG."
+    },
+    {
+      "file": "sequoia.webp",
+      "source": "https://www.sequoia.com.au/wp-content/uploads/2023/05/Sequoia_logo.webp",
+      "dimensions": [413, 156],
+      "notes": "Official header artwork; retain original resolution without artificial enlargement."
+    },
+    {
+      "file": "novatti.svg",
+      "source": "https://www.novatti.com/",
+      "notes": "Official inline header vector. Standalone SVG preserves path data; resolves currentColor to charcoal and the official #f9a600 icon colour, and restores XML clipPath casing."
+    },
+    {
+      "file": "sitrak-lk-auto.png",
+      "source": "User-supplied original PNG",
+      "dimensions": [738, 225],
+      "notes": "Replaces ADLV at the user's request; copied without resizing or recompression."
+    },
+    {
+      "file": "parallel-workshop.png",
+      "source": "https://www.parallelworkshop.com.au/wp-content/uploads/2025/07/logo-black.png",
+      "dimensions": [692, 176],
+      "notes": "Official full-resolution header logo."
+    },
+    {
+      "file": "pullman.svg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pullman_logo_2013.svg",
+      "assetUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Pullman_logo_2013.svg",
+      "notes": "Matching existing brand mark in vector form; source credits AccorHotels Deutschland. Trademark rights remain with the owner."
+    }
+  ]
+}
