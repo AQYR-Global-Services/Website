@@ -743,8 +743,17 @@ html{scroll-padding-top:104px}
 .case-directory li a{display:flex;align-items:center;min-height:44px;padding:10px 12px;border-left:2px solid var(--line);color:var(--muted);font-size:13px;line-height:1.55;text-decoration:none;text-wrap:pretty}
 .case-directory a:hover{color:var(--night);background:#e4eedf66}
 .case-directory li a[aria-current=location]{border-left-color:#007d8a;color:var(--night);background:linear-gradient(90deg,#e4eedfcc,#e4eedf00);font-weight:600}
+/* Balance bilingual reading text so short tails do not hang on a final line.
+   Paragraphs still wrap naturally; type sizes and reading widths stay unchanged. */
+main p,main li,main .hero p,main .hero .brand-transition,main .intro p,main .case-reading-content>.intro>p,main .processing-times-entry p,main .visa-transition-note{ text-wrap:balance }
+/* A few long English paragraphs exceed the browser's balancing line limit.
+   Keep only their short closing phrase together, never the whole paragraph. */
+.text-tail{white-space:nowrap}
 @media(max-width:1000px){
  .case-reading-layout{display:block}
+ .case-reading-content .case-outcome{display:block}
+ .case-reading-content .case-outcome h4{margin-bottom:8px}
+ .case-reading-content .case-outcome p.note{margin-top:12px}
  .case-directory{top:102px;background:#fafbf8f2;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin-bottom:32px}
  body:has(.top.is-compact) .case-directory{top:84px}
  .case-directory-track{display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;padding:8px 4px}

@@ -261,7 +261,8 @@ for (const route of routes) {
     assert.match(source, /This is separate from Direct Entry and TRT/);
     assert.match(source, /It is not permanent residence/);
     assert.match(source, /not an automatic grant/);
-    assert.match(source, /not necessarily all three/);
+    assert.match(source, /Not every agreement covers all three visas\./);
+    assert.match(source, /协议不一定涵盖全部三类签证。/);
     assert.match(source, /Regional endorsement is required/);
     assert.match(source, /For employers across industries/);
     assert.doesNotMatch(source.match(/<main[\s\S]*?<\/main>/)?.[0] || "", /construction|renewable energy|meat processing|建筑|新能源|肉类加工/i);
@@ -276,7 +277,7 @@ for (const route of routes) {
   if (route === "employers") {
     assert.match(source, /id="hiring-review"/);
     assert.equal((source.match(/class="planning-columns"/g) || []).length, 1);
-    for (const heading of ["Define the work.", "Consider the available talent.", "Agree a workable next step."]) {
+    for (const heading of ["Define the work.", "Consider the available talent.", "Agree the next step."]) {
       assert(source.includes('data-en="' + heading + '"'), "Pre-recruitment planning: " + heading);
     }
     assert.match(source, /available market information/);
@@ -485,6 +486,9 @@ assert.match(script, /event\.relatedTarget : event\.target/);
 assert.match(script, /state\.button\?\.focus\(\{ preventScroll: true \}\);\s*closeEnglishGuide\(state, true\)/);
 assert.match(script, /event\.key !== 'Escape' \|\| state\.panel\.hidden/);
 const sharedStyles = await readFile(resolve(root, "style.css"), "utf8");
+assert.match(sharedStyles, /main \.intro p[^\n]*text-wrap:balance/);
+assert.match(sharedStyles, /\.text-tail\{white-space:nowrap\}/);
+assert.match(sharedStyles, /\.case-reading-content \.case-outcome\{display:block\}/);
 assert.match(script, /registerMotion\('[^']*\.la-industry', 'settle'\)/);
 assert.match(script, /querySelectorAll\('[^']*\.la-industries'\)\.forEach\(group/);
 assert.match(sharedStyles, /\.la-industry:hover\{translate:0 -4px/);
