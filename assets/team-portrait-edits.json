@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-15",
+  "method": "Built-in image_gen image editing; original JPG files retained.",
+  "reference": "public/team/leon-gao.jpg (unchanged)",
+  "outputPattern": "public/team/{person}-unified.png",
+  "responsivePattern": "public/team/{person}-unified-{240,480}.webp",
+  "people": ["romeo-ye", "flora-zhang", "belle-zhang", "dave-yang", "sam-cui", "quinten-li", "catherian-zhang", "barry-zhang"],
+  "prompt": "Use case: identity-preserve. Image 1 is the edit target portrait; Image 2 (Leon) is background color reference only. Replace only Image 1 background with the same very light cool neutral gray studio backdrop as Image 2 (approximately #e0e3e9), subtle smooth tonal variation. Preserve the person in Image 1: facial features, glasses if any, hair, skin texture, expression, clothing, pose, original orientation, subject size, placement and square crop. Do not transfer facial features, hair or clothes from Image 2. No retouching, beautification, relighting, reframing, text, watermark or props. Output a single edited portrait.",
+  "romeoMirror": "Applied with the portrait-mirrored CSS class; saved portrait remains in original orientation."
+}

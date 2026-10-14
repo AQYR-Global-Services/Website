@@ -88,6 +88,13 @@ for (const route of routes) {
     assert(source.indexOf(notice) > source.indexOf('<div class="actions">'));
     assert(source.indexOf(notice) < source.indexOf('<figure class="hero-photo'));
     assert.match(html, /class="brand-transition"/);
+    const partnerLinks = [...source.matchAll(/<a class="partner-logo[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map(([link]) => link);
+    assert.equal(partnerLinks.length, 6, "All six partner logos link to official sites");
+    for (const link of partnerLinks) {
+      assert.match(link, /href="https:\/\//);
+      assert.match(link, /target="_blank" rel="noopener noreferrer"/);
+      assert.match(link, /data-aria-label-zh="[^"]*新标签页/);
+    }
   } else {
     assert(!source.includes('class="brand-transition"'), "Rename notice is homepage-only");
   }
@@ -228,7 +235,8 @@ for (const route of routes) {
     assert.match(source, /data-en="Automation &amp; Digital Specialist" data-zh="自动化与数字化专员"/);
     assert.match(source, /id="barry-zhang"/);
     assert.match(source, /automation and digital marketing/);
-    assert.match(html, /\/team\/barry-zhang-480\.webp/);
+    assert.match(html, /\/team\/barry-zhang-unified-480\.webp/);
+    assert.match(html, /class="portrait-mirrored" src="\/team\/romeo-ye-unified-480\.webp"/);
   }
   if (route === "") {
     const trust = source.match(/<aside class="home-trust"[\s\S]*?<\/aside>/)?.[0];

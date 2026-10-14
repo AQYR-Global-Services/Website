@@ -249,13 +249,20 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 @media(max-width:767px){.case-detailed .case-heading{flex-direction:column;gap:16px}}
 .case-heading .label{color:var(--brand-teal)}
 .case-study .tag{background:#eee8dd;border:0;color:var(--night)}
-.partner-grid{grid-template-columns:repeat(6,minmax(0,1fr));align-items:center;gap:clamp(16px,2.4vw,32px)}
+.partner-grid{grid-template-columns:repeat(6,minmax(0,1fr));align-items:center;gap:clamp(16px,1.8vw,24px)}
 .partner-logo{background:transparent;border:0;border-radius:0;min-width:0;min-height:108px;padding:8px 0}
-.partner-logo img{display:block;width:100%;max-width:160px;height:72px;object-fit:contain;mix-blend-mode:multiply}
+.partner-logo img{display:block;width:100%;max-width:180px;height:84px;object-fit:contain;mix-blend-mode:multiply}
 /* The taller interlocking mark needs less width to match the wordmarks' visual weight. */
-.partner-logo--mastlink img{max-width:116px}
+.partner-logo--mastlink img{max-width:132px}
+.partner-swipe-hint{display:none}
 @media(max-width:1099px){.partner-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}}
-@media(max-width:600px){.partner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.partner-logo{min-height:100px;padding:12px}.partner-logo img{height:64px}.partner-logo--mastlink img{max-width:104px}}
+@media(max-width:600px){
+ .partner-grid{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:180px;gap:24px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:6px;padding:6px 6px 16px;margin-inline:-6px;scrollbar-width:thin;scrollbar-color:var(--sage) transparent}
+ .partner-logo{min-height:104px;padding:8px;scroll-snap-align:start}
+ .partner-logo img{max-width:164px;height:84px}
+ .partner-logo--mastlink img{max-width:132px}
+ .partner-swipe-hint{display:block;margin:0 0 14px;font-size:12px;line-height:1.5;color:var(--muted)}
+}
 .experience-track{background:transparent;border:0;border-radius:0;overflow:visible;gap:48px}
 .experience-volume{border-radius:26px 64px 26px 26px;background:linear-gradient(145deg,var(--night),var(--teal));box-shadow:0 28px 44px -30px #193c3180}
 .experience-insights{padding:16px 0}
@@ -360,6 +367,9 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .page-about .legal-hero p{max-width:68ch}
 .company-profile .legal-copy>section:first-child h2{margin-top:0}
 .company-profile .legal-copy p{line-height:1.85;margin:0 0 18px}
+.person img.portrait-mirrored{transform:scaleX(-1);border-radius:36px 16px 16px 16px}
+.partner-logo:focus-visible{outline:2px solid var(--brand-teal);outline-offset:5px}
+.partner-logo:hover img{opacity:.8}
 .company-registration{margin:24px 0;border-top:1px solid var(--line)}
 .company-registration>div{display:grid;grid-template-columns:170px minmax(0,1fr);gap:24px;padding:16px 0;border-bottom:1px solid var(--line)}
 .company-registration dt{font-size:14px;font-weight:600;color:var(--night)}
@@ -486,7 +496,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .intro{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:center}
 .intro p{max-width:58ch;font-size:16px;line-height:1.65;text-wrap:pretty}
 .visa-code{white-space:nowrap}
-.brand small{font-size:11px;letter-spacing:.06em}
+.brand small{font-size:11px;letter-spacing:.06em;font-weight:600}
 .eyebrow,.label,.audience .label{font-size:11px}
 .case-lens-kicker{font-size:11px}
 .case-reading-content>.intro{display:block}
@@ -753,6 +763,8 @@ html{scroll-padding-top:104px}
    Keep headings' deliberate line breaks and both languages' type sizes unchanged. */
 html[data-lang=en] :is(main p,main li,main .hero p,main .hero .brand-transition,main .intro p,main .case-reading-content>.intro>p,main .processing-times-entry p,main .visa-transition-note){text-wrap:balance}
 html[data-lang=zh] :is(main p,main li,main .hero p,main .hero .brand-transition,main .intro p,main .case-reading-content>.intro>p,main .processing-times-entry p,main .visa-transition-note){text-wrap:wrap}
+html[data-lang=en] main .legal-section .legal-copy p{text-align:justify;text-align-last:start;hyphens:auto;text-wrap:wrap}
+html[data-lang=en] .legal-copy .text-tail{white-space:normal}
 /* A few long English paragraphs exceed the browser's balancing line limit.
    Keep only their short closing phrase together, never the whole paragraph. */
 .text-tail{white-space:nowrap}
