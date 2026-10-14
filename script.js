@@ -3,6 +3,10 @@
   const languageButton = document.querySelector('[data-language-toggle]');
   const menuButton = document.querySelector('.menu');
   const navigation = document.querySelector('.nav');
+  const navGroups = [...document.querySelectorAll('.nav-group')];
+  const navHover = window.matchMedia('(min-width: 1101px) and (hover: hover) and (pointer: fine)');
+  const navCloseTimers = new Map();
+  const navHoverTimers = new Map();
   const form = document.querySelector('#enquiry-form');
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const siteHeader = document.querySelector('.top');
@@ -280,11 +284,52 @@
   }
 
   function closeMenu(returnFocus = false) {
+    closeNavGroups();
     navigation?.classList.remove('open');
     menuButton?.setAttribute('aria-expanded', 'false');
     updateMenuLabel();
     if (returnFocus) menuButton?.focus();
   }
+
+  function closeNavGroups(except = null, returnFocus = false) {
+    navGroups.forEach(group => {
+      clearTimeout(navCloseTimers.get(group));
+      if (group === except) return;
+      clearTimeout(navHoverTimers.get(group));
+      const wasOpen = group.open;
+      group.open = false;
+      if (returnFocus && wasOpen) group.querySelector('summary')?.focus();
+    });
+  }
+  navGroups.forEach(group => {
+    group.querySelector('summary').addEventListener('pointerdown', () => clearTimeout(navHoverTimers.get(group)));
+    group.querySelector('summary').addEventListener('click', () => clearTimeout(navHoverTimers.get(group)));
+    group.addEventListener('toggle', () => {
+      if (group.open) closeNavGroups(group);
+    });
+    group.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'mouse' || !navHover.matches) return;
+      clearTimeout(navCloseTimers.get(group));
+      closeNavGroups(group);
+      clearTimeout(navHoverTimers.get(group));
+      navHoverTimers.set(group, setTimeout(() => { group.open = true; }, 150));
+    });
+    group.addEventListener('pointerleave', event => {
+      if (event.pointerType !== 'mouse' || !navHover.matches) return;
+      clearTimeout(navHoverTimers.get(group));
+      navCloseTimers.set(group, setTimeout(() => {
+        if (!group.contains(document.activeElement)) group.open = false;
+      }, 150));
+    });
+    group.addEventListener('focusout', event => {
+      // Focus briefly passes through the body between summary and child links.
+      // relatedTarget preserves in-group navigation before the link activates.
+      if (group.contains(event.relatedTarget)) return;
+      setTimeout(() => {
+        if (!group.contains(document.activeElement)) group.open = false;
+      }, 0);
+    });
+  });
 
   const pageLinks = [...document.querySelectorAll('.page-jump a[href^="#"], .case-directory li a[href^="#"]')]
     .map(link => ({ link, target: document.getElementById(link.hash.slice(1)) }))
@@ -373,12 +418,18 @@
     if (new URL(link.getAttribute('href'), location.href).pathname === location.pathname) {
       link.setAttribute('aria-current', 'page');
     }
-    link.addEventListener('click', () => closeMenu());
+    // Native links navigate normally; the new document starts with every menu closed.
   });
   document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && navGroups.some(group => group.open)) {
+      event.preventDefault();
+      closeNavGroups(null, true);
+      return;
+    }
     if (event.key === 'Escape' && navigation?.classList.contains('open')) closeMenu(true);
   });
   document.addEventListener('click', event => {
+    if (!event.target.closest('.top')) closeNavGroups();
     if (navigation?.classList.contains('open') && !event.target.closest('.top')) closeMenu();
   });
   window.matchMedia('(min-width: 1101px)').addEventListener('change', event => {
@@ -392,6 +443,9 @@
       requestSelect.value = requestedService;
     }
     if (requestedService === 'labour-agreement') form.querySelector('[name="enquiryType"]').value = 'Employer';
+    const audience = new URLSearchParams(location.search).get('audience');
+    const enquiryAudience = { employer: 'Employer', individual: 'Skilled professional' }[audience];
+    if (enquiryAudience) form.querySelector('[name="enquiryType"]').value = enquiryAudience;
     const labourHint = form.querySelector('#labour-enquiry-hint');
     const updateLabourHint = () => {
       if (labourHint) labourHint.hidden = requestSelect.value !== 'labour-agreement';

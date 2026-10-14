@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
+import { loadPageSource } from "../lib/content-source.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const base = process.argv[2] || "http://127.0.0.1:3000";
-const routes = ["", "about", "employers", "visa-services", "employer-sponsorship", "labour-agreements", "approach",
+const routes = ["", "about", "employers", "visa-services", "employer-sponsorship", "sponsored-visas", "labour-agreements", "approach",
   "case-studies", "team", "contact", "privacy", "terms"];
 const assets = new Set();
 const titles = new Set();
@@ -65,6 +66,7 @@ for (const route of routes) {
   assert.equal(organization.address.streetAddress, "Office 121, Level 1 / 847 Whitehorse Road");
   assert.equal(offices[1].address.streetAddress, "Level 1 / 251 St Georges Terrace");
   assert.equal(offices[1].address.postalCode, "6000");
+  assert.equal(offices[1].telephone, "+61 8 6263 7731");
   assert.deepEqual(offices[0].address, organization.address);
   assert.match(html, /property="og:title" content="AQYR Global Services"/);
   assert.match(html, /property="og:image" content="https?:[^\"]*\/share-cover\.png"/);
@@ -74,7 +76,7 @@ for (const route of routes) {
   assert.match(html, /name="twitter:image"/);
   assert.match(html, /id="main-content"/);
   assert.equal((html.match(/<h1\b/g) || []).length, 1, "One main heading: " + route);
-  const source = await readFile(resolve(root, "content", (route || "index") + ".html"), "utf8");
+  const source = loadPageSource((route || "index") + ".html", root);
   assert.match(source, /<title>AQYR Global Services — [^<]+<\/title>/);
   assert.match(source, /rel="icon"[^>]+href="\/aqyr-favicon.webp"/);
   if (route === "") {
@@ -100,20 +102,27 @@ for (const route of routes) {
   assert(!/src="https?:/i.test(source), "Images must be hosted locally: " + route);
   assert(!/[↗→↔]/u.test(source), "No emoji-prone text arrows: " + route);
   assert(!/再次确认|待审核|generated portraits|reconfirm roles/i.test(source));
-  assert.match(source, /data-en="Individuals &amp; Visas" data-zh="个人与签证服务"/);
+  assert.match(source, /data-en="Individual Services" data-zh="个人服务"/);
   assert.match(source, /A subsidiary of AQYR\./);
   assert.match(source, /AQYR 旗下子公司。/);
   assert(!source.includes("Part of the AQYR group."), "Explicit subsidiary relationship: " + route);
   assert.match(source, /href="\/about"/, "Company introduction link: " + route);
   const primaryNavigation = source.match(/<nav class="nav"[\s\S]*?<\/nav>/)?.[0];
-  assert(primaryNavigation && !primaryNavigation.includes('href="/about"'), "Company introduction remains footer-only: " + route);
+  assert(primaryNavigation && primaryNavigation.includes('href="/about"'), "Company introduction is available in About Us: " + route);
+  assert.deepEqual([...primaryNavigation.matchAll(/href="([^"]+)"/g)].map(([, href]) => href),
+    ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services", "/about", "/approach", "/case-studies", "/team", "/contact"],
+    "Navigation groups business, individual and company routes: " + route);
+  assert.equal((primaryNavigation.match(/<details class="nav-group">/g) || []).length, 3, "Three native dropdown groups plus Contact");
+  assert.match(primaryNavigation, /data-en="Employer Services" data-zh="企业服务"/);
+  assert.match(primaryNavigation, /data-en="About Us" data-zh="关于我们"/);
+  assert.match(primaryNavigation, /data-en="Labour agreements" data-zh="企业劳工协议"/);
   const processingTimesUrl = "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-processing-times/global-visa-processing-times";
   const footer = source.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
   footerTemplates.add(footer);
   const footerServices = footer.match(/<div class="footer-services"[\s\S]*?<\/div>/)?.[0];
   assert(footerServices, "Grouped footer services: " + route);
   assert.deepEqual([...footerServices.matchAll(/href="([^"]+)"/g)].map(([, href]) => href),
-    ["/employers", "/visa-services", "/employer-sponsorship", "/labour-agreements"], "Footer follows service architecture: " + route);
+    ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services"], "Footer follows service architecture: " + route);
   assert.match(footer, /class="footer-company" role="navigation"/);
   assert.match(footer, /class="footer-contact"[\s\S]*?href="\/contact"/);
   assert.doesNotMatch(footerServices, /Skills in Demand|Direct Entry|TRT/);
@@ -133,7 +142,7 @@ for (const route of routes) {
   assert.match(linkedInLink, /<svg[^>]*aria-hidden="true"/);
   assert.equal((servedFooter.match(/class="footer-social-link"/g) || []).length, 1);
   assert(servedFooter.includes(linkedInUrl));
-  if (["visa-services", "employer-sponsorship"].includes(route)) {
+  if (["visa-services", "employer-sponsorship", "sponsored-visas"].includes(route)) {
     const processingEntry = source.match(/<div class="processing-times-entry" id="processing-times">[\s\S]*?<\/div>/)?.[0];
     assert(processingEntry, "Lightweight processing-time entry: " + route);
     assert(processingEntry.includes('href="' + processingTimesUrl + '"'));
@@ -144,7 +153,7 @@ for (const route of routes) {
     assert.equal((source.match(/id="processing-times"/g) || []).length, 1);
     assert(html.includes('class="processing-times-entry"'), "Page entry is served: " + route);
     const entryIndex = source.indexOf('id="processing-times"');
-    if (route === "employer-sponsorship") {
+    if (route !== "visa-services") {
       assert(entryIndex > source.indexOf('id="pathway-comparison"') && entryIndex < source.indexOf('id="what-to-prepare"'), "Entry follows comparison, before preparation");
       assert.match(processingEntry, /雇主提名/);
     } else {
@@ -228,6 +237,10 @@ for (const route of routes) {
     assert.match(trust, /datetime="2026-10-01"/);
     assert.match(trust, /href="\/case-studies#sponsorship-experience"/);
     assert(source.indexOf(trust) < source.indexOf('data-en="For businesses. For individuals."'), "Evidence is immediately below the hero");
+    const employerEntry = source.match(/<article class="audience reveal">[\s\S]*?data-en="EMPLOYER SOLUTIONS"[\s\S]*?<\/article>/)?.[0];
+    assert.match(employerEntry, /class="card-link audience-secondary-link" href="\/labour-agreements"/);
+    assert.match(employerEntry, /data-zh="持续存在招聘缺口？了解企业劳工协议"/);
+    assert(employerEntry.indexOf('href="/employers"') < employerEntry.indexOf('href="/labour-agreements"'), "Labour agreement entry follows the main employer action");
   }
   if (route === "visa-services") {
     assert.equal((source.match(/class="visa-service-teaser"/g) || []).length, 4);
@@ -239,6 +252,8 @@ for (const route of routes) {
   }
   if (route === "employers") {
     assert(source.indexOf('id="labour-agreements"') < source.indexOf('id="business-support"'));
+    assert(source.indexOf('id="labour-agreements"') < source.indexOf('class="faq-list"'), "Labour agreement service appears before employer FAQs");
+    assert.equal((source.match(/class="section la-employer-section"/g) || []).length, 1, "Employer page reuses one labour agreement section");
   }
   if (route === "employer-sponsorship") {
     assert.match(source, /href="#labour-agreements"/);
@@ -271,6 +286,8 @@ for (const route of routes) {
     assert.match(source, /Concessions|concessions/);
   }
   if (route === "contact") {
+    assert.match(html, /href="tel:\+61862637731">\+61 8 6263 7731<\/a>/);
+    assert.doesNotMatch(source, /61394154000|9415 4000/);
     assert.match(source, /<option value="labour-agreement" data-en="Labour agreement" data-zh="企业劳工协议">/);
     assert.match(source, /id="labour-enquiry-hint" hidden/);
   }
@@ -328,7 +345,28 @@ for (const route of routes) {
     assert.match(source, /可按需要对接集团资源/);
     assert.doesNotMatch(source, /automatically (assess|rank)|AI-driven visa|自动评分|自动处理签证/i);
   }
-  if (route === "employer-sponsorship") {
+  if (["employer-sponsorship", "sponsored-visas"].includes(route)) {
+    const rawPage = await readFile(resolve(root, "content", route + ".html"), "utf8");
+    for (const shared of ["visa-pathways", "pathway-comparison", "482-requirements", "186-de-requirements", "186-trt-requirements"]) {
+      assert(rawPage.includes('<!-- include:sponsorship:' + shared + ' -->'), "Visa facts come from one shared source: " + route + ":" + shared);
+    }
+    assert.doesNotMatch(html, /<!-- include:/, "Shared facts are rendered on the server");
+    const pageMain = rawPage.match(/<main[\s\S]*?<\/main>/)?.[0];
+    if (route === "employer-sponsorship") {
+      assert.match(pageMain, /data-zh="企业雇主担保"/);
+      assert.match(pageMain, /id="business-readiness"/);
+      assert.match(pageMain, /id="nomination-preparation"/);
+      assert.match(pageMain, /audience=employer/);
+      assert.match(pageMain, /href="\/case-studies#business-cases"/);
+    } else {
+      assert.match(pageMain, /data-zh="个人雇主担保"/);
+      assert.match(pageMain, /id="starting-point"/);
+      assert.match(pageMain, /I have an employer/);
+      assert.match(pageMain, /I am looking for an employer/);
+      assert.match(pageMain, /cannot be guaranteed/);
+      assert.match(pageMain, /audience=individual/);
+      assert.match(pageMain, /href="\/case-studies#individual-cases"/);
+    }
     assert.match(source, /class="sponsorship-guide"/);
     assert.match(source, /class="sponsorship-content"/);
     const directory = source.match(/<nav class="page-jump"[\s\S]*?<\/nav>/)?.[0];
@@ -337,8 +375,9 @@ for (const route of routes) {
       assert(directory.includes('href="#' + target + '"'), "Directory link: " + target);
       assert(source.includes('id="' + target + '"'), "Directory target remains in full content: " + target);
     }
-    for (const id of ["sponsorship-stages", "482-requirements", "186-de-requirements",
-      "186-trt-requirements", "employer-documents"]) {
+    const requiredQuestions = ["482-requirements", "186-de-requirements", "186-trt-requirements"];
+    if (route === "employer-sponsorship") requiredQuestions.push("sponsorship-stages", "employer-documents");
+    for (const id of requiredQuestions) {
       assert(source.includes('class="faq-item" id="' + id + '"'), "Practical sponsorship FAQ: " + id);
     }
     assert.match(source, /core-skills-stream/);
@@ -415,7 +454,7 @@ for (const route of routes) {
     const slug = target.pathname.replace(/^\//, "");
     assert(routes.includes(slug), "Internal route exists: " + href);
     if (target.hash) {
-      const targetSource = slug === route ? source : await readFile(resolve(root, "content", (slug || "index") + ".html"), "utf8");
+      const targetSource = slug === route ? source : loadPageSource((slug || "index") + ".html", root);
       assert(targetSource.includes('id="' + decodeURIComponent(target.hash.slice(1)) + '"'), "Internal anchor exists: " + href);
     }
   }
@@ -486,6 +525,13 @@ assert.match(script, /event\.relatedTarget : event\.target/);
 assert.match(script, /state\.button\?\.focus\(\{ preventScroll: true \}\);\s*closeEnglishGuide\(state, true\)/);
 assert.match(script, /event\.key !== 'Escape' \|\| state\.panel\.hidden/);
 const sharedStyles = await readFile(resolve(root, "style.css"), "utf8");
+assert.match(sharedStyles, /@media\(max-width:1100px\)\{\.top/);
+assert.match(sharedStyles, /\.service-entry \.audience>a\.audience-secondary-link\{/);
+assert.match(script, /window\.matchMedia\('\(min-width: 1101px\)'\)/);
+assert.match(script, /function closeNavGroups\(/);
+assert.match(script, /group\.addEventListener\('pointerenter'/);
+assert.match(script, /group\.addEventListener\('toggle'/);
+assert.match(script, /group\.contains\(event\.relatedTarget\)/);
 assert.match(sharedStyles, /main \.intro p[^\n]*text-wrap:balance/);
 assert.match(sharedStyles, /html\[data-lang=en\] :is\([^\n]+\)\{text-wrap:balance\}/);
 assert.match(sharedStyles, /html\[data-lang=zh\] :is\([^\n]+\)\{text-wrap:wrap\}/);

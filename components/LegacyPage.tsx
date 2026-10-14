@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { loadPageSource } from "@/lib/content-source.mjs";
 
 type LegacyPageName =
   | "index.html"
@@ -7,6 +6,7 @@ type LegacyPageName =
   | "employers.html"
   | "visa-services.html"
   | "employer-sponsorship.html"
+  | "sponsored-visas.html"
   | "labour-agreements.html"
   | "approach.html"
   | "case-studies.html"
@@ -16,8 +16,7 @@ type LegacyPageName =
   | "terms.html";
 
 export function LegacyPage({ fileName }: { fileName: LegacyPageName }) {
-  const filePath = path.join(process.cwd(), "content", fileName);
-  const source = readFileSync(filePath, "utf8");
+  const source = loadPageSource(fileName);
   const body = source.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1];
 
   if (!body) {
