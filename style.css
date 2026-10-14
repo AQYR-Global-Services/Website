@@ -743,9 +743,10 @@ html{scroll-padding-top:104px}
 .case-directory li a{display:flex;align-items:center;min-height:44px;padding:10px 12px;border-left:2px solid var(--line);color:var(--muted);font-size:13px;line-height:1.55;text-decoration:none;text-wrap:pretty}
 .case-directory a:hover{color:var(--night);background:#e4eedf66}
 .case-directory li a[aria-current=location]{border-left-color:#007d8a;color:var(--night);background:linear-gradient(90deg,#e4eedfcc,#e4eedf00);font-weight:600}
-/* Balance bilingual reading text so short tails do not hang on a final line.
-   Paragraphs still wrap naturally; type sizes and reading widths stay unchanged. */
-main p,main li,main .hero p,main .hero .brand-transition,main .intro p,main .case-reading-content>.intro>p,main .processing-times-entry p,main .visa-transition-note{ text-wrap:balance }
+/* English benefits from balanced prose; Chinese should fill each line naturally.
+   Keep headings' deliberate line breaks and both languages' type sizes unchanged. */
+html[data-lang=en] :is(main p,main li,main .hero p,main .hero .brand-transition,main .intro p,main .case-reading-content>.intro>p,main .processing-times-entry p,main .visa-transition-note){text-wrap:balance}
+html[data-lang=zh] :is(main p,main li,main .hero p,main .hero .brand-transition,main .intro p,main .case-reading-content>.intro>p,main .processing-times-entry p,main .visa-transition-note){text-wrap:wrap}
 /* A few long English paragraphs exceed the browser's balancing line limit.
    Keep only their short closing phrase together, never the whole paragraph. */
 .text-tail{white-space:nowrap}

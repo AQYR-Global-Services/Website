@@ -487,6 +487,8 @@ assert.match(script, /state\.button\?\.focus\(\{ preventScroll: true \}\);\s*clo
 assert.match(script, /event\.key !== 'Escape' \|\| state\.panel\.hidden/);
 const sharedStyles = await readFile(resolve(root, "style.css"), "utf8");
 assert.match(sharedStyles, /main \.intro p[^\n]*text-wrap:balance/);
+assert.match(sharedStyles, /html\[data-lang=en\] :is\([^\n]+\)\{text-wrap:balance\}/);
+assert.match(sharedStyles, /html\[data-lang=zh\] :is\([^\n]+\)\{text-wrap:wrap\}/);
 assert.match(sharedStyles, /\.text-tail\{white-space:nowrap\}/);
 assert.match(sharedStyles, /\.case-reading-content \.case-outcome\{display:block\}/);
 assert.match(script, /registerMotion\('[^']*\.la-industry', 'settle'\)/);
