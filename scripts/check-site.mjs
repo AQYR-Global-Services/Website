@@ -490,6 +490,7 @@ assert.match(sharedStyles, /main \.intro p[^\n]*text-wrap:balance/);
 assert.match(sharedStyles, /html\[data-lang=en\] :is\([^\n]+\)\{text-wrap:balance\}/);
 assert.match(sharedStyles, /html\[data-lang=zh\] :is\([^\n]+\)\{text-wrap:wrap\}/);
 assert.match(sharedStyles, /\.text-tail\{white-space:nowrap\}/);
+assert.match(await readFile(resolve(root, "content/case-studies.html"), "utf8"), /&lt;span class=&quot;text-tail&quot;&gt;不能省略前期工作。&lt;\/span&gt;/);
 assert.match(sharedStyles, /\.case-reading-content \.case-outcome\{display:block\}/);
 assert.match(script, /registerMotion\('[^']*\.la-industry', 'settle'\)/);
 assert.match(script, /querySelectorAll\('[^']*\.la-industries'\)\.forEach\(group/);
