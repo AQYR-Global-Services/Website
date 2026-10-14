@@ -3,11 +3,11 @@ import { resolve } from "node:path";
 
 // The deployed source is content/*.html. Root HTML files are local static previews.
 const root = resolve(import.meta.dirname, "..");
-const files = ["index", "about", "employers", "talent", "sponsorship", "approach",
-  "stories", "team", "contact", "privacy", "terms"];
+const files = ["index", "about", "employers", "visa-services", "employer-sponsorship", "labour-agreements", "approach",
+  "case-studies", "team", "contact", "privacy", "terms"];
 for (const slug of files) {
   let source = await readFile(resolve(root, "content", slug + ".html"), "utf8");
-  source = source.replace(/href="\/(about|employers|talent|sponsorship|approach|stories|team|contact|privacy|terms)([?#][^"]*)?"/g,
+  source = source.replace(/href="\/(about|employers|visa-services|employer-sponsorship|labour-agreements|approach|case-studies|team|contact|privacy|terms)([?#][^"]*)?"/g,
     (_, page, suffix = "") => `href="${page}.html${suffix}"`);
   source = source.replace(/href="\/"/g, 'href="index.html"')
     .replace(/href="\/style.css"/g, 'href="style.css"')

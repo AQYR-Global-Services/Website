@@ -4,11 +4,12 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const base = process.argv[2] || "http://127.0.0.1:3000";
-const routes = ["", "about", "employers", "talent", "sponsorship", "approach",
-  "stories", "team", "contact", "privacy", "terms"];
+const routes = ["", "about", "employers", "visa-services", "employer-sponsorship", "labour-agreements", "approach",
+  "case-studies", "team", "contact", "privacy", "terms"];
 const assets = new Set();
 const titles = new Set();
 const descriptions = new Set();
+const footerTemplates = new Set();
 const packageInfo = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 assert.equal(packageInfo.name, "aqyr-global-services", "Application package name must be plural");
 const readme = await readFile(resolve(root, "README.md"), "utf8");
@@ -32,6 +33,9 @@ for (const route of routes) {
   titles.add(title);
   descriptions.add(description);
   assert.match(html, /rel="canonical"/);
+  const canonical = html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/)?.[1];
+  assert(canonical, "Canonical URL is present: " + route);
+  assert.equal(new URL(canonical).pathname, "/" + route, "Canonical follows the public route: " + route);
   assert.match(html, /application\/ld\+json/);
   const schema = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
     .map(([, json]) => JSON.parse(json));
@@ -105,6 +109,14 @@ for (const route of routes) {
   assert(primaryNavigation && !primaryNavigation.includes('href="/about"'), "Company introduction remains footer-only: " + route);
   const processingTimesUrl = "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-processing-times/global-visa-processing-times";
   const footer = source.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+  footerTemplates.add(footer);
+  const footerServices = footer.match(/<div class="footer-services"[\s\S]*?<\/div>/)?.[0];
+  assert(footerServices, "Grouped footer services: " + route);
+  assert.deepEqual([...footerServices.matchAll(/href="([^"]+)"/g)].map(([, href]) => href),
+    ["/employers", "/visa-services", "/employer-sponsorship", "/labour-agreements"], "Footer follows service architecture: " + route);
+  assert.match(footer, /class="footer-company" role="navigation"/);
+  assert.match(footer, /class="footer-contact"[\s\S]*?href="\/contact"/);
+  assert.doesNotMatch(footerServices, /Skills in Demand|Direct Entry|TRT/);
   assert(footer && !footer.includes(processingTimesUrl), "Processing-time entry stays out of the footer: " + route);
   assert(!primaryNavigation.includes(processingTimesUrl), "No processing-time item in primary navigation");
   const servedFooter = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
@@ -121,7 +133,7 @@ for (const route of routes) {
   assert.match(linkedInLink, /<svg[^>]*aria-hidden="true"/);
   assert.equal((servedFooter.match(/class="footer-social-link"/g) || []).length, 1);
   assert(servedFooter.includes(linkedInUrl));
-  if (["talent", "sponsorship"].includes(route)) {
+  if (["visa-services", "employer-sponsorship"].includes(route)) {
     const processingEntry = source.match(/<div class="processing-times-entry" id="processing-times">[\s\S]*?<\/div>/)?.[0];
     assert(processingEntry, "Lightweight processing-time entry: " + route);
     assert(processingEntry.includes('href="' + processingTimesUrl + '"'));
@@ -132,8 +144,8 @@ for (const route of routes) {
     assert.equal((source.match(/id="processing-times"/g) || []).length, 1);
     assert(html.includes('class="processing-times-entry"'), "Page entry is served: " + route);
     const entryIndex = source.indexOf('id="processing-times"');
-    if (route === "sponsorship") {
-      assert(entryIndex > source.indexOf('id="comparison"') && entryIndex < source.indexOf('id="preparation"'), "Entry follows comparison, before preparation");
+    if (route === "employer-sponsorship") {
+      assert(entryIndex > source.indexOf('id="pathway-comparison"') && entryIndex < source.indexOf('id="what-to-prepare"'), "Entry follows comparison, before preparation");
       assert.match(processingEntry, /雇主提名/);
     } else {
       const otherVisas = source.match(/<section[^>]*id="other-visas"[\s\S]*?<\/section>/)?.[0];
@@ -160,7 +172,7 @@ for (const route of routes) {
     assert.match(source, /id="company-registration"/);
     assert(!/knowledge graph|AI-powered recruitment platform/i.test(source));
   }
-  if (route === "stories") {
+  if (route === "case-studies") {
     assert.equal((source.match(/class="case-study case-detailed reveal"/g) || []).length, 7);
     assert.equal((source.match(/class="section project-cases"/g) || []).length, 1);
     assert(!/data-zh="历史案例"|SELECTED EXPERIENCE/.test(source), "Cases must share one presentation, not history/experience sections");
@@ -177,7 +189,7 @@ for (const route of routes) {
       assert.match(article, /data-zh="材料依据"/);
     }
     assert.match(source, /Some examples draw on the work of our predecessor, Hiremii Global Services/);
-    assert.match(source, /id="historical-cases"/, "Keep earlier case links working");
+    assert.doesNotMatch(source, /class="case-legacy-anchor"|id="historical-cases"/, "No pre-launch compatibility anchors");
     assert.match(source, /Nomination approved without a further information request/);
     assert.match(source, /not a visa grant/);
     const caseDirectory = source.match(/<nav class="case-directory"[\s\S]*?<\/nav>/)?.[0];
@@ -187,7 +199,7 @@ for (const route of routes) {
     assert.match(source, /<\/nav><div class="case-reading-content">/);
     const caseIds = [...source.matchAll(/<article class="case-study case-detailed reveal"[^>]*id="([^"]+)"/g)]
       .map(([, id]) => id);
-    assert.deepEqual([...caseDirectory.matchAll(/href="#(case-[^"]+)"/g)].map(([, id]) => id), caseIds);
+    assert.deepEqual([...caseDirectory.matchAll(/<li><a href="#([^"]+)"/g)].map(([, id]) => id), caseIds);
     for (const target of ["business-cases", "individual-cases"]) {
       assert(caseDirectory.includes('href="#' + target + '"'));
     }
@@ -214,13 +226,52 @@ for (const route of routes) {
     assert(trust, "Lightweight home-page evidence strip");
     assert.match(trust, /<strong>200\+<\/strong>/);
     assert.match(trust, /datetime="2026-10-01"/);
-    assert.match(trust, /href="\/stories#sponsorship-experience"/);
+    assert.match(trust, /href="\/case-studies#sponsorship-experience"/);
     assert(source.indexOf(trust) < source.indexOf('data-en="For businesses. For individuals."'), "Evidence is immediately below the hero");
   }
-  if (route === "talent") {
+  if (route === "visa-services") {
     assert.equal((source.match(/class="visa-service-teaser"/g) || []).length, 4);
     assert.equal((source.match(/class="visa-service-icon"/g) || []).length, 4);
     assert.match(source, /id="visitor-visas" open/);
+  }
+  if (["", "employers", "employer-sponsorship"].includes(route)) {
+    assert.match(source, /href="\/labour-agreements(?:#visa-pathways)?"/, "Labour agreement entry: " + route);
+  }
+  if (route === "employers") {
+    assert(source.indexOf('id="labour-agreements"') < source.indexOf('id="business-support"'));
+  }
+  if (route === "employer-sponsorship") {
+    assert.match(source, /href="#labour-agreements"/);
+    assert(source.indexOf('id="labour-agreements"') < source.indexOf('id="pathway-comparison"'));
+  }
+  if (route === "labour-agreements") {
+    assert.match(source, /class="sponsorship-guide labour-guide"/);
+    assert.match(source, /class="sponsorship-content labour-content"/);
+    const labourDirectory = source.match(/<nav class="page-jump"[\s\S]*?<\/nav>/)?.[0];
+    assert(labourDirectory, "Labour agreement reading index is present");
+    assert.match(labourDirectory, /class="page-jump-label"/);
+    assert.doesNotMatch(labourDirectory, /<svg/);
+    for (const id of ["workforce-needs", "agreement-options", "visa-pathways", "our-support", "first-conversation", "faq"]) {
+      assert(source.includes('id="' + id + '"'), "Labour agreement section: " + id);
+    }
+    for (const code of ["482", "186", "494"]) {
+      assert(source.includes('id="visa-' + code + '"'));
+      assert.match(source, new RegExp('Home Affairs: ' + code + ' Labour Agreement'));
+    }
+    assert.match(source, /This is separate from Direct Entry and TRT/);
+    assert.match(source, /It is not permanent residence/);
+    assert.match(source, /not an automatic grant/);
+    assert.match(source, /not necessarily all three/);
+    assert.match(source, /Regional endorsement is required/);
+    assert.match(source, /For employers across industries/);
+    assert.doesNotMatch(source.match(/<main[\s\S]*?<\/main>/)?.[0] || "", /construction|renewable energy|meat processing|建筑|新能源|肉类加工/i);
+    assert.doesNotMatch(source.match(/<main[\s\S]*?<\/main>/)?.[0] || "", /200\+|success rate|market leader|successful labour agreement|老板|Leon|Romeo/);
+    assert.match(source, /href="\/contact\?service=labour-agreement#enquiry"/);
+    assert.match(source, /Concessions|concessions/);
+  }
+  if (route === "contact") {
+    assert.match(source, /<option value="labour-agreement" data-en="Labour agreement" data-zh="企业劳工协议">/);
+    assert.match(source, /id="labour-enquiry-hint" hidden/);
   }
   if (route === "employers") {
     assert.match(source, /id="hiring-review"/);
@@ -276,12 +327,12 @@ for (const route of routes) {
     assert.match(source, /可按需要对接集团资源/);
     assert.doesNotMatch(source, /automatically (assess|rank)|AI-driven visa|自动评分|自动处理签证/i);
   }
-  if (route === "sponsorship") {
+  if (route === "employer-sponsorship") {
     assert.match(source, /class="sponsorship-guide"/);
     assert.match(source, /class="sponsorship-content"/);
     const directory = source.match(/<nav class="page-jump"[\s\S]*?<\/nav>/)?.[0];
     assert(directory, "Sponsorship reading directory remains accessible");
-    for (const target of ["visa-482", "visa-186", "comparison", "preparation", "sponsorship-faq"]) {
+    for (const target of ["visa-482", "visa-186", "pathway-comparison", "what-to-prepare", "faq"]) {
       assert(directory.includes('href="#' + target + '"'), "Directory link: " + target);
       assert(source.includes('id="' + target + '"'), "Directory target remains in full content: " + target);
     }
@@ -318,7 +369,7 @@ for (const route of routes) {
         assert.match(english, /english-language\/competent-english/);
       }
     }
-    const comparison = source.match(/<section[^>]*id="comparison"[\s\S]*?<\/section>/)?.[0];
+    const comparison = source.match(/<section[^>]*id="pathway-comparison"[\s\S]*?<\/section>/)?.[0];
     assert(comparison, "Sponsorship pathway comparison remains available");
     assert.match(comparison, /class="visa-transition-note"/);
     assert.match(comparison, /separate 186 TRT application/);
@@ -345,7 +396,7 @@ for (const route of routes) {
       assert(answer.includes('<strong class="visa-timing">' + english + '</strong>'), "Initial English time emphasis: " + english);
     }
   }
-  if (route === "talent") {
+  if (route === "visa-services") {
     for (const id of ["visitor-visas", "student-visas", "skilled-visas", "partner-family-visas"]) {
       const block = source.match(new RegExp('<details[^>]*id="' + id + '"[^>]*>([\\s\\S]*?)</details>'))?.[1];
       assert(block, "Individual visa guide: " + id);
@@ -358,16 +409,28 @@ for (const route of routes) {
     }
   }
   for (const [, src] of source.matchAll(/<img[^>]*src="([^"]+)"/g)) assets.add(src);
+  for (const [, href] of source.matchAll(/<a\b[^>]*href="([/#][^"]*)"/g)) {
+    const target = new URL(href.replaceAll("&amp;", "&"), base + "/" + route);
+    const slug = target.pathname.replace(/^\//, "");
+    assert(routes.includes(slug), "Internal route exists: " + href);
+    if (target.hash) {
+      const targetSource = slug === route ? source : await readFile(resolve(root, "content", (slug || "index") + ".html"), "utf8");
+      assert(targetSource.includes('id="' + decodeURIComponent(target.hash.slice(1)) + '"'), "Internal anchor exists: " + href);
+    }
+  }
   for (const [, candidates] of source.matchAll(/srcset="([^"]+)"/g)) {
     for (const candidate of candidates.split(",")) assets.add(candidate.trim().split(/\s+/)[0]);
   }
   const alias = route ? "/" + route + ".html" : "/index.html";
-  const redirect = await fetch(base + alias + "?service=sponsorship", { redirect: "manual" });
-  assert.equal(redirect.status, 308, "Legacy URL redirect: " + alias);
-  assert.equal(new URL(redirect.headers.get("location"), base).pathname, "/" + route);
-  assert.equal(new URL(redirect.headers.get("location"), base).searchParams.get("service"), "sponsorship");
+  const aliasResponse = await fetch(base + alias, { redirect: "manual" });
+  assert.equal(aliasResponse.status, 404, "Static preview aliases are not public routes: " + alias);
+}
+for (const oldRoute of ["talent", "stories", "sponsorship"]) {
+  const oldResponse = await fetch(base + "/" + oldRoute, { redirect: "manual" });
+  assert.equal(oldResponse.status, 404, "Retired pre-launch route has no redirect: " + oldRoute);
 }
 assert.equal(titles.size, routes.length, "Every page has a unique search title");
+assert.equal(footerTemplates.size, 1, "All pages share the same footer architecture");
 assert.equal(descriptions.size, routes.length, "Every page has a unique search description");
 for (const src of assets) {
   await access(resolve(root, "public", src.replace(/^\//, "")));
@@ -376,11 +439,16 @@ for (const src of assets) {
 const sitemap = await (await fetch(base + "/sitemap.xml")).text();
 assert.equal((sitemap.match(/<loc>/g) || []).length, routes.length);
 assert(!sitemap.includes(".html"));
+for (const route of routes) {
+  assert([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].some(([, url]) => new URL(url).pathname === "/" + route), "Sitemap includes the new public route: " + route);
+}
 assert.match(await (await fetch(base + "/robots.txt")).text(), /Sitemap:/);
 const script = await readFile(resolve(root, "public", "script.js"), "utf8");
 assert.doesNotMatch(script, /你/, "Runtime Chinese copy uses polite address");
 assert.equal(script, await readFile(resolve(root, "script.js"), "utf8"), "Preview script must match deployed script");
 assert.match(script, /mailto:info@hiremiiglobal.com/);
+assert.match(script, /requestedService === 'labour-agreement'/);
+assert.match(script, /requestSelect\.addEventListener\('change', updateLabourHint\)/);
 assert.match(script, /caseMapStages\.forEach/);
 assert.match(script, /const caseMapInterval = 3000/);
 assert.match(script, /\(caseMapIndex \+ 1\) % caseMapStages\.length/);
@@ -417,7 +485,13 @@ assert.match(script, /event\.relatedTarget : event\.target/);
 assert.match(script, /state\.button\?\.focus\(\{ preventScroll: true \}\);\s*closeEnglishGuide\(state, true\)/);
 assert.match(script, /event\.key !== 'Escape' \|\| state\.panel\.hidden/);
 const sharedStyles = await readFile(resolve(root, "style.css"), "utf8");
-assert.match(sharedStyles, /\.visa-english-summary\[hidden\]\{display:none\}/);
+assert.match(script, /registerMotion\('[^']*\.la-industry', 'settle'\)/);
+assert.match(script, /querySelectorAll\('[^']*\.la-industries'\)\.forEach\(group/);
+assert.match(sharedStyles, /\.la-industry:hover\{translate:0 -4px/);
+assert.match(sharedStyles, /@media\(prefers-reduced-motion:reduce\)\{\.la-industry\{transition:none\}\.la-industry:hover\{translate:none\}\}/);
+assert.match(sharedStyles, /html:has\(\.page-labour-agreements\)\{scroll-padding-top:160px\}/);
+assert.match(sharedStyles, /\.labour-guide \.page-jump a\{white-space:nowrap\}/);
+assert.match(sharedStyles, /\.visa-english-summary\[hidden\][^{]*\{display:none\}/);
 assert.match(sharedStyles, /\.visa-english-trigger:focus-visible\{/);
 assert.doesNotMatch(sharedStyles, /--ochre|var\(--ochre\)|#8a6637|#71542d|#b7a181/i, "Editorial accents use brand colours");
 assert.doesNotMatch(sharedStyles, /ui-monospace|Consolas|Courier|monospace/i, "Brand display text does not use an unrelated monospace face");
@@ -458,4 +532,4 @@ const cover = Buffer.from(await coverResponse.arrayBuffer());
 assert.equal(cover.subarray(1, 4).toString(), "PNG");
 assert.equal(cover.readUInt32BE(16), 1200);
 assert.equal(cover.readUInt32BE(20), 630);
-console.log(`PASS: ${routes.length} pages, unique search metadata, company introduction, 7 unified case studies with businesses before individuals, subsidiary relationship, branded share image, navigation, redirects, sitemap, robots, responsive local images and shared runtime.`);
+console.log(`PASS: ${routes.length} pages, unique search metadata, company introduction, 7 unified case studies with businesses before individuals, subsidiary relationship, branded share image, navigation, clean URLs without legacy redirects, sitemap, robots, responsive local images and shared runtime.`);

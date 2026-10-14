@@ -348,10 +348,10 @@
   let language = 'en';
   try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
   setLanguage(language);
-  // Stored language and font loading can change the height above a shared case.
+  // Stored language and font loading can change the height above a shared section.
   const initialCaseHash = location.hash;
   const initialCaseTarget = document.getElementById(initialCaseHash.slice(1));
-  if (initialCaseTarget?.matches('.case-detailed, .case-legacy-anchor')) {
+  if (initialCaseTarget?.matches('.case-detailed, .page-labour-agreements section[id], #labour-agreements')) {
     let userInteracted = false;
     const markInteraction = () => { userInteracted = true; };
     const events = ['pointerdown', 'wheel', 'touchstart', 'keydown'];
@@ -391,6 +391,13 @@
     if (requestedService && [...requestSelect.options].some(option => option.value === requestedService)) {
       requestSelect.value = requestedService;
     }
+    if (requestedService === 'labour-agreement') form.querySelector('[name="enquiryType"]').value = 'Employer';
+    const labourHint = form.querySelector('#labour-enquiry-hint');
+    const updateLabourHint = () => {
+      if (labourHint) labourHint.hidden = requestSelect.value !== 'labour-agreement';
+    };
+    requestSelect.addEventListener('change', updateLabourHint);
+    updateLabourHint();
     form.addEventListener('submit', event => {
       event.preventDefault();
       if (!form.reportValidity()) return;
@@ -475,20 +482,21 @@
       document.querySelectorAll(selector).forEach(node => moduleMotion.set(node, effect));
     };
     registerMotion('main .reveal', 'rise');
+    registerMotion('.la-home-entry, .la-explainer', 'fade');
     document.querySelectorAll('.intro, .scene-intro, .experience-track, .case-detailed').forEach(group => {
       moduleMotion.delete(group);
       group.classList.remove('reveal', 'on');
     });
     registerMotion('.intro>div, .intro>p, .planning-heading, .case-group-intro, .case-heading', 'fade');
     registerMotion('.scene-copy', 'side');
-    registerMotion('.scene-photo, .audience, .specialism-card, .office, .partner-logo, .comparison-card, .experience-volume, .case-outcome', 'settle');
+    registerMotion('.scene-photo, .audience, .specialism-card, .office, .partner-logo, .comparison-card, .experience-volume, .case-outcome, .la-industry', 'settle');
     registerMotion('.person, .judgement-notes>article, .planning-columns>article, .company-service-columns>article, .experience-insights>article, .case-context, .case-work', 'rise');
     registerMotion('.step', 'side');
     registerMotion('.faq-item, .comparison-wrap, .form-demo, .processing-times-entry, .service-links, .planning-note, .planning-review>p', 'fade');
     registerMotion('.legal-copy>*, .section>.wrap>.label, .section>.wrap>h2, .section>.wrap>.note, .trust-row>*, .cta-inner>*, .footer-main, .footer-compliance, .footer-bottom', 'fade');
 
     // Neighbouring cards have a small stagger; text never waits in a long queue.
-    document.querySelectorAll('.grid2, .grid3, .specialism-grid, .team-support, .partner-grid, .planning-columns, .company-service-columns, .cta-inner, .trust-row').forEach(group => {
+    document.querySelectorAll('.grid2, .grid3, .specialism-grid, .team-support, .partner-grid, .planning-columns, .company-service-columns, .cta-inner, .trust-row, .la-industries').forEach(group => {
       [...group.children].forEach((node, index) => {
         if (moduleMotion.has(node)) node.style.setProperty('--reveal-delay', Math.min(index % 3, 2) * 85 + 'ms');
       });

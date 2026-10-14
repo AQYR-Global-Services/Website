@@ -399,7 +399,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .visa-guide-answer p:last-child{margin-bottom:0}
 .visa-guide-answer .visa-timing{font-weight:700;color:var(--night)}
 .visa-english-summary{margin:22px 0 24px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.visa-english-summary[hidden]{display:none}
+.visa-english-summary[hidden],.la-enquiry-hint[hidden]{display:none}
 .visa-english-trigger{position:relative;display:inline;padding:0 1px;border:0;border-bottom:1px dotted var(--brand-teal);border-radius:2px;background:transparent;color:var(--brand-teal);font:inherit;line-height:inherit;text-align:inherit;white-space:nowrap;vertical-align:baseline;cursor:pointer}
 .visa-english-trigger:after{content:"";display:inline-block;width:5px;height:5px;margin:0 3px 3px 7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg)}
 .visa-english-trigger[aria-expanded=true]:after{transform:rotate(225deg);margin-bottom:0}
@@ -688,6 +688,48 @@ html{scroll-padding-top:104px}
 .case-reading-content{min-width:0}
 .case-reading-content>.intro{grid-template-columns:1fr;gap:20px}
 .case-reading-content>.intro>p{max-width:none;text-wrap:pretty}
+
+/* Labour agreements: a quiet entry, an employer brief and readable visa rows. */
+.la-home-entry{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:28px;padding:24px 28px;border:1px solid #1f44341a;border-radius:16px;background:#ffffff70}
+.la-home-entry .label{margin-bottom:5px;font-size:10px}.la-home-entry p{margin:0;color:var(--night);font-size:16px}.la-home-entry .card-link{margin:0;flex-shrink:0}
+.feature-sponsorship>.wrap:has(.la-home-entry){row-gap:34px}
+.la-employer-section{background:var(--pearl)}.la-employer-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:70px;align-items:center}
+.la-employer-layout h2{margin:0 0 22px}.la-employer-layout p{max-width:55ch;color:var(--muted)}
+.la-employer-services{border-top:1px solid #1f443429}.la-employer-services article{padding:22px 0;border-bottom:1px solid #1f443429}
+.la-employer-services h3{font-size:22px;margin:0 0 7px}.la-employer-services p{margin:0;font-size:15px}
+.la-sponsorship-entry{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.la-explainer{max-width:78ch;color:var(--muted);font-size:16px}
+.page-labour-agreements .hero h1{font-size:clamp(40px,4vw,58px)}.page-labour-agreements .hero-layout{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:64px}
+/* Reuse the sponsorship reading index and its narrow-screen horizontal track. */
+@media(max-width:1100px){html:has(.page-labour-agreements){scroll-padding-top:160px}.labour-guide .page-jump a{white-space:nowrap}}
+@media(max-width:600px){html:has(.page-labour-agreements){scroll-padding-top:156px}}
+.la-brief{padding:30px 32px;border:1px solid #90ae9a55;border-radius:24px;background:#173e3099;box-shadow:0 22px 50px -32px #061e1299;min-width:0}
+.la-brief-label{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--mint)}.la-brief ol{list-style:none;margin:20px 0 0;padding:0}
+.la-brief li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:14px;padding:20px 0;border-top:1px solid #90ae9a40}
+.la-brief li>span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--mint);padding-top:3px}.la-brief strong{font-size:20px;font-weight:600;line-height:1.35;display:block}.hero .la-brief li p{margin:7px 0 0;font-size:14px;color:#dbe8df}
+.hero .la-brief-foot{margin:10px 0 0;padding-top:18px;border-top:1px solid #90ae9a40;font-size:12px;color:var(--sage)}
+.la-industries,.la-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.la-industry{padding:26px 24px 24px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 15px 32px -28px #1f443460}.la-index{font-size:12px;font-weight:600;color:var(--brand-teal)}
+.la-industry{transition:translate .25s ease,border-color .25s ease,box-shadow .25s ease}
+@media(hover:hover) and (pointer:fine){.la-industry:hover{translate:0 -4px;border-color:var(--sage);box-shadow:0 20px 36px -25px #1f44344d}}
+@media(prefers-reduced-motion:reduce){.la-industry{transition:none}.la-industry:hover{translate:none}}
+.la-industry h3,.la-type h3{font-size:24px;margin:18px 0 12px;line-height:1.25}.la-industry p,.la-type p{font-size:16px;color:var(--muted);margin:0}
+.la-type{padding:24px 0;border-top:2px solid var(--sage);min-width:0}.la-type h3{margin-top:0}.la-type .card-link{font-size:13px}
+.la-visas{border-top:1px solid var(--line);margin-top:30px}.la-visa{display:grid;grid-template-columns:100px minmax(0,1fr);gap:32px;padding:32px 0;border-bottom:1px solid var(--line)}
+.la-visa-number{font:600 48px/1.1 'Rethink Sans',sans-serif;letter-spacing:-.03em;color:var(--brand-teal)}.la-visa .label{font-size:10px;margin:0 0 6px}.la-visa h3{font-size:26px;margin:0 0 14px}.la-visa p{color:var(--muted);max-width:78ch;margin:0;font-size:16px}.la-visa p.la-visa-note{margin-top:12px;font-size:14px}.la-source-link{font-size:13px;margin-top:16px}
+.la-support-steps .step p{max-width:75ch}.la-preparation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:50px;margin-bottom:32px}.la-preparation-grid h3{font-size:24px;margin:0}
+.la-official{margin-top:32px;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--pearl)}.la-official h3{font-size:21px;margin:0}.la-official .service-links{gap:24px}.la-official .note{max-width:90ch}
+.la-enquiry-hint{padding:14px 16px;border-left:2px solid var(--brand-teal);border-radius:0 10px 10px 0;background:var(--pearl)}
+.la-visa .visa-timing{font-weight:700;color:var(--night)}
+.entrance-ready .hero-layout>.la-brief{animation:hero-enter 1.1s .15s cubic-bezier(.22,1,.36,1) both}
+@media(max-width:900px){.page-labour-agreements .hero-layout,.la-employer-layout{grid-template-columns:1fr;gap:36px}.la-brief{max-width:600px}.la-industries,.la-types{grid-template-columns:1fr;gap:20px}.la-industry{padding:24px}.la-home-entry{align-items:flex-start}.la-employer-services article{padding-block:20px}}
+@media(max-width:600px){.la-home-entry{flex-direction:column;gap:14px;padding:20px}.page-labour-agreements .hero h1{font-size:clamp(28px,8.5vw,34px)}.la-brief{padding:22px}.la-brief strong{font-size:18px}.la-brief li{padding-block:17px}.la-visa{grid-template-columns:1fr;gap:14px;padding:26px 0}.la-visa-number{font-size:38px}.la-visa h3{font-size:23px}.la-visa p,.la-explainer{font-size:15px}.la-preparation-grid{grid-template-columns:1fr;gap:26px}.la-official{padding:20px}.la-official .service-links{display:grid;gap:8px}.la-official .card-link{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){.entrance-ready .hero-layout>.la-brief{animation:none}}
+
+/* A shared service directory, with company information separate from contact. */
+.footer-services a,.footer-company a{line-height:1.5}
+.footer-contact a:first-of-type{font-weight:600;color:var(--brand-teal)}
+.footer-services a:focus-visible,.footer-company a:focus-visible,.footer-contact a:focus-visible{outline:2px solid var(--brand-teal);outline-offset:4px;border-radius:2px}
+@media(min-width:601px) and (max-width:1000px){.footer-brand{display:grid;grid-template-columns:160px minmax(0,1fr);column-gap:28px;row-gap:8px;align-items:center}.footer-brand .footer-logo{grid-row:1/3}.footer-brand p{margin:0;max-width:440px}.footer-brand>a{grid-column:2;justify-self:start}.footer-links{gap:24px}}
 .case-reading-content .case-detail-grid{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:28px}
 .case-reading-content .case-outcome{grid-column:2}
 .case-reading-content .case-heading{flex-direction:column;gap:14px}
