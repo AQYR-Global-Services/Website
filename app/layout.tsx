@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import "../style.css";
 import { brandName, shareImage, siteUrl } from "@/lib/site";
 import { siteStructuredData } from "@/lib/structured-data";
+
+// Change the URL with the contents so returning visitors cannot reuse an older interaction script.
+const interactionVersion = createHash("sha256")
+  .update(readFileSync(resolve(process.cwd(), "public/script.js")))
+  .digest("hex").slice(0, 12);
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -34,7 +42,7 @@ export default function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{
           __html: JSON.stringify(siteStructuredData).replace(/</g, "\\u003c"),
         }} />
-        <Script src="/script.js" strategy="afterInteractive" />
+        <Script src={`/script.js?v=${interactionVersion}`} strategy="afterInteractive" />
       </body>
     </html>
   );
