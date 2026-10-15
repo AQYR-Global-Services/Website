@@ -1,4 +1,4 @@
-import {calculate, ruleDate} from './points-rules.mjs';
+import {calculate, ruleDate} from './points-rules.mjs?v=20261015-experience';
 import {getOccupation} from './occupation-search.mjs';
 
 const common = ['state','visa','age','englishMode'];
@@ -59,7 +59,7 @@ export function pointsEnquiryRows(snapshot, lang = 'en') {
   add('english','English','英语',english);
   if (result.mode === 'vpt') {
     const occupation = getOccupation(input.occupation);
-    const experience = {0:t('0 years','0 年'),1:t('1 year','1 年'),2:t('2–3 years','2–3 年'),4:t('4–5 years','4–5 年'),6:t('6–7 years','6–7 年'),9:t('More than 8 years','超过 8 年')};
+    const experience = {0:t('0 years','0 年'),1:t('1 year','1 年'),2:t('2–3 years','2–3 年'),4:t('4–5 years','4–5 年'),6:t('6–7 years','6–7 年'),8:t('8 years or more (planning estimate)','8 年及以上（估算）'),9:t('8 years or more (planning estimate)','8 年及以上（估算）')};
     add('skill','Nominated occupation / skill level','提名职业／技能等级',occupation.code+' · '+occupation.title+' · '+t('level ','等级 ')+occupation.skill);
     add('experience','Nominated occupation experience','提名职业工作经验',experience[input.experience]);
     add('education','Highest qualification','最高学历',qualification[input.vptEducation]);

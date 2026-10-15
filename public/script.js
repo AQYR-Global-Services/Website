@@ -394,7 +394,7 @@
   try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
   setLanguage(language);
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs' : '/points-calculator.mjs')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261015-experience' : '/points-calculator.mjs?v=20261015-experience')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -513,7 +513,7 @@
         const rawDetails = estimate.get('details');
         if (rawDetails != null) {
           detailsRequested = true;
-          detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs' : '/points-enquiry.mjs')
+          detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261015-experience' : '/points-enquiry.mjs?v=20261015-experience')
             .then(module => {
               pointsEnquiryModule = module;
               pointsSnapshot = module.parsePointsSnapshot(rawDetails,pathway,score);

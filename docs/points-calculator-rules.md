@@ -31,7 +31,7 @@ NSW190 displays base +5 as a **conditional nomination scenario**, not an existin
 
 Age18=265,19=282,20–29=300,30=286,31=270,32=256,33=240,34=226,35=210,36=196,37=180,38=166,39=150,40=136,41=106,42=76,43=46,44=16.
 
-English0/100/200. Nominated-occupation experience0/1/2–3/4–5/6–7/>8 years = 0/20/40/60/80/100. **The official table omits exactly eight years. We do not choose 80 or 100; the VPT total is withheld and the reason shown. Federal totals remain available.**
+English0/100/200. Nominated-occupation experience0/1/2–3/4–5/6–7/8+ years = 0/20/40/60/80/100. The official table currently says “More than 8 years” and omits exactly eight. At the site owner's request, this planning tool groups exactly eight with the 100-point band. The field hint, result assumptions and enquiry answer identify this as an estimate rather than a confirmed government interpretation. The dropdown uses value `8`; legacy value `9` remains accepted for existing enquiry links. EOI totals are unaffected.
 
 Education Other25, Bachelor/Honours50, Masters75, PhD100. Nominated ANZSCO skill level1=50; levels2/3=0. The occupation picker derives the level only from an explicitly selected six-digit official occupation record, not from a guessed title or code prefix. It uses ABS ANZSCO **2013 v1.2**, the version applicable to 189/190 (not 2022 or OSCA): Structure Table 5 supplies 1,023 occupations and levels; Index Table 2 supplies 2,213 alternative names/specialisations. Common Chinese search aids are editorial, not official translations. Users must select their assessed occupation, and a match does not establish visa eligibility. Unknown codes and levels4/5 withhold the VPT total. Source URLs, attribution and SHA256 hashes are recorded in `assets/anzsco-source.json`.
 

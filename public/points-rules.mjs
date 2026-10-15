@@ -54,11 +54,11 @@ export function calculate(input) {
     if (!isChoice(input.earningEligible, ['yes','no'])) missing.push('earnings-status');
     if (input.earningEligible === 'yes' && vptEarnings(input.salary) === null) missing.push('salary');
     if (input.vptPartner === 'yes' && !getOccupation(input.partnerCode)) missing.push('partner-code');
-    // The government table says 6–7 and >8, omitting exactly 8. Never invent a value.
-    if (input.experience === '8') missing.push('eight-years');
+    // Planning convention: include exactly eight years in the 100-point band.
+    // Keep legacy value 9 valid for older enquiry links.
     const breakdown = {
       age: vptAge(age), english: ({below:0,competent:0,proficient:100,superior:200})[english] ?? 0,
-      experience: ({0:0,1:20,2:40,4:60,6:80,9:100})[input.experience] ?? null,
+      experience: ({0:0,1:20,2:40,4:60,6:80,8:100,9:100})[input.experience] ?? null,
       education: ({other:25,bachelor:50,master:75,phd:100})[input.vptEducation] ?? 0,
       skill: !occupation || ![1,2,3].includes(occupation.skill) ? null : occupation.skill === 1 ? 50 : 0,
       partner: input.vptPartner === 'yes' && priorityCodes.has(input.partnerCode) ? 50 : 0,

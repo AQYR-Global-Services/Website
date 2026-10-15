@@ -1,7 +1,7 @@
-import {calculate, priorityCodes} from './points-rules.mjs';
+import {calculate, priorityCodes} from './points-rules.mjs?v=20261015-experience';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
-import {createPointsSnapshot} from './points-enquiry.mjs';
+import {createPointsSnapshot} from './points-enquiry.mjs?v=20261015-experience';
 
 export function initialisePointsCalculator() {
   const host = document.querySelector('#points-calculator');
@@ -16,7 +16,7 @@ export function initialisePointsCalculator() {
     occupation:['nominated occupation','提名职业'], 'occupation-level':['occupation level needs checking','职业等级需进一步核对'],
     vptEducation:['highest qualification','最高学历'], vptPartner:['VPT partner conditions','VPT 配偶条件'],
     'earnings-status':['Victorian earnings conditions','维州收入条件'], salary:['eligible earnings','合资格收入'],
-    'partner-code':['partner occupation','配偶职业'], 'eight-years':['exactly 8 years needs official clarification','刚好 8 年需官方澄清'],
+    'partner-code':['partner occupation','配偶职业'],
     employment:['Skilled employment (combined cap: 20)','技术工作（合计上限 20）'], study:['Australian study','澳洲学习'],
     specialist:['Specialist education','特定研究学历'], regional:['Regional study','偏远地区学习'],
     professional:['Professional Year','职业年'], language:['Community language','社区语言'], earnings:['Victorian earnings','维州收入'],
@@ -116,7 +116,7 @@ export function initialisePointsCalculator() {
     if (result.issues.includes('age-limit')) notes.push(text('189 / 190 requires being under 45 when invited. Age 45+ cannot produce a qualifying total here.','189／190 要求签证获邀时未满 45 岁，45 岁及以上不显示可用总分。'));
     if (result.issues.includes('english-minimum')) notes.push(text('At least Competent English is required. Other points cannot replace this requirement.','需至少达到 Competent English，其他分数不能替代此要求。'));
     if (vic) {
-      if (input.experience === '8') notes.push(text('The official VPT table omits exactly 8 years. The total is withheld pending official clarification.','官方 VPT 表未单列刚好 8 年，暂不显示总分，待官方澄清。'));
+      if (['8','9'].includes(input.experience)) notes.push(text('This calculator estimates 8 years or more at 100 points. Confirm the applicable experience band before lodging.','本工具将 8 年及以上按 100 分估算，正式申报前请核对适用年限档位。'));
       notes.push(text('This screen calculates VPT only. Visa eligibility and federal EOI requirements must still be checked separately before applying.','本页当前仅计算 VPT。正式申请前仍需另行核对签证资格与联邦 EOI 要求。'));
     }
     if (federal && input.visa === '190') notes.push(text('NSW selects at its discretion using multiple factors. Check the live program status, occupation list and residence requirements; no invitation probability is calculated.','新州综合多项因素择优邀请。请核对当前项目状态、职业清单与居住要求；此处不计算获邀概率。'));

@@ -8,7 +8,7 @@ import {calculate} from '../public/points-rules.mjs';
 const script = await readFile(new URL('../public/script.js',import.meta.url),'utf8');
 const html = await readFile(new URL('../content/contact.html',import.meta.url),'utf8');
 const handler = script.slice(script.indexOf('  if (form) {'),script.indexOf('  // Do not re-hide'))
-  .replace("import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs' : '/points-enquiry.mjs')",'Promise.resolve(pointsEnquiry)');
+  .replace("import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261015-experience' : '/points-enquiry.mjs?v=20261015-experience')",'Promise.resolve(pointsEnquiry)');
 async function setup(hash='',lang='en') {
   const nodes = new Map();
   const node = key => {
@@ -69,7 +69,7 @@ const eoi = {state:'nsw',visa:'190',age:'25',englishMode:'level',english:'profic
 function fragment(answers) {
   return '#enquiry?'+new URLSearchParams({pathway:answers.state+'-'+answers.visa,score:String(calculate(answers).total),details:JSON.stringify(pointsEnquiry.createPointsSnapshot(answers))});
 }
-for(const lang of ['en','zh']) for (const answers of [vpt,eoi,{...eoi,state:'vic',visa:'189'},{...eoi,visa:'189'}]) {
+for(const lang of ['en','zh']) for (const answers of [vpt,{...vpt,experience:'8'},{...vpt,experience:'9'},eoi,{...eoi,state:'vic',visa:'189'},{...eoi,visa:'189'}]) {
   const imported=await setup(fragment(answers),lang);
   assert(imported.node('[name="estimatedScore"]').readOnly);
   assert(imported.node('[name="estimatePathway"]').disabled);
@@ -84,6 +84,10 @@ for(const lang of ['en','zh']) for (const answers of [vpt,eoi,{...eoi,state:'vic
   assert.doesNotMatch(await imported.submit(),/Answers and points|各项填写与得分|Rule version|规则版本/);
 }
 const capped=pointsEnquiry.createPointsSnapshot({...eoi,overseas:'8',australian:'8'});
+const eightYears=pointsEnquiry.createPointsSnapshot({...vpt,experience:'8'});
+assert.equal(calculate(eightYears.answers).total,739);
+assert.match(pointsEnquiry.formatPointsEnquiry(eightYears,'zh'),/提名职业工作经验: 8 年及以上（估算） — 100 分/);
+assert.match(pointsEnquiry.formatPointsEnquiry(eightYears),/Nominated occupation experience: 8 years or more \(planning estimate\) — 100 points/);
 assert.equal(pointsEnquiry.pointsEnquiryRows(capped).find(row=>row.key==='overseas').points,15);
 assert.equal(pointsEnquiry.pointsEnquiryRows(capped).find(row=>row.key==='australian').points,20);
 assert.equal(pointsEnquiry.pointsEnquiryRows(capped).find(row=>row.key==='employment').points,20);
