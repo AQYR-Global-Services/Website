@@ -1,6 +1,7 @@
 import {calculate, priorityCodes} from './points-rules.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
+import {createPointsSnapshot} from './points-enquiry.mjs';
 
 export function initialisePointsCalculator() {
   const host = document.querySelector('#points-calculator');
@@ -77,10 +78,11 @@ export function initialisePointsCalculator() {
     show('[data-pc-enquiry]', chosen && result.total != null);
     if (result.total == null) includeScore.checked = false;
     const contactBase = '/contact?service=skilled&audience=individual#enquiry';
+    const snapshot = includeScore.checked ? createPointsSnapshot(input) : null;
     host.querySelector('#pc-contact').href = includeScore.checked
-      ? contactBase + '?' + new URLSearchParams({pathway:input.state+'-'+input.visa,score:String(result.total)})
+      ? contactBase + '?' + new URLSearchParams({pathway:input.state+'-'+input.visa,score:String(result.total),details:JSON.stringify(snapshot)})
       : contactBase;
-    const pathway = vic ? text('VIC 190 · Victorian Points Test','VIC 190 · 维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · '+text('Federal EOI','联邦 EOI') : text('Select your pathway','请选择路径');
+    const pathway = vic ? text('VIC 190 · Victorian Points Test','VIC 190 · 维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · EOI' : text('Select your pathway','请选择路径');
     host.querySelector('.pc-form-heading h2').textContent = chosen ? text('Your '+(vic?'VPT':'EOI')+' answers','填写 '+(vic?'VPT':'EOI')+' 信息') : text('Start with your pathway','先选择州与签证');
     host.querySelector('#pc-result-title').textContent = pathway;
     host.querySelector('#pc-mode-note').textContent = !chosen ? text('Choose a state and visa to load the matching questions.','请选择州与签证类别，再填写对应的问题。')
@@ -118,7 +120,7 @@ export function initialisePointsCalculator() {
       notes.push(text('This screen calculates VPT only. Visa eligibility and federal EOI requirements must still be checked separately before applying.','本页当前仅计算 VPT。正式申请前仍需另行核对签证资格与联邦 EOI 要求。'));
     }
     if (federal && input.visa === '190') notes.push(text('NSW selects at its discretion using multiple factors. Check the live program status, occupation list and residence requirements; no invitation probability is calculated.','新州综合多项因素择优邀请。请核对当前项目状态、职业清单与居住要求；此处不计算获邀概率。'));
-    notes.push(text('Answers are calculated in this page. If you choose to include your estimate, only your pathway and total are carried into the enquiry form for review. No email is sent automatically.','填写内容在当前页面计算。勾选附上预估分数后，仅将路径与总分带入咨询表单供您确认；不会自动发送邮件。'));
+    notes.push(text('Answers are calculated in this page. If you include your estimate, your pathway, scoring answers and itemised points are carried into the enquiry form for review. No email is sent automatically.','填写内容在当前页面计算。勾选附上预估分数后，会将路径、计分选项与每项得分带入咨询表单供您确认；不会自动发送邮件。'));
     host.querySelector('#pc-result-notes').innerHTML = notes.map(note=>'<p>'+note+'</p>').join('');
   }
   form.addEventListener('input', update);

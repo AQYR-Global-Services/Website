@@ -467,6 +467,13 @@
     const estimateFields = form.querySelector('#enquiry-estimate-fields');
     const estimatePathway = form.querySelector('[name="estimatePathway"]');
     const estimatedScore = form.querySelector('[name="estimatedScore"]');
+    const detailPreview = form.querySelector('#enquiry-points-detail');
+    const detailText = form.querySelector('#enquiry-points-detail-text');
+    const detailStatus = form.querySelector('#enquiry-points-status');
+    let pointsSnapshot = null;
+    let pointsEnquiryModule = null;
+    let detailsRequested = false;
+    let detailsReady = Promise.resolve();
     const estimateLimits = {'vic-190':950,'vic-189':130,'nsw-189':130,'nsw-190':135};
     const updateEstimate = () => {
       const skilled = requestSelect.value === 'skilled';
@@ -479,13 +486,21 @@
         field.disabled = !include;
         field.required = include;
       }
+      estimatedScore.readOnly = include && detailsRequested;
+      estimatePathway.disabled = !include || detailsRequested;
+      detailPreview.hidden = !include || !pointsSnapshot;
+      detailText.textContent = pointsSnapshot ? pointsEnquiryModule.formatPointsEnquiry(pointsSnapshot,root.dataset.lang) : '';
+      if (detailsRequested && !pointsSnapshot) {
+        detailStatus.textContent = root.dataset.lang === 'zh' ? '正在读取计分明细。如无法读取，请返回打分工具重新计算。' : 'Loading your points breakdown. If it cannot be loaded, return to the calculator and recalculate.';
+      } else detailStatus.textContent = '';
+      detailStatus.hidden = !include || !detailStatus.textContent;
       estimatedScore.max = String(estimateLimits[estimatePathway.value] || 950);
       form.querySelector('#enquiry-nomination-hint').hidden = estimatePathway.value !== 'nsw-190';
     };
     requestSelect.addEventListener('change', updateEstimate);
     includeEstimate.addEventListener('change', updateEstimate);
     estimatePathway.addEventListener('change', updateEstimate);
-    // Carry only an opted-in summary in the fragment, which is not sent in the HTTP request.
+    // Scoring answers are carried only after opt-in, in a fragment rather than an HTTP request.
     if (location.hash.startsWith('#enquiry?')) {
       const estimate = new URLSearchParams(location.hash.slice('#enquiry?'.length));
       const pathway = estimate.get('pathway');
@@ -495,14 +510,33 @@
         includeEstimate.checked = true;
         estimatePathway.value = pathway;
         estimatedScore.value = score;
+        const rawDetails = estimate.get('details');
+        if (rawDetails != null) {
+          detailsRequested = true;
+          detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs' : '/points-enquiry.mjs')
+            .then(module => {
+              pointsEnquiryModule = module;
+              pointsSnapshot = module.parsePointsSnapshot(rawDetails,pathway,score);
+              updateEstimate();
+            }).catch(() => { updateEstimate(); });
+        }
       }
       history.replaceState(history.state,'',location.pathname+location.search+'#enquiry');
       requestAnimationFrame(() => document.querySelector('#enquiry').scrollIntoView({block:'start'}));
     }
     updateEstimate();
-    form.addEventListener('submit', event => {
+    new MutationObserver(updateEstimate).observe(root,{attributes:true,attributeFilter:['data-lang']});
+    form.addEventListener('submit', async event => {
       event.preventDefault();
       if (!form.reportValidity()) return;
+      if (includeEstimate.checked && detailsRequested) {
+        await detailsReady;
+        if (!pointsSnapshot) {
+          detailStatus.hidden = false;
+          detailStatus.textContent = root.dataset.lang === 'zh' ? '未能读取完整明细。请返回打分工具重新计算，再附上分数。' : 'The complete breakdown could not be loaded. Please recalculate and include your estimate again.';
+          return;
+        }
+      }
       const zh = root.dataset.lang === 'zh';
       const data = new FormData(form);
       const labels = zh ? ['咨询身份', '咨询需求', '姓名', '公司 / 职业', '邮箱', '电话', '需求说明']
@@ -515,9 +549,10 @@
         data.get('companyOccupation') || '—', data.get('email'), data.get('phone') || '—', data.get('message')];
       if (data.get('includeEstimate')) {
         labels.push(zh ? '预估分数（客户自评，待团队核对）' : 'Estimated points (self-assessed, subject to review)');
-        const nominationNote = data.get('estimatePathway') === 'nsw-190'
+        const nominationNote = estimatePathway.value === 'nsw-190'
           ? (zh ? '（含有条件州提名 +5 分）' : ' (includes conditional +5 nomination points)') : '';
-        values.push(optionText('estimatePathway') + nominationNote + ': ' + data.get('estimatedScore') + (zh ? ' 分' : ' points'));
+        values.push(optionText('estimatePathway') + nominationNote + ': ' + data.get('estimatedScore') + (zh ? ' 分' : ' points')
+          + (pointsSnapshot ? '\n\n'+pointsEnquiryModule.formatPointsEnquiry(pointsSnapshot,root.dataset.lang) : ''));
       }
       const subject = zh ? 'AQYR 网站咨询' : 'AQYR website enquiry';
       const body = labels.map((label, index) => label + ': ' + values[index]).join('\n\n');
