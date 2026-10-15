@@ -5,6 +5,7 @@ type LegacyPageName =
   | "about.html"
   | "employers.html"
   | "visa-services.html"
+  | "points-calculator.html"
   | "employer-sponsorship.html"
   | "sponsored-visas.html"
   | "labour-agreements.html"

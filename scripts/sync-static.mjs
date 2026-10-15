@@ -5,10 +5,10 @@ import { loadPageSource } from "../lib/content-source.mjs";
 // The deployed source is content/*.html. Root HTML files are local static previews.
 const root = resolve(import.meta.dirname, "..");
 const files = ["index", "about", "employers", "visa-services", "employer-sponsorship", "sponsored-visas", "labour-agreements", "approach",
-  "case-studies", "team", "contact", "privacy", "terms"];
+  "case-studies", "team", "contact", "privacy", "terms", "points-calculator"];
 for (const slug of files) {
   let source = loadPageSource(slug + ".html", root);
-  source = source.replace(/href="\/(about|employers|visa-services|employer-sponsorship|sponsored-visas|labour-agreements|approach|case-studies|team|contact|privacy|terms)([?#][^"]*)?"/g,
+  source = source.replace(/href="\/(about|employers|visa-services|employer-sponsorship|sponsored-visas|labour-agreements|approach|case-studies|team|contact|privacy|terms|points-calculator)([?#][^"]*)?"/g,
     (_, page, suffix = "") => `href="${page}.html${suffix}"`);
   source = source.replace(/href="\/"/g, 'href="index.html"')
     .replace(/href="\/style.css"/g, 'href="style.css"')

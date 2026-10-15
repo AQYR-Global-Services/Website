@@ -1,0 +1,26 @@
+{
+  "mode": "Built-in image_gen",
+  "backgroundReference": "public/team/leon-gao-480.webp",
+  "portraits": [
+    {
+      "name": "andrew-hornby",
+      "prompt": "Use case: identity-preserve. Edit target: first image, andrew-hornby. Second image is ONLY background color and square headshot framing reference; DO NOT copy the second person's features. Create a square professional website headshot of exactly the person in the FIRST image. Preserve their facial identity, natural features, expression, hairstyle, skin tone, clothes and orientation. Replace only their background with the same softly lit pale cool grey-blue studio background as second image (#dfe4eb approximate). Reframe to head and shoulders with bottom just slightly below shoulders, full hair visible and modest 5% headroom, comparable face scale to the second image. No cosmetic beautification or facial reshaping.   No text, frame, watermark or added accessories.",
+      "output": "public/team/andrew-hornby-unified.png"
+    },
+    {
+      "name": "christ-flint",
+      "prompt": "Use case: identity-preserve. Edit target: first image, christ-flint. Second image is ONLY background color and square headshot framing reference; DO NOT copy the second person's features. Create a square professional website headshot of exactly the person in the FIRST image. Preserve their facial identity, natural features, expression, hairstyle, skin tone, clothes and orientation. Replace only their background with the same softly lit pale cool grey-blue studio background as second image (#dfe4eb approximate). Reframe to head and shoulders with bottom just slightly below shoulders, full hair visible and modest 5% headroom, comparable face scale to the second image. No cosmetic beautification or facial reshaping.   No text, frame, watermark or added accessories.",
+      "output": "public/team/christ-flint-unified.png"
+    },
+    {
+      "name": "yuyan-zhu",
+      "prompt": "Use case: identity-preserve. Edit target: first image, yuyan-zhu. Second image is ONLY background color and square headshot framing reference; DO NOT copy the second person's features. Create a square professional website headshot of exactly the person in the FIRST image. Preserve their facial identity, natural features, expression, hairstyle, skin tone, clothes and orientation. Replace only their background with the same softly lit pale cool grey-blue studio background as second image (#dfe4eb approximate). Reframe to head and shoulders with bottom just slightly below shoulders, full hair visible and modest 5% headroom, comparable face scale to the second image. No cosmetic beautification or facial reshaping.  Input is low resolution: preserve identity faithfully without inventing facial details or changing clothing. No text, frame, watermark or added accessories.",
+      "output": "public/team/yuyan-zhu-unified.png"
+    },
+    {
+      "name": "ferris-jin",
+      "prompt": "Use case: identity-preserve. Edit target first image: Ferris Jin's high resolution portrait. Second image ONLY reference for background colour and framing, NOT facial identity. Create a square website headshot of exactly the man in the FIRST image. Preserve his real facial identity, face proportions, expression, hairstyle, skin tone, dark suit, white shirt and blue tie. Change ONLY backdrop to the same softly lit pale cool grey-blue studio background as second image (approximately #dfe4eb). Reframe to a close head and shoulders portrait: complete hair with 5% headroom, lower edge just below shoulders, face scale similar to second image. No beautification, no reshaping, no added details, no text or borders. Keep subject's original orientation.",
+      "output": "public/team/ferris-jin-unified.png"
+    }
+  ]
+}

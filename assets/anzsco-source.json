@@ -1,0 +1,23 @@
+{
+  "classification": "ANZSCO 2013 Version 1.2",
+  "published": "2013-06-26",
+  "retrieved": "2026-10-15",
+  "occupationCount": 1023,
+  "sourcePages": [
+    "https://www.abs.gov.au/AUSSTATS/abs@.nsf/DetailsPage/1220.02013,%20Version%201.2?OpenDocument=",
+    "https://immi.homeaffairs.gov.au/visas/working-in-australia/skill-occupation-list"
+  ],
+  "workbooks": {
+    "structure": {
+      "url": "https://www.ausstats.abs.gov.au/ausstats/subscriber.nsf/0/6A8A6C9AC322D9ABCA257B9E0011956C/$File/1220.0%20ANZSCO%20Version%201.2%20Structure%20v3.xls",
+      "sha256": "7227da66ca9bb9c03dcd120e14fef422b01049db8d3bd96976927936bfe05fdf"
+    },
+    "index": {
+      "url": "https://www.ausstats.abs.gov.au/ausstats/subscriber.nsf/0/8ECCAC9DBB4ABFEACA257B9E00119812/$File/12200%20ANZSCO%20Version%201.2%20Index%20of%20Principal%20Titles,%20Alternative%20Titles%20and%20Specialisations%20v3.xls",
+      "sha256": "0a5a91fab7d755c309d83672618736483984b117bd32fd2f78ca110836119415"
+    }
+  },
+  "attribution": "Australian Bureau of Statistics and Statistics New Zealand, ANZSCO 2013 Version 1.2. Titles, skill levels and index aliases extracted without inferring levels from code prefixes.",
+  "copyright": "https://www.abs.gov.au/about/legislation-and-policy/copyright",
+  "limitations": "Classification lookup, not a current visa occupation eligibility list. Chinese search aliases are editorial helpers, not official translated titles."
+}

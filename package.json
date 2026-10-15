@@ -8,7 +8,8 @@
     "start": "next start",
     "sync:preview": "node scripts/sync-static.mjs",
     "prepare:media": "node scripts/prepare-media.mjs",
-    "test:site": "node scripts/check-site.mjs"
+    "test:site": "node scripts/check-site.mjs",
+    "test:points": "node scripts/check-points.mjs"
   },
   "dependencies": {
     "next": "^16.1.0",

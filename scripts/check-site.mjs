@@ -6,7 +6,7 @@ import { loadPageSource } from "../lib/content-source.mjs";
 const root = resolve(import.meta.dirname, "..");
 const base = process.argv[2] || "http://127.0.0.1:3000";
 const routes = ["", "about", "employers", "visa-services", "employer-sponsorship", "sponsored-visas", "labour-agreements", "approach",
-  "case-studies", "team", "contact", "privacy", "terms"];
+  "case-studies", "team", "contact", "privacy", "terms", "points-calculator"];
 const assets = new Set();
 const titles = new Set();
 const descriptions = new Set();
@@ -67,6 +67,8 @@ for (const route of routes) {
   assert.equal(offices[1].address.streetAddress, "Level 1 / 251 St Georges Terrace");
   assert.equal(offices[1].address.postalCode, "6000");
   assert.equal(offices[1].telephone, "+61 8 6263 7731");
+  assert.equal(offices.find((office) => office.name.endsWith("Shanghai office"))?.telephone, undefined);
+  assert.doesNotMatch(html, /137\s*6139\s*5387/);
   assert.deepEqual(offices[0].address, organization.address);
   assert.match(html, /property="og:title" content="AQYR Global Services"/);
   assert.match(html, /property="og:image" content="https?:[^\"]*\/share-cover\.png"/);
@@ -117,7 +119,7 @@ for (const route of routes) {
   const primaryNavigation = source.match(/<nav class="nav"[\s\S]*?<\/nav>/)?.[0];
   assert(primaryNavigation && primaryNavigation.includes('href="/about"'), "Company introduction is available in About Us: " + route);
   assert.deepEqual([...primaryNavigation.matchAll(/href="([^"]+)"/g)].map(([, href]) => href),
-    ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services", "/about", "/approach", "/case-studies", "/team", "/contact"],
+    ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services", "/points-calculator", "/about", "/approach", "/case-studies", "/team", "/contact"],
     "Navigation groups business, individual and company routes: " + route);
   assert.equal((primaryNavigation.match(/<details class="nav-group">/g) || []).length, 3, "Three native dropdown groups plus Contact");
   assert.match(primaryNavigation, /data-en="Employer Services" data-zh="企业服务"/);
@@ -126,10 +128,18 @@ for (const route of routes) {
   const processingTimesUrl = "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-processing-times/global-visa-processing-times";
   const footer = source.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
   footerTemplates.add(footer);
+  const nzAdviserLink = footer.match(/<a class="footer-licence" href="https:\/\/immigrationadviser\.co\.nz\/adviser\/yuan-gao"[^>]*>[\s\S]*?<\/a>/)?.[0];
+  assert(nzAdviserLink, "New Zealand adviser details appear in every footer: " + route);
+  assert.match(nzAdviserLink, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(nzAdviserLink, /data-aria-label-zh="[^"]*新标签页/);
+  assert.match(nzAdviserLink, /新西兰持牌移民顾问：Yuan（Leon）Gao · /);
+  assert.match(nzAdviserLink, /NZ licensed immigration adviser: Yuan \(Leon\) Gao · /);
+  assert.match(nzAdviserLink, /<span class="visa-code">IAA 202603585<\/span>/);
+  assert(footer.indexOf(nzAdviserLink) > footer.indexOf("MARN 1793302"), "NZ details follow MARN registration");
   const footerServices = footer.match(/<div class="footer-services"[\s\S]*?<\/div>/)?.[0];
   assert(footerServices, "Grouped footer services: " + route);
   assert.deepEqual([...footerServices.matchAll(/href="([^"]+)"/g)].map(([, href]) => href),
-    ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services"], "Footer follows service architecture: " + route);
+    ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services", "/points-calculator"], "Footer follows service architecture: " + route);
   assert.match(footer, /class="footer-company" role="navigation"/);
   assert.match(footer, /class="footer-contact"[\s\S]*?href="\/contact"/);
   assert.doesNotMatch(footerServices, /Skills in Demand|Direct Entry|TRT/);
@@ -137,7 +147,7 @@ for (const route of routes) {
   assert(!primaryNavigation.includes(processingTimesUrl), "No processing-time item in primary navigation");
   const servedFooter = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
   assert(servedFooter && !servedFooter.includes(processingTimesUrl), "Served footer stays uncluttered: " + route);
-  const linkedInUrl = "https://www.linkedin.com/company/hiremii-global-services";
+  const linkedInUrl = "https://au.linkedin.com/company/aqyr-global-services";
   const linkedInLink = footer.match(/<a class="footer-social-link"[^>]*>[\s\S]*?<\/a>/)?.[0];
   assert(linkedInLink, "LinkedIn icon in every footer: " + route);
   assert.match(footer, /<strong data-en="Get in touch"[^>]*>[\s\S]*?href="tel:\+61430907019"[^>]*>[\s\S]*?<\/a><a class="footer-social-link"/);
@@ -229,14 +239,23 @@ for (const route of routes) {
     assert.match(source, /data-en="Accounts &amp; Admin Officer" data-zh="账务与行政专员"/);
     assert.doesNotMatch(source, /Clients &amp; Coordination Manager|Accounts &amp; Finance/);
     assert.match(source, /As a registered migration agent/);
-    assert.equal((source.match(/class="bio"/g) || []).length, 9);
+    assert.equal((source.match(/class="bio"/g) || []).length, 13);
     const teamNames = [...source.matchAll(/<article class="person[^>]*>[\s\S]*?<h3>([^<]+)<\/h3>/g)].map(([, name]) => name);
-    assert.deepEqual(teamNames, ["Leon Gao", "Romeo Ye", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Catherian Zhang", "Barry Zhang"]);
+    assert.deepEqual(teamNames, ["Leon Gao", "Andrew Hornby", "Christ Flint", "Romeo Ye", "Ferris Jin", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Yuyan Zhu", "Catherian Zhang", "Barry Zhang"]);
+    assert.doesNotMatch(source, /class="person-about"/);
+    assert.equal((source.match(/person-spotlight"/g) || []).length, 2);
+    assert.match(source, /class="portrait-mirrored" src="\/team\/ferris-jin-unified-480\.webp"/);
+    assert.match(source, /data-en="APAC Office Manager" data-zh="亚太办公室经理"/);
+    assert.doesNotMatch(source, /Shanghai Office Manager|上海办公室经理/);
+    for (const slug of ["andrew-hornby", "christ-flint", "ferris-jin", "yuyan-zhu"]) {
+      assert(source.includes(`/team/${slug}-unified-480.webp`));
+    }
     assert.match(source, /data-en="Automation &amp; Digital Specialist" data-zh="自动化与数字化专员"/);
     assert.match(source, /id="barry-zhang"/);
     assert.match(source, /automation and digital marketing/);
     assert.match(html, /\/team\/barry-zhang-unified-480\.webp/);
     assert.match(html, /class="portrait-mirrored" src="\/team\/romeo-ye-unified-480\.webp"/);
+    assert.doesNotMatch(source.match(/<main\b[\s\S]*?<\/main>/)?.[0] || "", /202603585|person-credentials/);
   }
   if (route === "") {
     const trust = source.match(/<aside class="home-trust"[\s\S]*?<\/aside>/)?.[0];
@@ -251,9 +270,24 @@ for (const route of routes) {
     assert(employerEntry.indexOf('href="/employers"') < employerEntry.indexOf('href="/labour-agreements"'), "Labour agreement entry follows the main employer action");
   }
   if (route === "visa-services") {
+    const skilledGuide = source.match(/<details class="faq-item visa-service" id="skilled-visas">[\s\S]*?<\/details>/)?.[0];
+    assert.match(skilledGuide, /href="\/points-calculator"/, "Skilled migration links to the calculator");
     assert.equal((source.match(/class="visa-service-teaser"/g) || []).length, 4);
     assert.equal((source.match(/class="visa-service-icon"/g) || []).length, 4);
     assert.match(source, /id="visitor-visas" open/);
+  }
+  if (route === "points-calculator") {
+    assert.match(source, /id="points-calculator"/);
+    assert.match(source, /id="points-form"/);
+    assert.match(source, /id="pc-live-score" aria-live="polite"/);
+    assert.match(source, /data-pc-vpt hidden/);
+    assert.match(source, /Rule snapshot: 15 October 2026/);
+    assert.match(source, /NSW considers occupation-group ranking/);
+    for (const modulePath of ["/points-rules.mjs", "/points-calculator.mjs", "/occupation-search.mjs", "/occupation-picker.mjs", "/anzsco-2013.mjs"]) {
+      const moduleResponse = await fetch(base + modulePath);
+      assert.equal(moduleResponse.status, 200, modulePath + " must load");
+      assert.match(moduleResponse.headers.get("content-type"), /javascript/);
+    }
   }
   if (["", "employers", "employer-sponsorship"].includes(route)) {
     assert.match(source, /href="\/labour-agreements(?:#visa-pathways)?"/, "Labour agreement entry: " + route);

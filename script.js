@@ -393,6 +393,16 @@
   let language = 'en';
   try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
   setLanguage(language);
+  if (document.querySelector('#points-calculator')) {
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs' : '/points-calculator.mjs')
+      .then(module => module.initialisePointsCalculator())
+      .catch(() => {
+        const status = document.querySelector('#pc-live-score');
+        if (status) status.textContent = root.dataset.lang === 'zh'
+          ? '打分工具暂时未能加载，请刷新页面或查阅下方官方计分表。'
+          : 'The calculator could not load. Refresh this page or use the official points tables below.';
+      });
+  }
   // Stored language and font loading can change the height above a shared section.
   const initialCaseHash = location.hash;
   const initialCaseTarget = document.getElementById(initialCaseHash.slice(1));
@@ -452,6 +462,44 @@
     };
     requestSelect.addEventListener('change', updateLabourHint);
     updateLabourHint();
+    const estimateSection = form.querySelector('#enquiry-estimate');
+    const includeEstimate = form.querySelector('[name="includeEstimate"]');
+    const estimateFields = form.querySelector('#enquiry-estimate-fields');
+    const estimatePathway = form.querySelector('[name="estimatePathway"]');
+    const estimatedScore = form.querySelector('[name="estimatedScore"]');
+    const estimateLimits = {'vic-190':950,'vic-189':130,'nsw-189':130,'nsw-190':135};
+    const updateEstimate = () => {
+      const skilled = requestSelect.value === 'skilled';
+      estimateSection.hidden = !skilled;
+      if (!skilled) includeEstimate.checked = false;
+      includeEstimate.disabled = !skilled;
+      const include = skilled && includeEstimate.checked;
+      estimateFields.hidden = !include;
+      for (const field of [estimatePathway,estimatedScore]) {
+        field.disabled = !include;
+        field.required = include;
+      }
+      estimatedScore.max = String(estimateLimits[estimatePathway.value] || 950);
+      form.querySelector('#enquiry-nomination-hint').hidden = estimatePathway.value !== 'nsw-190';
+    };
+    requestSelect.addEventListener('change', updateEstimate);
+    includeEstimate.addEventListener('change', updateEstimate);
+    estimatePathway.addEventListener('change', updateEstimate);
+    // Carry only an opted-in summary in the fragment, which is not sent in the HTTP request.
+    if (location.hash.startsWith('#enquiry?')) {
+      const estimate = new URLSearchParams(location.hash.slice('#enquiry?'.length));
+      const pathway = estimate.get('pathway');
+      const score = estimate.get('score');
+      if (requestedService === 'skilled' && Object.hasOwn(estimateLimits,pathway) &&
+          /^\d{1,3}$/.test(score || '') && Number(score) <= estimateLimits[pathway]) {
+        includeEstimate.checked = true;
+        estimatePathway.value = pathway;
+        estimatedScore.value = score;
+      }
+      history.replaceState(history.state,'',location.pathname+location.search+'#enquiry');
+      requestAnimationFrame(() => document.querySelector('#enquiry').scrollIntoView({block:'start'}));
+    }
+    updateEstimate();
     form.addEventListener('submit', event => {
       event.preventDefault();
       if (!form.reportValidity()) return;
@@ -465,6 +513,12 @@
       };
       const values = [optionText('enquiryType'), optionText('requestType'), data.get('name'),
         data.get('companyOccupation') || '—', data.get('email'), data.get('phone') || '—', data.get('message')];
+      if (data.get('includeEstimate')) {
+        labels.push(zh ? '预估分数（客户自评，待团队核对）' : 'Estimated points (self-assessed, subject to review)');
+        const nominationNote = data.get('estimatePathway') === 'nsw-190'
+          ? (zh ? '（含有条件州提名 +5 分）' : ' (includes conditional +5 nomination points)') : '';
+        values.push(optionText('estimatePathway') + nominationNote + ': ' + data.get('estimatedScore') + (zh ? ' 分' : ' points'));
+      }
       const subject = zh ? 'AQYR 网站咨询' : 'AQYR website enquiry';
       const body = labels.map((label, index) => label + ': ' + values[index]).join('\n\n');
       const status = form.querySelector('#enquiry-status');

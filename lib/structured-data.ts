@@ -47,7 +47,6 @@ const offices = [
       addressRegion: "Shanghai",
       addressCountry: "CN",
     },
-    telephone: "+86 137 6139 5387",
   },
 ];
 
