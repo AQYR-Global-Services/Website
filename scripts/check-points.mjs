@@ -57,6 +57,7 @@ assert.equal(vpt({vptPartner:'no',partnerCode:'254499'}).breakdown.partner,0);
 assert.equal(vpt({vptPartner:'yes',partnerCode:'254499'}).breakdown.partner,50);
 assert.equal(vpt({vptPartner:'yes',partnerCode:'261313'}).breakdown.partner,0);
 assert.equal(vpt({vptPartner:'yes',partnerCode:'25449'}).total,null);
+assert.equal(vpt({vptPartner:'yes',partnerCode:'999999'}).total,null,'Unrecognised partner occupations do not produce a completed estimate');
 assert.equal(priorityCodes.size,101);
 assert.equal(vpt({experience:'9',vptEducation:'phd',vptPartner:'yes',partnerCode:'254499',earningEligible:'yes',salary:'170000'}).total,950);
 const english = (mode,scores,date='2026-10-01') => englishLevel({englishMode:mode,listening:String(scores[0]),reading:String(scores[1]),writing:String(scores[2]),speaking:String(scores[3]),testDate:date});

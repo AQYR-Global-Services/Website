@@ -1,11 +1,12 @@
 import {getOccupation, searchOccupations} from './occupation-search.mjs';
 
-export function initialiseOccupationPicker(host, onChange) {
-  const input = host.querySelector('#pc-occupation-query');
-  const value = host.querySelector('#pc-occupation');
-  const list = host.querySelector('#pc-occupation-options');
-  const status = host.querySelector('#pc-occupation-status');
-  const selected = host.querySelector('#pc-occupation-selected');
+export function initialiseOccupationPicker(host, onChange, {prefix = 'pc-occupation', describeSelection} = {}) {
+  const input = host.querySelector('#'+prefix+'-query');
+  const value = host.querySelector('#'+prefix);
+  const list = host.querySelector('#'+prefix+'-options');
+  const status = host.querySelector('#'+prefix+'-status');
+  const selected = host.querySelector('#'+prefix+'-selected');
+  const container = input.closest('.pc-occupation');
   const text = (en,zh)=>document.documentElement.dataset.lang === 'zh' ? zh : en;
   let active = -1;
   let found = [];
@@ -45,7 +46,7 @@ export function initialiseOccupationPicker(host, onChange) {
     }
     found.forEach((row,index)=>{
       const option = document.createElement('li');
-      option.id = 'pc-occupation-option-'+row.code;
+      option.id = prefix+'-option-'+row.code;
       option.setAttribute('role','option');
       option.setAttribute('aria-selected',String(index===active));
       const title = document.createElement('strong');
@@ -70,7 +71,7 @@ export function initialiseOccupationPicker(host, onChange) {
       const title = document.createElement('strong');
       title.textContent = row.code+' · '+row.title;
       const points = document.createElement('span');
-      points.textContent = text('Skill level ','技能等级 ')+row.skill+(row.skill<=3 ? ' · VPT +'+(row.skill===1?50:0) : text(' · outside this calculator’s VPT level 1–3 scope; verify before claiming points.',' · 不在本工具 VPT 等级 1–3 范围内，需核对后再计分。'));
+      points.textContent = describeSelection ? describeSelection(row, text) : text('Skill level ','技能等级 ')+row.skill+(row.skill<=3 ? ' · VPT +'+(row.skill===1?50:0) : text(' · outside this calculator’s VPT level 1–3 scope; verify before claiming points.',' · 不在本工具 VPT 等级 1–3 范围内，需核对后再计分。'));
       selected.append(title,points);
     } else if (!input.value) {status.textContent='';close();}
     if (open) search();
@@ -93,8 +94,8 @@ export function initialiseOccupationPicker(host, onChange) {
     }
   });
   host.addEventListener('focusout',event=>{
-    if (!event.relatedTarget || !event.relatedTarget.closest('.pc-occupation')) close();
+    if (!event.relatedTarget || !container.contains(event.relatedTarget)) close();
   });
-  document.addEventListener('pointerdown',event=>{if(!event.target.closest('.pc-occupation')) close();});
+  document.addEventListener('pointerdown',event=>{if(!container.contains(event.target)) close();});
   return {refresh};
 }

@@ -1,5 +1,6 @@
 import {calculate, priorityCodes} from './points-rules.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
+import {getOccupation} from './occupation-search.mjs';
 
 export function initialisePointsCalculator() {
   const host = document.querySelector('#points-calculator');
@@ -14,7 +15,7 @@ export function initialisePointsCalculator() {
     occupation:['nominated occupation','提名职业'], 'occupation-level':['occupation level needs checking','职业等级需进一步核对'],
     vptEducation:['highest qualification','最高学历'], vptPartner:['VPT partner conditions','VPT 配偶条件'],
     'earnings-status':['Victorian earnings conditions','维州收入条件'], salary:['eligible earnings','合资格收入'],
-    'partner-code':['partner occupation code','配偶职业代码'], 'eight-years':['exactly 8 years needs official clarification','刚好 8 年需官方澄清'],
+    'partner-code':['partner occupation','配偶职业'], 'eight-years':['exactly 8 years needs official clarification','刚好 8 年需官方澄清'],
     employment:['Skilled employment (combined cap: 20)','技术工作（合计上限 20）'], study:['Australian study','澳洲学习'],
     specialist:['Specialist education','特定研究学历'], regional:['Regional study','偏远地区学习'],
     professional:['Professional Year','职业年'], language:['Community language','社区语言'], earnings:['Victorian earnings','维州收入'],
@@ -50,6 +51,7 @@ export function initialisePointsCalculator() {
     show('[data-pc-reference="federal"]', federal);
     show('[data-pc-reference="nsw"]', federal && input.state === 'nsw' && input.visa === '190');
     occupationPicker.refresh();
+    partnerOccupationPicker.refresh();
     const regional = form.elements.namedItem('regional');
     regional.disabled = !federal || !input.study;
     if (!input.study) {regional.checked = false; input.regional = false;}
@@ -86,8 +88,8 @@ export function initialisePointsCalculator() {
       : input.visa === '189' ? text('189 uses the federal points test. There are no state nomination or salary points.','189 使用联邦计分规则，不含州提名或薪资加分。')
       : text('NSW 190 uses federal EOI points here, including a conditional +5 nomination scenario. This is not an NSW invitation ranking score.','新州 190 此处计算联邦 EOI 分数，含获得州提名后的 +5 分模拟；并非新州邀请排名分数。');
     host.querySelector('#pc-english-result').textContent = result.english ? text('English level: ','英语等级：') + text(...englishOptions[result.english]) : text('Select a level, or enter all four valid scores (and the PTE test date).','请选择英语等级，或填写四项有效成绩（PTE 还需考试日期）。');
-    if (vic && input.vptPartner === 'yes') host.querySelector('#pc-partner-result').textContent = !/^\d{6}$/.test(input.partnerCode)
-      ? text('Enter a complete 6-digit partner occupation code.','请填写完整的六位配偶职业代码。')
+    if (vic && input.vptPartner === 'yes') host.querySelector('#pc-partner-result').textContent = !getOccupation(input.partnerCode)
+      ? text('Search for your partner’s occupation and select a matching result.','请搜索配偶职业，并选中对应的搜索结果。')
       : priorityCodes.has(input.partnerCode)
       ? text('Priority occupation found: +50 if all skilled partner conditions are met. Recheck the current official list before lodging.','已匹配优先职业：符合全部技术配偶条件时 +50 分；递交前请再次核对官方清单。')
       : text('Not on this snapshot’s priority list: partner +0. This does not assess occupation eligibility.','此代码未列入本版本优先清单：配偶 +0 分；这并非职业资格判断。');
@@ -126,6 +128,7 @@ export function initialisePointsCalculator() {
   form.addEventListener('reset', () => {
     // Hidden inputs reflect assigned values into their reset defaults; clear the selection explicitly.
     form.elements.namedItem('occupation').value = '';
+    form.elements.namedItem('partnerCode').value = '';
     setTimeout(update, 0);
   });
   host.querySelector('#pc-show-result').addEventListener('click', () => {
@@ -135,6 +138,12 @@ export function initialisePointsCalculator() {
   });
   new MutationObserver(update).observe(root,{attributes:true,attributeFilter:['data-lang']});
   const occupationPicker = initialiseOccupationPicker(host, update);
+  const partnerOccupationPicker = initialiseOccupationPicker(host, update, {
+    prefix:'pc-partner-occupation',
+    describeSelection:(row, translate)=>priorityCodes.has(row.code)
+      ? translate('On the Victorian priority occupation list in this rule snapshot. Partner +50 only if all skilled partner conditions are met.','已列入本版本维州优先职业清单；满足全部技术配偶条件时，配偶项可加 50 分。')
+      : translate('Not on the Victorian priority occupation list in this rule snapshot. Partner +0.','未列入本版本维州优先职业清单，配偶项为 0 分。'),
+  });
   host.dataset.ready = 'true';
   update();
 }

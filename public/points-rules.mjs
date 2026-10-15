@@ -53,7 +53,7 @@ export function calculate(input) {
     if (!isChoice(input.vptPartner, ['yes','no'])) missing.push('vptPartner');
     if (!isChoice(input.earningEligible, ['yes','no'])) missing.push('earnings-status');
     if (input.earningEligible === 'yes' && vptEarnings(input.salary) === null) missing.push('salary');
-    if (input.vptPartner === 'yes' && !/^\d{6}$/.test(input.partnerCode || '')) missing.push('partner-code');
+    if (input.vptPartner === 'yes' && !getOccupation(input.partnerCode)) missing.push('partner-code');
     // The government table says 6–7 and >8, omitting exactly 8. Never invent a value.
     if (input.experience === '8') missing.push('eight-years');
     const breakdown = {
