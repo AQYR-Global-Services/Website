@@ -239,15 +239,20 @@ for (const route of routes) {
     assert.match(source, /data-en="Accounts &amp; Admin Officer" data-zh="账务与行政专员"/);
     assert.doesNotMatch(source, /Clients &amp; Coordination Manager|Accounts &amp; Finance/);
     assert.match(source, /As a registered migration agent/);
-    assert.equal((source.match(/class="bio"/g) || []).length, 13);
+    assert.equal((source.match(/class="bio"/g) || []).length, 14);
     const teamNames = [...source.matchAll(/<article class="person[^>]*>[\s\S]*?<h3>([^<]+)<\/h3>/g)].map(([, name]) => name);
-    assert.deepEqual(teamNames, ["Leon Gao", "Andrew Hornby", "Christ Flint", "Romeo Ye", "Ferris Jin", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Yuyan Zhu", "Catherian Zhang", "Barry Zhang"]);
+    assert.deepEqual(teamNames, ["Leon Gao", "Andrew Hornby", "Christ Flint", "Gareth Bibby", "Romeo Ye", "Ferris Jin", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Yuyan Zhu", "Catherian Zhang", "Barry Zhang"]);
+    assert.equal((source.match(/data-en="Executive Director"/g) || []).length, 1);
+    for (const name of ['Andrew Hornby','Christ Flint']) assert(source.includes('<h3>'+name+'</h3><p class="role" data-en="Director" data-zh="董事">Director</p>'));
+    assert.match(source, /id="team-directors-title" data-en="Our directors" data-zh="董事团队"/);
+    assert.match(source, /data-en="Principal Consultant" data-zh="首席顾问"/);
+    assert.match(source, /20 years of international recruitment/);
     assert.doesNotMatch(source, /class="person-about"/);
-    assert.equal((source.match(/person-spotlight"/g) || []).length, 2);
+    assert.equal((source.match(/person-spotlight"/g) || []).length, 3);
     assert.match(source, /class="portrait-mirrored" src="\/team\/ferris-jin-unified-480\.webp"/);
     assert.match(source, /data-en="APAC Office Manager" data-zh="亚太办公室经理"/);
     assert.doesNotMatch(source, /Shanghai Office Manager|上海办公室经理/);
-    for (const slug of ["andrew-hornby", "christ-flint", "ferris-jin", "yuyan-zhu"]) {
+    for (const slug of ["andrew-hornby", "christ-flint", "ferris-jin", "yuyan-zhu", "gareth-bibby"]) {
       assert(source.includes(`/team/${slug}-unified-480.webp`));
     }
     assert.match(source, /data-en="Automation &amp; Digital Specialist" data-zh="自动化与数字化专员"/);

@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-15",
+  "method": "Built-in image_gen image editing; supplied original retained.",
+  "original": "public/team/gareth-bibby-original.png",
+  "output": "public/team/gareth-bibby-unified.png",
+  "responsive": ["public/team/gareth-bibby-unified-240.webp", "public/team/gareth-bibby-unified-480.webp"],
+  "reference": "public/team/ferris-jin-unified-480.webp",
+  "prompt": "Use case: identity-preserve. Asset type: square corporate team portrait for AQYR website. Image 1 is the EDIT TARGET, Gareth Bibby's original photo. Image 2 is a background and head/shoulders framing STYLE REFERENCE ONLY; do not use that person's identity. Change ONLY background and crop of Image 1: replace its off-white background with the same very pale cool blue-grey studio background as Image 2 (#dfe4eb approximate). Crop Gareth to a consistent head-and-upper-shoulders portrait like Image 2, with a small comfortable margin above his hair, bottom just below the shoulders / upper chest; no crossed arms visible in the final crop. Keep Gareth's exact face, smile, eyes, ears, natural skin texture, hairline, age, grey suit and pale pink shirt unchanged. Preserve photographic realism, original proportions and frontal orientation. No beauty retouching, no new expression, no stylization, no text, no logos, no border. Output one square portrait.",
+  "bioSource": "User-supplied email screenshot. Condensed to sector specialism, Perth base, Australia-wide recruiting and international experience; personal contact details omitted."
+}
