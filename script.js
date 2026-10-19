@@ -393,6 +393,11 @@
   let language = 'en';
   try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
   setLanguage(language);
+
+  // Local previews show the preference UI without sending production analytics.
+  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261019-gtm' : '/analytics.mjs?v=20261019-gtm')
+    .then(module => module.initAnalytics())
+    .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
     import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261015-experience' : '/points-calculator.mjs?v=20261015-experience')
       .then(module => module.initialisePointsCalculator())
