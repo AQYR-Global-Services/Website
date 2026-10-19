@@ -150,14 +150,24 @@ for (const route of routes) {
   const linkedInUrl = "https://au.linkedin.com/company/aqyr-global-services";
   const linkedInLink = footer.match(/<a class="footer-social-link"[^>]*>[\s\S]*?<\/a>/)?.[0];
   assert(linkedInLink, "LinkedIn icon in every footer: " + route);
-  assert.match(footer, /<strong data-en="Get in touch"[^>]*>[\s\S]*?href="tel:\+61430907019"[^>]*>[\s\S]*?<\/a><a class="footer-social-link"/);
+  assert.match(footer, /<strong data-en="Get in touch"[^>]*>[\s\S]*?href="tel:\+61430907019"[^>]*>[\s\S]*?<\/a><div class="footer-socials"><a class="footer-social-link"/);
   assert.doesNotMatch(footer.match(/<div class="footer-brand">[\s\S]*?<\/div>/)?.[0] || "", /footer-social-link/);
   assert(linkedInLink.includes('href="' + linkedInUrl + '"'));
   assert.match(linkedInLink, /target="_blank" rel="noopener noreferrer"/);
   assert.match(linkedInLink, /data-aria-label-en="[^"]*LinkedIn[^"]*new tab/);
   assert.match(linkedInLink, /data-aria-label-zh="[^"]*LinkedIn[^"]*新标签页/);
   assert.match(linkedInLink, /<svg[^>]*aria-hidden="true"/);
-  assert.equal((servedFooter.match(/class="footer-social-link"/g) || []).length, 1);
+  const facebookUrl = "https://www.facebook.com/profile.php?id=61595664925410";
+  const socialLinks = [...footer.matchAll(/<a class="footer-social-link"[^>]*>[\s\S]*?<\/a>/g)].map(([link]) => link);
+  assert.equal(socialLinks.length, 2, "LinkedIn and Facebook appear once in each footer");
+  const facebookLink = socialLinks[1];
+  assert(facebookLink.includes('href="' + facebookUrl + '"'));
+  assert.match(facebookLink, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(facebookLink, /data-aria-label-en="[^\"]*Facebook[^\"]*new tab/);
+  assert.match(facebookLink, /data-aria-label-zh="[^\"]*Facebook[^\"]*新标签页/);
+  assert.match(facebookLink, /<svg[^>]*aria-hidden="true"/);
+  assert.equal((servedFooter.match(/class="footer-social-link"/g) || []).length, 2);
+  assert(servedFooter.includes(facebookUrl));
   assert(servedFooter.includes(linkedInUrl));
   if (["visa-services", "employer-sponsorship", "sponsored-visas"].includes(route)) {
     const processingEntry = source.match(/<div class="processing-times-entry" id="processing-times">[\s\S]*?<\/div>/)?.[0];
