@@ -73,6 +73,7 @@ export function initAnalytics(win = window, doc = document) {
     '<button type="button" data-analytics="accepted"></button></div>';
   doc.body.append(panel);
   const settings = doc.createElement('button');
+  let returnFocus = null;
   settings.type = 'button';
   settings.className = 'analytics-settings';
   settings.setAttribute('aria-controls', panel.id);
@@ -104,9 +105,10 @@ export function initAnalytics(win = window, doc = document) {
   panel.hidden = Boolean(choice);
   render();
   settings.addEventListener('click', () => {
+    returnFocus = settings;
     panel.hidden = false;
     render();
-    panel.querySelector('button').focus();
+    panel.querySelector('button').focus({ preventScroll: true });
   });
   panel.addEventListener('click', event => {
     const button = event.target.closest('[data-analytics]');
@@ -121,7 +123,10 @@ export function initAnalytics(win = window, doc = document) {
       removeCookies();
       if (started) win.location.reload();
     }
-    settings.focus();
+    // A first-visit choice must not focus the off-screen footer and scroll there.
+    // Restore focus only when the visitor explicitly opened preferences there.
+    returnFocus?.focus({ preventScroll: true });
+    returnFocus = null;
   });
   new win.MutationObserver(render).observe(doc.documentElement, {
     attributes: true, attributeFilter: ['data-lang'],

@@ -91,7 +91,10 @@ for (const route of routes) {
     assert(source.indexOf(notice) < source.indexOf('<figure class="hero-photo'));
     assert.match(html, /class="brand-transition"/);
     const partnerLinks = [...source.matchAll(/<a class="partner-logo[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map(([link]) => link);
-    assert.equal(partnerLinks.length, 6, "All six partner logos link to official sites");
+    assert.equal(partnerLinks.length, 18, "All 18 approved partners link to official sites");
+    assert.equal(new Set(partnerLinks.map(link => link.match(/href="([^"]+)"/)[1])).size, 18, "Each partner is listed once before the visual loop copy");
+    assert.match(source, /id="partner-logos" tabindex="0" role="region"/);
+    assert.doesNotMatch(source, /partner-motion-toggle/, "Partner strip has no pause button");
     for (const link of partnerLinks) {
       assert.match(link, /href="https:\/\//);
       assert.match(link, /target="_blank" rel="noopener noreferrer"/);
@@ -101,6 +104,8 @@ for (const route of routes) {
     assert(!source.includes('class="brand-transition"'), "Rename notice is homepage-only");
   }
   assert.match(source, /data-en="Global Services"/);
+  const header = source.match(/<header class="top">[\s\S]*?<\/header>/)?.[0];
+  assert.match(header, /src="\/aqyr-header-logo\.svg"/, "Header uses the same official artwork as aqyr.ai");
   assert.match(source, /data-aria-label-en="AQYR Global Services home" data-aria-label-zh="AQYR Global Services 首页"/);
   assert.match(source, /data-aria-label-en="Main navigation" data-aria-label-zh="主导航"/);
   assert.match(source, /data-aria-label-en="Legal" data-aria-label-zh="隐私政策与使用条款"/);

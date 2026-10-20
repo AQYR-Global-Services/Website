@@ -24,7 +24,7 @@ function harness(url = 'https://www.hiremiiglobal.com/contact?email=private#deta
     setAttribute(key, value) { this[key] = value; }
     append(node) { this.children.push(node); }
     addEventListener(name, fn) { this.events[name] = fn; }
-    focus() { this.focused = true; }
+    focus(options) { this.focused = true; this.focusOptions = options; }
     closest() { return this; }
     set innerHTML(value) {
       this.html = value;
@@ -47,7 +47,8 @@ function harness(url = 'https://www.hiremiiglobal.com/contact?email=private#deta
     addEventListener(name, fn) { win[name] = fn; } };
   initAnalytics(win, doc);
   const panel = doc.getElementById('analytics-choice');
-  return { win, doc, entries, panel, nodes, reloads: () => reloads,
+  const settings = nodes.find(node => node.className === 'analytics-settings');
+  return { win, doc, entries, panel, settings, nodes, reloads: () => reloads,
     choose(choice) { panel.events.click({ target: panel.querySelector('[data-analytics="' + choice + '"]') }); } };
 }
 
@@ -56,8 +57,10 @@ assert.equal(initial.doc.head.children.length, 0, 'No Google request before cons
 assert.equal(initial.win.dataLayer, undefined);
 assert.equal(initial.panel.hidden, false);
 initial.choose('rejected');
+assert.equal(initial.settings.focused, undefined, 'First-visit decline must not focus the footer');
 assert.equal(initial.doc.head.children.length, 0, 'Rejecting never loads the tag');
 initial.choose('accepted');
+assert.equal(initial.settings.focused, undefined, 'First-visit accept must not focus the footer');
 assert.equal(initial.doc.head.children.length, 1);
 const commands = initial.win.dataLayer.map(args => args[Symbol.iterator] ? [...args] : args);
 assert.deepEqual(commands[0].slice(0,2), ['consent','default']);
@@ -93,4 +96,9 @@ assert.equal(harness(undefined, saved('rejected')).doc.head.children.length, 0);
 const blocked = harness(undefined, null, true);
 blocked.choose('accepted');
 assert.equal(blocked.doc.head.children.length, 1, 'Blocked storage still allows an explicit in-memory choice');
+const reopened = harness('http://localhost:3001/', saved('rejected'));
+reopened.settings.events.click();
+assert.deepEqual(reopened.panel.querySelector('button').focusOptions, { preventScroll: true }, 'Opening preferences preserves the current reading position');
+reopened.choose('accepted');
+assert.deepEqual(reopened.settings.focusOptions, { preventScroll: true }, 'Explicit preferences restore focus without scrolling');
 console.log('GTM checks passed: consent, withdrawal, expiry, bilingual UI, production-only, sanitised defaults, one container and no direct GA4 duplication.');

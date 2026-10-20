@@ -394,8 +394,14 @@
   try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
   setLanguage(language);
 
+  if (document.querySelector('.partner-network')) {
+    import(location.pathname.endsWith('.html') ? './public/partner-marquee.mjs?v=20261020-clean' : '/partner-marquee.mjs?v=20261020-clean')
+      .then(module => module.initPartnerMarquee())
+      .catch(() => { /* Native horizontal scrolling and all partner links remain usable. */ });
+  }
+
   // Local previews show the preference UI without sending production analytics.
-  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261019-gtm' : '/analytics.mjs?v=20261019-gtm')
+  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261020-focus' : '/analytics.mjs?v=20261020-focus')
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
