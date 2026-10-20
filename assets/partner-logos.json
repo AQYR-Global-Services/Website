@@ -5,13 +5,19 @@
     {
       "file": "mastlink.png",
       "source": "https://www.mastlink.com.au/wp-content/uploads/2024/10/mastlink蓝色-无底.png",
-      "dimensions": [666, 375],
+      "dimensions": [
+        666,
+        375
+      ],
       "notes": "Official transparent PNG, same mark as the user-provided JPEG."
     },
     {
       "file": "sequoia.webp",
       "source": "https://www.sequoia.com.au/wp-content/uploads/2023/05/Sequoia_logo.webp",
-      "dimensions": [413, 156],
+      "dimensions": [
+        413,
+        156
+      ],
       "notes": "Official header artwork; retain original resolution without artificial enlargement."
     },
     {
@@ -22,14 +28,11 @@
     {
       "file": "sitrak-lk-auto.png",
       "source": "User-supplied original PNG",
-      "dimensions": [738, 225],
+      "dimensions": [
+        738,
+        225
+      ],
       "notes": "Replaces ADLV at the user's request; copied without resizing or recompression."
-    },
-    {
-      "file": "parallel-workshop.png",
-      "source": "https://www.parallelworkshop.com.au/wp-content/uploads/2025/07/logo-black.png",
-      "dimensions": [692, 176],
-      "notes": "Official full-resolution header logo."
     },
     {
       "file": "pullman.svg",
@@ -37,17 +40,108 @@
       "assetUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Pullman_logo_2013.svg",
       "notes": "Matching existing brand mark in vector form; source credits AccorHotels Deutschland. Trademark rights remain with the owner."
     },
-    { "file": "lexi-lighting.png", "source": "https://www.lexilighting.com.au/cdn/shop/files/LLLogo_800x204.png?v=1681955620", "website": "https://www.lexilighting.com.au/", "dimensions": [800, 200] },
-    { "file": "kwl-lawyers.png", "source": "https://kwllawyers.com.au/wp-content/uploads/2017/11/klw_logo_cropped2.png", "website": "https://kwllawyers.com.au/", "dimensions": [512, 512], "notes": "Official graphic mark shown in the approval sheet." },
-    { "file": "mintskin.png", "source": "https://www.mintskinclinic.com.au/cdn/shop/files/MINTSKIN_Clinci_logo.png?v=1706879768&width=600", "website": "https://www.mintskinclinic.com.au/", "dimensions": [270, 81] },
-    { "file": "audd-digital.png", "source": "https://www.audd.digital/wp-content/uploads/2024/02/cropped-cropped-cropped-AUDD-logo-dark-grey-512-270x270.png", "website": "https://www.audd.digital/", "dimensions": [270, 270], "notes": "User confirmed AUDC Digital refers to AUDD Digital." },
-    { "file": "hello-kitchen.jpg", "source": "https://hellokitchen.com.au/cdn/shop/files/Hello_Kitchen___Home_Landscape_Logo_Standard_-_380x62_4e0980a5-4d67-41d6-9c67-5a581af2fcad.jpg?v=1747785488", "website": "https://hellokitchen.com.au/", "dimensions": [380, 62] },
-    { "file": "inverse-group.png", "source": "https://inverse-group.com/wp-content/uploads/2024/07/Combined_wStrapline-OnLight@2x.png", "website": "https://inverse-group.com/", "dimensions": [1449, 598] },
-    { "file": "aform.png", "source": "https://aformarchitecture.com.au/wp-content/uploads/2018/10/logo.png", "website": "https://aformarchitecture.com.au/", "dimensions": [188, 43] },
-    { "file": "crosstec.png", "source": "https://crosstec.com.hk/api/images/0000022_Frame3.png", "website": "https://www.crosstec.com.hk/", "dimensions": [720, 78] },
-    { "file": "waverley-advisory.png", "source": "https://waverleyadvisory.com.au/wp-content/uploads/2025/07/Waverley-Advisory-logo-pdf-08-1-2048x612.png", "website": "https://waverleyadvisory.com.au/", "dimensions": [2048, 612], "notes": "Official flat logo matches the user's reference photo; acquired from the rendered official page." },
-    { "file": "healthlink.svg", "source": "https://www.healthlink.com.au/wp-content/uploads/2022/11/nav-logo-1.svg", "website": "https://www.healthlink.com.au/", "dimensions": [200, 32] },
-    { "file": "sage-house.png", "source": "https://static.wixstatic.com/media/dd8d8e_a9bdf2ca8baa40d4a8baaa237c2b83ff~mv2.png", "website": "https://www.sage-house.com/", "dimensions": [3000, 3000] },
-    { "file": "kmg.png", "source": "https://kmetgroup.com/wp-content/uploads/2023/12/kmglogo-e1734338412867.png", "website": "https://kmetgroup.com/", "dimensions": [600, 235] }
+    {
+      "file": "mintskin.png",
+      "source": "https://www.mintskinclinic.com.au/cdn/shop/files/MINTSKIN_Clinci_logo.png?v=1706879768&width=600",
+      "website": "https://www.mintskinclinic.com.au/",
+      "dimensions": [
+        270,
+        81
+      ]
+    },
+    {
+      "file": "audd-circle.webp",
+      "source": "https://partners.circle.com/partner/audc-pty-ltd",
+      "website": "https://www.audd.digital/",
+      "dimensions": [
+        384,
+        384
+      ],
+      "notes": "User-selected purple AUDD artwork from the Circle Alliance Directory, downloaded unchanged from its 4x logo source. Link remains the AUDD official website."
+    },
+    {
+      "file": "hello-kitchen.jpg",
+      "source": "https://hellokitchen.com.au/cdn/shop/files/Hello_Kitchen___Home_Landscape_Logo_Standard_-_380x62_4e0980a5-4d67-41d6-9c67-5a581af2fcad.jpg?v=1747785488",
+      "website": "https://hellokitchen.com.au/",
+      "dimensions": [
+        380,
+        62
+      ]
+    },
+    {
+      "file": "inverse-group.png",
+      "source": "https://inverse-group.com/wp-content/uploads/2024/07/Combined_wStrapline-OnLight@2x.png",
+      "website": "https://inverse-group.com/",
+      "dimensions": [
+        1449,
+        598
+      ]
+    },
+    {
+      "file": "crosstec.png",
+      "source": "https://crosstec.com.hk/api/images/0000022_Frame3.png",
+      "website": "https://www.crosstec.com.hk/",
+      "dimensions": [
+        720,
+        78
+      ]
+    },
+    {
+      "file": "waverley-advisory.png",
+      "source": "https://waverleyadvisory.com.au/wp-content/uploads/2025/07/Waverley-Advisory-logo-pdf-08-1-2048x612.png",
+      "website": "https://waverleyadvisory.com.au/",
+      "dimensions": [
+        2048,
+        612
+      ],
+      "notes": "Official flat logo matches the user's reference photo; acquired from the rendered official page."
+    },
+    {
+      "file": "healthlink.svg",
+      "source": "https://www.healthlink.com.au/wp-content/uploads/2022/11/nav-logo-1.svg",
+      "website": "https://www.healthlink.com.au/",
+      "dimensions": [
+        200,
+        32
+      ]
+    },
+    {
+      "file": "sage-house.png",
+      "source": "https://static.wixstatic.com/media/dd8d8e_a9bdf2ca8baa40d4a8baaa237c2b83ff~mv2.png",
+      "website": "https://www.sage-house.com/",
+      "dimensions": [
+        3000,
+        3000
+      ]
+    },
+    {
+      "file": "kmg.png",
+      "source": "https://kmetgroup.com/wp-content/uploads/2023/12/kmglogo-e1734338412867.png",
+      "website": "https://kmetgroup.com/",
+      "dimensions": [
+        600,
+        235
+      ]
+    },
+    {
+      "file": "jt-lawyers.png",
+      "source": "https://images.squarespace-cdn.com/content/v1/631bf8669d20a75426a2eff6/44b59cc5-51c1-4c42-b9ee-66db75bca442/New+JTL+Logo.png?format=1500w",
+      "website": "https://www.jtlawyers.com.au/",
+      "dimensions": [
+        1227,
+        1295
+      ],
+      "notes": "Official header logo, downloaded unchanged."
+    },
+    {
+      "file": "brightstone-legal.svg",
+      "source": "https://www.brightstonelegal.com.au/wp-content/uploads/2021/10/Brightstone-LOGO-English.svg",
+      "website": "https://www.brightstonelegal.com.au/",
+      "dimensions": [
+        288,
+        63
+      ],
+      "notes": "Official dark-on-light vector linked from the current homepage; path data and colours unchanged."
+    }
   ]
 }

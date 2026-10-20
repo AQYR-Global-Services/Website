@@ -643,7 +643,8 @@
     });
     registerMotion('.intro>div, .intro>p, .planning-heading, .case-group-intro, .case-heading', 'fade');
     registerMotion('.scene-copy', 'side');
-    registerMotion('.scene-photo, .audience, .specialism-card, .office, .partner-logo, .comparison-card, .experience-volume, .case-outcome, .la-industry', 'settle');
+    // Marquee logos must stay visible when cloned beyond the reveal observer's initial nodes.
+    registerMotion('.scene-photo, .audience, .specialism-card, .office, .comparison-card, .experience-volume, .case-outcome, .la-industry', 'settle');
     registerMotion('.person, .judgement-notes>article, .planning-columns>article, .company-service-columns>article, .experience-insights>article, .case-context, .case-work', 'rise');
     registerMotion('.step', 'side');
     registerMotion('.faq-item, .comparison-wrap, .form-demo, .processing-times-entry, .service-links, .planning-note, .planning-review>p', 'fade');

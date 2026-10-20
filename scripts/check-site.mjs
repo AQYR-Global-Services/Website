@@ -91,8 +91,8 @@ for (const route of routes) {
     assert(source.indexOf(notice) < source.indexOf('<figure class="hero-photo'));
     assert.match(html, /class="brand-transition"/);
     const partnerLinks = [...source.matchAll(/<a class="partner-logo[^"]*"[^>]*>[\s\S]*?<\/a>/g)].map(([link]) => link);
-    assert.equal(partnerLinks.length, 18, "All 18 approved partners link to official sites");
-    assert.equal(new Set(partnerLinks.map(link => link.match(/href="([^"]+)"/)[1])).size, 18, "Each partner is listed once before the visual loop copy");
+    assert.equal(partnerLinks.length, 16, "All 16 approved partners link to official sites");
+    assert.equal(new Set(partnerLinks.map(link => link.match(/href="([^"]+)"/)[1])).size, 16, "Each partner is listed once before the visual loop copy");
     assert.match(source, /id="partner-logos" tabindex="0" role="region"/);
     assert.doesNotMatch(source, /partner-motion-toggle/, "Partner strip has no pause button");
     for (const link of partnerLinks) {

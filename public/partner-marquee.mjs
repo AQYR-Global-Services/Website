@@ -21,7 +21,7 @@ export function initPartnerMarquee() {
   let cycleWidth = group.getBoundingClientRect().width;
   let settleTimer = 0;
 
-  // Only the original 18 links participate in keyboard/screen-reader navigation.
+  // Only the original links participate in keyboard/screen-reader navigation.
   // Pointer users can still open any visible copy with a native, safe external link.
   const copy = group.cloneNode(true);
   copy.classList.add('partner-loop-copy');

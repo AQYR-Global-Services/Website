@@ -10,10 +10,19 @@ const sharp = createRequire(require.resolve('next/package.json'))('sharp');
 const source = loadPageSource('index.html');
 const links = [...source.matchAll(/<a class="partner-logo[^>]*>[\s\S]*?<\/a>/g)].map(([link]) => link);
 const manifest = JSON.parse(await readFile(new URL('../assets/partner-logos.json', import.meta.url), 'utf8'));
-assert.equal(links.length, 18);
-assert.equal(manifest.logos.length, 18);
+assert.equal(links.length, 16);
+assert.equal(manifest.logos.length, 16);
 assert.doesNotMatch(source, /partner-motion-toggle/);
-assert.equal(new Set(links.map(link => link.match(/href="([^"]+)"/)[1])).size, 18);
+assert.doesNotMatch(source, /partner-hint|partner-tools|Select a logo to visit their website\.|点击 Logo，访问合作伙伴官网。/);
+for (const removed of ['lexi-lighting.png', 'kwl-lawyers.png', 'aform.png', 'parallel-workshop.png', 'audd-digital.png']) {
+  assert(!source.includes('/partners/' + removed), 'Removed or replaced logo is not rendered: ' + removed);
+}
+assert(source.includes('src="/partners/audd-circle.webp"'));
+assert(source.includes('href="https://www.jtlawyers.com.au/"'));
+assert(source.includes('href="https://www.brightstonelegal.com.au/"'));
+const sharedScript = await readFile(new URL('../public/script.js', import.meta.url), 'utf8');
+assert.doesNotMatch(sharedScript, /registerMotion\([^;]*\.partner-logo/, 'Loop copies must not inherit unobserved hidden reveal states');
+assert.equal(new Set(links.map(link => link.match(/href="([^"]+)"/)[1])).size, 16);
 for (const logo of manifest.logos) {
   const link = links.find(link => link.includes(`/partners/${logo.file}"`));
   assert(link, `Listed logo: ${logo.file}`);
@@ -35,7 +44,7 @@ class Target {
   setAttribute(name, value) { this.attrs[name] = value; }
 }
 const viewport = new Target(); viewport.scrollLeft = 0;
-const originals = Array.from({ length: 18 }, () => new Target());
+const originals = Array.from({ length: 16 }, () => new Target());
 viewport.contains = element => element === viewport || originals.includes(element);
 const copy = new Target(); const clones = originals.map(() => new Target());
 copy.classList = { add() {} }; copy.querySelectorAll = () => clones;
@@ -66,4 +75,4 @@ doc.activeElement = originals[0]; viewport.emit('focusin'); const focused = view
 doc.activeElement = null; doc.hidden = true; doc.emit('visibilitychange'); pump(656); assert.equal(viewport.scrollLeft, focused);
 doc.hidden = false; motion.matches = true; motion.emit('change'); pump(720); assert.equal(viewport.scrollLeft, focused); assert.equal(section.dataset.reducedMotion, 'true');
 motion.matches = false; motion.emit('change'); pump(800); pump(864); assert(viewport.scrollLeft > focused);
-console.log('Passed: 18 official logo assets/links/dimensions; seamless wrap; autoplay; no pause button; hover pause/resume; keyboard focus; background tab; reduced motion.');
+console.log('Passed: 16 official logo assets/links/dimensions; seamless wrap; autoplay; no pause button; hover pause/resume; keyboard focus; background tab; reduced motion.');
