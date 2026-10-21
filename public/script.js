@@ -394,6 +394,12 @@
   try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
   setLanguage(language);
 
+  if (document.querySelector('[data-case-preview]')) {
+    import(location.pathname.endsWith('.html') ? './public/case-document-preview.mjs?v=20261021-b' : '/case-document-preview.mjs?v=20261021-b')
+      .then(module => module.initCaseDocumentPreview())
+      .catch(() => { /* Direct links still open the redacted previews. */ });
+  }
+
   if (document.querySelector('.partner-network')) {
     import(location.pathname.endsWith('.html') ? './public/partner-marquee.mjs?v=20261020-clean' : '/partner-marquee.mjs?v=20261020-clean')
       .then(module => module.initPartnerMarquee())

@@ -1,0 +1,9 @@
+[
+  {"id":"mechanical-engineer-186","folder":"186","prefix":"Applicant_E02_186","code":"233512","occupation":"Mechanical Engineer","stream":"Direct Entry","nomination":"2025-09-05","visa":"2025-09-27"},
+  {"id":"electrical-engineer-186","folder":"186","prefix":"Applicant_Z02_186","code":"233311","occupation":"Electrical Engineer","stream":"Direct Entry","nomination":"2026-06-18","visa":"2026-09-05"},
+  {"id":"dental-technician-482","folder":"482","prefix":"Applicant_E_482","code":"411213","occupation":"Dental Technician","stream":"Core Skills","nomination":"2026-07-17","visa":"2026-08-01"},
+  {"id":"ict-project-manager-482","folder":"482","prefix":"Mr_W_482","code":"135112","occupation":"ICT Project Manager","stream":"Specialist Skills","nomination":"2026-03-26","visa":"2026-04-20"},
+  {"id":"hotel-manager-482","folder":"482","prefix":"Applicant_N_482","code":"141311","occupation":"Hotel or Motel Manager","stream":"Core Skills","nomination":"2026-09-08","visa":"2026-09-09"},
+  {"id":"taxation-accountant-482","folder":"482","prefix":"Applicant_X01_482","code":"221113","occupation":"Taxation Accountant","stream":"Core Skills","nomination":"2026-08-18","visa":"2026-08-18"},
+  {"id":"recruitment-consultant-482","folder":"482","prefix":"Applicant_L01_482","code":"223112","occupation":"Recruitment Consultant","stream":"Core Skills","nomination":"2026-05-29","visa":"2026-05-29"}
+]
