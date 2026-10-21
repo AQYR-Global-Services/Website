@@ -15,7 +15,8 @@ const interactionVersion = createHash("sha256")
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   icons: {
-    icon: { url: "/aqyr-favicon.webp", type: "image/webp", sizes: "any" },
+    icon: { url: "/aqyr-favicon.png", type: "image/png", sizes: "192x192" },
+    shortcut: "/favicon.ico",
     apple: "/aqyr-github-avatar.png",
   },
   title: {
