@@ -102,4 +102,8 @@ Editorial scene photos are stored locally in `public/scenes`, with responsive 64
 
 ## Publishing
 
+The production source repository is [AQYR-Global-Services/Website](https://github.com/AQYR-Global-Services/Website), on the `main` branch. The existing Vercel project is `website-demo`, serving [www.hiremiiglobal.com](https://www.hiremiiglobal.com). `Website-migration-test` is a separate verification copy and is not the production source.
+
+Keep the existing local editing and preview workflow. Existing checkouts should point `origin` to `https://github.com/AQYR-Global-Services/Website.git`; contributors need repository write access, and organization branch rules still apply.
+
 Local edits do not update GitHub or Vercel. Pushing the production branch triggers the connected Vercel deployment. Review locally before publishing.
