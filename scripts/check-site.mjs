@@ -231,7 +231,7 @@ for (const route of routes) {
       assert.match(article, /class="case-outcome"/);
       assert.match(article, /class="case-challenge"/);
       assert.match(article, /data-zh="案件概况"/);
-      assert.match(article, /data-zh="准备重点"/);
+      assert.match(article, /data-zh="案件关注点"/);
       if (article.includes('data-nomination-src=')) assert.match(article, /data-zh="提名获批"/);
       else assert.doesNotMatch(article, /提名获批|ANZSCO|data-nomination-src=/);
       assert.match(article, /data-zh="签证获批"/);

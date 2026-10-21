@@ -18,6 +18,8 @@ for (const copy of Object.values(casePreparation)) {
   assert(copy.en.length > 100 && copy.en.split(/\s+/).length <= 55, 'Keep English preparation copy brief');
   assert(copy.zh.length > 40 && copy.zh.length <= 95, 'Keep Chinese preparation copy brief');
   assert.doesNotMatch(copy.zh, /我们(?:成功|解决|协助)|团队(?:解决|整理|补充)|补件|拒签|加急|保证/);
+  assert.doesNotMatch(copy.zh, /可(?:将|围绕|结合|分别|按|以)|建议|您应/);
+  assert.doesNotMatch(copy.en, /a useful focus|can be (?:matched|organised)|can (?:explain|make|clarify|keep)/i);
 }
 const assets = new Set();
 for (const record of verifiedCases) {
@@ -67,7 +69,8 @@ assert.equal((page.match(/data-case-preview /g) || []).length, 9);
 assert.equal((page.match(/<dialog /g) || []).length, 1);
 assert.doesNotMatch(page, /Applicant_|Mr_W|\.pdf["']|case_data|without a further information request|未收到进一步补充材料要求/);
 assert.doesNotMatch(page, /case-filters|outcome-library|outcome-featured/);
-assert.match(page, /decision letters do not record case-specific challenges or work performed/);
+assert.match(page, /Past results do not guarantee approval or processing time/);
+assert.equal((page.match(/data-en="Case focus" data-zh="案件关注点"/g) || []).length, 9);
 assert.equal((page.match(/class="section project-cases"/g) || []).length, 1);
 for (const c of verifiedCases) {
   assert(page.includes(`id="${c.id}"`));
