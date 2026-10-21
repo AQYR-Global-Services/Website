@@ -147,6 +147,8 @@ for (const route of routes) {
     ["/employers", "/employer-sponsorship", "/labour-agreements", "/sponsored-visas", "/visa-services", "/points-calculator"], "Footer follows service architecture: " + route);
   assert.match(footer, /class="footer-company" role="navigation"/);
   assert.match(footer, /class="footer-contact"[\s\S]*?href="\/contact"/);
+  assert.equal((footer.match(/class="footer-wechat"/g) || []).length, 1, 'One quiet WeChat code in every footer');
+  assert.match(footer, /src="\/wechat-qr.png"/);
   assert.doesNotMatch(footerServices, /Skills in Demand|Direct Entry|TRT/);
   assert(footer && !footer.includes(processingTimesUrl), "Processing-time entry stays out of the footer: " + route);
   assert(!primaryNavigation.includes(processingTimesUrl), "No processing-time item in primary navigation");
@@ -214,12 +216,12 @@ for (const route of routes) {
     assert(!/knowledge graph|AI-powered recruitment platform/i.test(source));
   }
   if (route === "case-studies") {
-    assert.equal((source.match(/class="case-study case-detailed reveal"/g) || []).length, 7);
+    assert.equal((source.match(/class="case-study case-detailed reveal"/g) || []).length, 9);
     assert.equal((source.match(/class="section project-cases"/g) || []).length, 1);
     assert(!/data-zh="历史案例"|SELECTED EXPERIENCE/.test(source), "Cases must share one presentation, not history/experience sections");
     assert.deepEqual([...source.matchAll(/data-case-subclass="([^"]+)"/g)].map(([, subclass]) => subclass),
-      ["186", "186", "482", "482", "482", "482", "482"],
-      "Document-backed cases are grouped by 186 and 482");
+      ["186", "186", "482", "482", "482", "482", "482", "858", "600"],
+      "Document-backed cases are grouped by 186, 482, 858 and 600");
     for (const [, article] of source.matchAll(/<article class="case-study case-detailed reveal"[^>]*>([\s\S]*?)<\/article>/g)) {
       assert.match(article, /class="case-context"/);
       assert.match(article, /class="case-work"/);
@@ -227,17 +229,18 @@ for (const route of routes) {
       assert.match(article, /class="case-challenge"/);
       assert.match(article, /data-zh="案件概况"/);
       assert.match(article, /data-zh="准备重点"/);
-      assert.match(article, /data-zh="提名获批"/);
+      if (article.includes('data-nomination-src=')) assert.match(article, /data-zh="提名获批"/);
+      else assert.doesNotMatch(article, /提名获批|ANZSCO|data-nomination-src=/);
       assert.match(article, /data-zh="签证获批"/);
       assert.match(article, /data-case-preview/);
-      assert.match(article, /data-nomination-src="\/case-previews\/[a-z0-9-]+-nomination.webp"/);
+      if (article.includes('data-nomination-src=')) assert.match(article, /data-nomination-src="\/case-previews\/[a-z0-9-]+-nomination.webp"/);
       assert.match(article, /data-visa-src="\/case-previews\/[a-z0-9-]+-visa.webp"/);
     }
     assert.doesNotMatch(source, /class="case-legacy-anchor"|id="historical-cases"/, "No pre-launch compatibility anchors");
     assert.match(source, /Nomination approval and visa grant are separate outcomes/);
     assert.doesNotMatch(source, /without a further information request|未收到进一步补充材料要求/);
     assert.match(source, /<dialog class="case-document-dialog"/);
-    assert.equal((source.match(/data-case-preview /g) || []).length, 7);
+    assert.equal((source.match(/data-case-preview /g) || []).length, 9);
     assert.doesNotMatch(source, /\.pdf["']|Applicant_[A-Z]|Mr_W|case_data|C:\\Users/i, "Only safe raster excerpts are published");
     const caseDirectory = source.match(/<nav class="case-directory"[\s\S]*?<\/nav>/)?.[0];
     assert(caseDirectory, "Cases have a compact reading directory");
@@ -247,7 +250,7 @@ for (const route of routes) {
     const caseIds = [...source.matchAll(/<article class="case-study case-detailed reveal"[^>]*id="([^"]+)"/g)]
       .map(([, id]) => id);
     assert.deepEqual([...caseDirectory.matchAll(/<li><a href="#([^"]+)"/g)].map(([, id]) => id), caseIds);
-    for (const target of ["case-186", "case-482"]) {
+    for (const target of ["case-186", "case-482", "case-858", "case-600"]) {
       assert(caseDirectory.includes('href="#' + target + '"'));
     }
     assert.match(source, /class="case-group-links"/);
@@ -657,4 +660,4 @@ const cover = Buffer.from(await coverResponse.arrayBuffer());
 assert.equal(cover.subarray(1, 4).toString(), "PNG");
 assert.equal(cover.readUInt32BE(16), 1200);
 assert.equal(cover.readUInt32BE(20), 630);
-console.log(`PASS: ${routes.length} pages, unique search metadata, company introduction, 7 document-backed case studies grouped by 186 and 482, subsidiary relationship, branded share image, navigation, clean URLs without legacy redirects, sitemap, robots, responsive local images and shared runtime.`);
+console.log(`PASS: ${routes.length} pages, unique search metadata, company introduction, 9 document-backed case studies grouped by 186, 482, 858 and 600, footer WeChat code, subsidiary relationship, branded share image, navigation, clean URLs without legacy redirects, sitemap, robots, responsive local images and shared runtime.`);

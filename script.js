@@ -395,7 +395,7 @@
   setLanguage(language);
 
   if (document.querySelector('[data-case-preview]')) {
-    import(location.pathname.endsWith('.html') ? './public/case-document-preview.mjs?v=20261021-b' : '/case-document-preview.mjs?v=20261021-b')
+    import(location.pathname.endsWith('.html') ? './public/case-document-preview.mjs?v=20261021-individual' : '/case-document-preview.mjs?v=20261021-individual')
       .then(module => module.initCaseDocumentPreview())
       .catch(() => { /* Direct links still open the redacted previews. */ });
   }

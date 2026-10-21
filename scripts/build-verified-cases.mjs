@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { verifiedCases } from '../lib/verified-cases.mjs';
 import { casePreparation } from '../lib/case-preparation.mjs';
+import { individualCaseCopy } from '../lib/individual-case-copy.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -13,9 +14,12 @@ const arrow = '<svg class="link-icon" viewBox="0 0 24 24" aria-hidden="true"><pa
 const groups = [
   { id: 'case-186', visa: '186', en: '186 · Employer Nomination Scheme', zh: '186 · 雇主提名计划', descEn: 'Direct Entry cases with nomination and visa decisions.', descZh: 'Direct Entry 类别，分别展示提名与签证批准记录。' },
   { id: 'case-482', visa: '482', en: '482 · Skills in Demand', zh: '482 · Skills in Demand', descEn: 'Core Skills and Specialist Skills cases across five occupations.', descZh: '涵盖五类职业的 Core Skills 及 Specialist Skills 获批案例。' },
+  { id: 'case-858', visa: '858', en: '858 · National Innovation', zh: '858 · 国家创新签证', descEn: 'A medical AI scientist’s visa grant.', descZh: '医学 AI 科学家的签证获批记录。' },
+  { id: 'case-600', visa: '600', en: '600 · Visitor', zh: '600 · 访客签证', descEn: 'A parent visitor’s successful reapplication.', descZh: '父母访客拒签后重新申请获批。' },
 ];
 
 function article(c) {
+  if (c.documentType === 'visa-only') return individualArticle(c);
   const preparation = casePreparation[c.id];
   if (!preparation) throw new Error('Missing preparation copy: ' + c.id);
   const details = c.subclass === '482' ? ` data-detail-src="${image(c, 'nomination-detail')}"` : '';
@@ -24,6 +28,16 @@ function article(c) {
 <div class="case-detail-grid"><div class="case-context">${bi('h4', 'The case', '案件概况')}${bi('p', `This ${c.subclass} ${c.stream} case concerns the ${c.en} occupation (ANZSCO ${c.code}). The nomination was approved in ${monthEn(c.nomination)} and the visa was granted in ${monthEn(c.visa)}, with a separate decision letter for each stage.`, `本案以${c.zh}（ANZSCO ${c.code}）为提名职业，申请 ${c.subclass} ${c.stream}。提名于 ${monthZh(c.nomination)}获批，签证于 ${monthZh(c.visa)}获批，两阶段均有独立批准文件。`)}${bi('h4', 'Preparation considerations', '准备重点')}${bi('p', preparation.en, preparation.zh, ' class="case-challenge"')}</div>
 <div class="case-work">${bi('h4', 'Nomination approved', '提名获批')}<p>${bi('time', monthEn(c.nomination), monthZh(c.nomination), ` datetime="${c.nomination}"`)}${bi('span', ` · ${c.en} (${c.code}).`, ` · ${c.zh}（${c.code}）。`)}</p>${bi('h4', 'Visa granted', '签证获批')}<p>${bi('time', monthEn(c.visa), monthZh(c.visa), ` datetime="${c.visa}"`)}${bi('span', ` · Subclass ${c.subclass}, ${c.stream}.`, ` · ${c.subclass}，${c.stream}。`)}</p></div>
 <aside class="case-outcome">${bi('h4', 'Confirmed outcome', '已确认结果')}<div>${bi('p', 'Nomination approved. Visa granted.', '提名及签证均已获批。')}<a class="case-document-link" href="${image(c, 'nomination')}" target="_blank" rel="noopener noreferrer" data-case-preview data-case-en="${c.en} · ${c.subclass}" data-case-zh="${c.zh} · ${c.subclass}" data-nomination-src="${image(c, 'nomination')}" data-visa-src="${image(c, 'visa')}"${details} aria-haspopup="dialog" aria-controls="case-document-dialog">${bi('span', 'View approval documents', '查看获批文件')}${arrow}</a></div></aside></div></article>`;
+}
+
+function individualArticle(c) {
+  const copy = individualCaseCopy[c.id];
+  if (!copy) throw new Error('Missing individual case copy: ' + c.id);
+  return `<article class="case-study case-detailed reveal" data-case-subclass="${c.subclass}" id="${c.id}">
+<div class="case-heading"><div>${bi('div', c.sectorEn, c.sectorZh, ' class="label"')}${bi('h3', `${c.en} · ${c.subclass}`, `${c.zh} · ${c.subclass}`)}</div><span class="tag">${c.subclass} · ${c.stream}</span></div>
+<div class="case-detail-grid"><div class="case-context">${bi('h4', 'The case', '案件概况')}${bi('p', copy.contextEn, copy.contextZh)}${bi('h4', 'Preparation considerations', '准备重点')}${bi('p', copy.preparationEn, copy.preparationZh, ' class="case-challenge"')}</div>
+<div class="case-work">${bi('h4', 'Visa granted', '签证获批')}<p>${bi('time', monthEn(c.visa), monthZh(c.visa), ` datetime="${c.visa}"`)}</p>${bi('p', copy.detailEn, copy.detailZh)}</div>
+<aside class="case-outcome">${bi('h4', 'Confirmed outcome', '已确认结果')}<div>${bi('p', copy.outcomeEn, copy.outcomeZh)}<a class="case-document-link" href="${image(c, 'visa')}" target="_blank" rel="noopener noreferrer" data-case-preview data-case-en="${c.en} · ${c.subclass}" data-case-zh="${c.zh} · ${c.subclass}" data-visa-src="${image(c, 'visa')}" aria-haspopup="dialog" aria-controls="case-document-dialog">${bi('span', 'View visa grant', '查看签证批准信')}${arrow}</a></div></aside></div></article>`;
 }
 
 const directory = `<nav class="case-directory" aria-label="Case directory" data-aria-label-en="Case directory" data-aria-label-zh="案例目录"><div class="case-directory-track">${groups.map(g => `<div><h3><a href="#${g.id}">${bi('span', `${g.visa} cases`, `${g.visa} 案例`)}</a></h3><ul>${verifiedCases.filter(c => c.subclass === g.visa).map(c => `<li><a href="#${c.id}">${bi('span', c.en, c.zh)}</a></li>`).join('')}</ul></div>`).join('')}</div></nav>`;
@@ -36,5 +50,5 @@ if (process.argv.includes('--check')) {
   console.log('Verified case markup is current.');
 } else {
   writeFileSync(target, result);
-  console.log('Built seven document-backed cases in the existing reading layout.');
+  console.log(`Built ${verifiedCases.length} document-backed cases in the existing reading layout.`);
 }

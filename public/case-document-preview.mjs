@@ -48,7 +48,11 @@ export function initCaseDocumentPreview() {
     // Modified clicks retain the standard, no-JS link to the redacted image.
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     opener = link;
-    if (!display('nomination')) return;
+    switches.forEach(button => {
+      const source = button.dataset.documentKind === 'visa' ? opener.dataset.visaSrc : opener.dataset.nominationSrc;
+      button.hidden = !safeSource(source);
+    });
+    if (!display(safeSource(opener.dataset.nominationSrc) ? 'nomination' : 'visa')) return;
     event.preventDefault();
     previousOverflow = document.documentElement.style.overflow;
     dialog.showModal();
