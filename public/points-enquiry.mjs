@@ -1,16 +1,19 @@
-import {calculate, ruleDate} from './points-rules.mjs?v=20261015-experience';
+import {calculate, ruleDate} from './points-rules.mjs?v=20261022-postcodes';
+import {englishTests, needsEnglishDate, passportCountries, englishRuleDate} from './english-rules.mjs?v=20261022-all-tests';
 import {getOccupation} from './occupation-search.mjs';
 
 const common = ['state','visa','age','englishMode'];
 const vptFields = ['occupation','experience','vptEducation','vptPartner','earningEligible'];
 const eoiFields = ['overseas','australian','education','partner','study','specialist','regional','professional','language'];
-const checkboxes = new Set(['study','specialist','regional','professional','language']);
+const checkboxes = new Set(['study','specialist','regional','professional','language','regionalConfirmed']);
 
 // Carry only the completed pathway's scoring answers, never names or free-text searches.
 export function createPointsSnapshot(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
   const vpt = input.state === 'vic' && input.visa === '190';
-  const keys = [...common, ...(input.englishMode === 'level' ? ['english'] : ['listening','reading','writing','speaking', ...(input.englishMode === 'pte' ? ['testDate'] : [])]), ...(vpt ? vptFields : eoiFields)];
+  const evidenceKeys = input.englishMode === 'level' ? ['english'] : input.englishMode === 'passport' ? ['passportCountry'] : ['listening','reading','writing','speaking', ...(needsEnglishDate(input.englishMode) ? ['testDate'] : [])];
+  if ((input.englishMode === 'toefl' && input.testDate >= '2025-08-07') || (input.englishMode === 'cambridge' && input.testDate >= '2024-02-12' && input.testDate < '2025-08-07')) evidenceKeys.push('testEvidence');
+  const keys = [...common, ...evidenceKeys, ...(vpt ? vptFields : eoiFields), ...(input.visa==='491'?['regionalConfirmed','regionalPostcode']:[])];
   if (vpt && input.vptPartner === 'yes') keys.push('partnerCode');
   if (vpt && input.earningEligible === 'yes') keys.push('salary');
   const answers = {};
@@ -20,7 +23,7 @@ export function createPointsSnapshot(input) {
       if (value != null && typeof value !== 'boolean') return null;
       answers[key] = !!value;
     } else {
-      if (typeof value !== 'string' || value.length > 32 || !/^[a-z0-9.-]*$/i.test(value)) return null;
+      if (typeof value !== 'string' || value.length > 32 || !/^[a-z0-9.+-]*$/i.test(value)) return null;
       answers[key] = value;
     }
   }
@@ -54,7 +57,8 @@ export function pointsEnquiryRows(snapshot, lang = 'en') {
   const qualification = {other:t('Other','其他'),diploma:t('Australian diploma / trade','澳洲文凭／技工'),assessed:t('Other recognised qualification','其他认可资格'),bachelor:t('Bachelor / Honours','本科／荣誉学士'),master:t('Masters','硕士'),phd:t('PhD','博士（PhD）')};
   const englishNames = {competent:'Competent',proficient:'Proficient',superior:'Superior'};
   let english = englishNames[result.english];
-  if (input.englishMode !== 'level') english += ' · '+(input.englishMode === 'pte' ? 'PTE Academic' : 'IELTS')+' L/R/W/S '+[input.listening,input.reading,input.writing,input.speaking].join('/')+(input.testDate ? ' · '+input.testDate : '');
+  if (input.englishMode === 'passport') english += ' · '+t('Passport exemption','护照豁免')+' · '+passportCountries[input.passportCountry];
+  else if (englishTests[input.englishMode]) english += ' · '+englishTests[input.englishMode].name+' L/R/W/S '+[input.listening,input.reading,input.writing,input.speaking].join('/')+(input.testDate ? ' · '+input.testDate : '')+(input.testEvidence === 'yes' ? ' · '+t('Test conditions confirmed','已确认考试条件') : '');
   add('age',result.mode === 'vpt' ? 'Age at ROI' : 'Age at invitation',result.mode === 'vpt' ? 'ROI 年龄' : '获邀时年龄',input.age+t(' years',' 岁'));
   add('english','English','英语',english);
   if (result.mode === 'vpt') {
@@ -77,6 +81,7 @@ export function pointsEnquiryRows(snapshot, lang = 'en') {
     add('partner','Partner','配偶',partners[input.partner]);
     for (const [key,en,cn] of [['study','Australian study','澳洲学习'],['specialist','Specialist education','特定研究学历'],['regional','Regional study','偏远地区学习'],['professional','Professional Year','职业年'],['language','Community language','社区语言']]) add(key,en,cn,yesNo(input[key]));
     if (result.nomination) add('nomination','Conditional state nomination','有条件州提名',t('Only if state nomination is granted','仅在获得州提名后计入'),result.nomination);
+    if (input.visa==='491') add('regionalConfirmed','491 designated regional requirements','491 指定偏远地区要求',input.regionalPostcode+' · '+t('Postcode matches the regional reference and selected state; obligation acknowledged. Actual address and nomination eligibility still need checking.','邮编匹配地区清单及所选州，并知悉地区义务；实际地址及州提名资格仍需核验。'),0,false);
   }
   return rows;
 }
@@ -86,5 +91,5 @@ export function formatPointsEnquiry(snapshot, lang = 'en') {
   const result = calculate(snapshot.answers);
   const heading = zh ? '各项填写与得分（客户自评，待团队核对）' : 'Answers and points (self-assessed, subject to review)';
   const rows = pointsEnquiryRows(snapshot,lang).map(row=>row.label+': '+row.answer+' — '+row.points+(zh ? ' 分' : ' points'));
-  return [heading,...rows,(zh ? '总分' : 'Total')+': '+result.total+(zh ? ' 分' : ' points'),(zh ? '规则版本' : 'Rule version')+': '+ruleDate].join('\n');
+  return [heading,...rows,(zh ? '总分' : 'Total')+': '+result.total+(zh ? ' 分' : ' points'),(zh ? '基础计分版本' : 'Base scoring version')+': '+ruleDate,(zh ? '英语标准版本' : 'English rules version')+': '+englishRuleDate].join('\n');
 }

@@ -15,7 +15,7 @@ export const shareImage = {
   type: "image/png",
 };
 export const pages = {
-  "points-calculator": { fileName: "points-calculator.html", title: "189 / 190 Points Calculator · VIC VPT & NSW", description: "Choose VIC or NSW and a 189 or 190 visa to see one matching calculator. Victorian 190 uses the 2026–27 VPT; other options use federal EOI points." },
+  "points-calculator": { fileName: "points-calculator.html", title: "189 / 190 / 491 Points Calculator · All States & Territories", description: "Estimate 189, 190 or state-nominated 491 points across Australia, with regional requirements, separate 190 nomination guidance, Victorian VPT and English test standards." },
   about: { fileName: "about.html", title: "About Our Visa & Workforce Advisory Company", description: "Meet AQYR Global Services, a subsidiary of AQYR with service roots in Prince Migration and Hiremii Global Services, supporting Australian visas and workforce matters." },
   employers: { fileName: "employers.html", title: "Global Talent Mobility & Employer Compliance", description: "Australian talent mobility, employer sponsorship compliance and policy-informed workforce planning, including 482, 186 and local HR coordination." },
   "visa-services": { fileName: "visa-services.html", title: "Australian Visa Services for Individuals", description: "Visitor, student, skilled migration and partner visa support, with practical preparation guidance, skills assessments and education-to-career planning." },

@@ -311,11 +311,20 @@ for (const route of routes) {
   if (route === "points-calculator") {
     assert.match(source, /id="points-calculator"/);
     assert.match(source, /id="points-form"/);
+    assert.match(source, /id="pc-state-index"/);
+    assert.equal((source.match(/data-pc-state="/g)||[]).length,8);
+    assert.ok(!source.includes('<select id="pc-state"'), 'State selection uses the index, not a dropdown');
+    assert.ok(!source.includes('<select id="pc-visa"'), 'Visa selection uses three radio cards, not a dropdown');
+    assert.equal((source.match(/type="radio" name="visa"/g)||[]).length,3);
+    assert.match(source,/id="pc-regional-confirmed" name="regionalConfirmed"/);
+    assert.match(source,/id="pc-regional-postcode" name="regionalPostcode"/);
+    assert.match(source,/id="pc-postcode-result"/);
+    assert.ok(!source.includes('id="pc-491-state-link"'));
     assert.match(source, /id="pc-live-score" aria-live="polite"/);
     assert.match(source, /data-pc-vpt hidden/);
-    assert.match(source, /Rule snapshot: 15 October 2026/);
+    assert.match(source, /Base scoring: 15 October 2026; English and state nomination review: 22 October 2026/);
     assert.match(source, /NSW considers occupation-group ranking/);
-    for (const modulePath of ["/points-rules.mjs", "/points-calculator.mjs", "/occupation-search.mjs", "/occupation-picker.mjs", "/anzsco-2013.mjs"]) {
+    for (const modulePath of ["/points-rules.mjs", "/points-calculator.mjs", "/english-rules.mjs", "/regional-postcodes.mjs", "/postcode-reference.mjs", "/state-nomination.mjs", "/nomination-ranking.mjs", "/nomination-pathways.mjs", "/occupation-search.mjs", "/occupation-picker.mjs", "/anzsco-2013.mjs"]) {
       const moduleResponse = await fetch(base + modulePath);
       assert.equal(moduleResponse.status, 200, modulePath + " must load");
       assert.match(moduleResponse.headers.get("content-type"), /javascript/);

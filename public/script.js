@@ -411,7 +411,7 @@
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261015-experience' : '/points-calculator.mjs?v=20261015-experience')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261022-postcodes-english' : '/points-calculator.mjs?v=20261022-postcodes-english')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -491,7 +491,8 @@
     let pointsEnquiryModule = null;
     let detailsRequested = false;
     let detailsReady = Promise.resolve();
-    const estimateLimits = {'vic-190':950,'vic-189':130,'nsw-189':130,'nsw-190':135};
+    const estimateLimits = Object.fromEntries(['vic','nsw','qld','wa','sa','tas','act','nt'].flatMap(state=>[[state+'-189',130],[state+'-190',state==='vic'?950:135],[state+'-491',145]]));
+    const federalNomination = pathway => Object.hasOwn(estimateLimits,pathway) && /-(190|491)$/.test(pathway) && pathway !== 'vic-190';
     const updateEstimate = () => {
       const skilled = requestSelect.value === 'skilled';
       estimateSection.hidden = !skilled;
@@ -512,7 +513,7 @@
       } else detailStatus.textContent = '';
       detailStatus.hidden = !include || !detailStatus.textContent;
       estimatedScore.max = String(estimateLimits[estimatePathway.value] || 950);
-      form.querySelector('#enquiry-nomination-hint').hidden = estimatePathway.value !== 'nsw-190';
+      form.querySelector('#enquiry-nomination-hint').hidden = !federalNomination(estimatePathway.value);
     };
     requestSelect.addEventListener('change', updateEstimate);
     includeEstimate.addEventListener('change', updateEstimate);
@@ -530,7 +531,7 @@
         const rawDetails = estimate.get('details');
         if (rawDetails != null) {
           detailsRequested = true;
-          detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261015-experience' : '/points-enquiry.mjs?v=20261015-experience')
+          detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261022-postcodes' : '/points-enquiry.mjs?v=20261022-postcodes')
             .then(module => {
               pointsEnquiryModule = module;
               pointsSnapshot = module.parsePointsSnapshot(rawDetails,pathway,score);
@@ -566,8 +567,8 @@
         data.get('companyOccupation') || '—', data.get('email'), data.get('phone') || '—', data.get('message')];
       if (data.get('includeEstimate')) {
         labels.push(zh ? '预估分数（客户自评，待团队核对）' : 'Estimated points (self-assessed, subject to review)');
-        const nominationNote = estimatePathway.value === 'nsw-190'
-          ? (zh ? '（含有条件州提名 +5 分）' : ' (includes conditional +5 nomination points)') : '';
+        const nominationNote = federalNomination(estimatePathway.value)
+          ? (zh ? '（含有条件州提名 +'+(estimatePathway.value.endsWith('-491')?15:5)+' 分）' : ' (includes conditional +'+(estimatePathway.value.endsWith('-491')?15:5)+' nomination points)') : '';
         values.push(optionText('estimatePathway') + nominationNote + ': ' + data.get('estimatedScore') + (zh ? ' 分' : ' points')
           + (pointsSnapshot ? '\n\n'+pointsEnquiryModule.formatPointsEnquiry(pointsSnapshot,root.dataset.lang) : ''));
       }

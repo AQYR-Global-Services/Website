@@ -1,0 +1,25 @@
+{
+  "reviewDate": "2026-10-22",
+  "regionalClassification": {
+    "publisher": "Australian Department of Home Affairs",
+    "title": "Designated regional area postcodes",
+    "url": "https://immi.homeaffairs.gov.au/supporting/Pages/Work/187-regional-postcodes.aspx",
+    "implementation": "public/regional-postcodes.mjs",
+    "categories": [2, 3],
+    "notes": "Inclusive postcode ranges copied from the official table. This is not the ABS remoteness classification, a visa eligibility decision, or a state nomination assessment."
+  },
+  "geographicReference": {
+    "publisher": "Australian Bureau of Statistics",
+    "title": "ASGS Edition 4 Postal Areas 2026",
+    "url": "https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs/edition-4-july-2026-june-2031/non-abs-structures/postal-areas",
+    "service": "https://geo.abs.gov.au/arcgis/rest/services/ASGS2026/POA/MapServer/0",
+    "query": "where=1%3D1&outFields=POA_CODE_2026&returnGeometry=false&orderByFields=POA_CODE_2026&resultRecordCount=2000&f=json",
+    "paginationOffsets": [0, 2000],
+    "totalRecords": 2645,
+    "geographicPostcodes": 2642,
+    "excludedSpecialPurposeCodes": ["9494", "9797", "ZZZZ"],
+    "localReference": "public/postcode-reference.mjs",
+    "notes": "POAs approximate geographic postcodes and are not Australia Post address validation. Absent, new or special-purpose postcodes return unknown, never assumed regional. Shared postcodes are withheld pending actual address checks."
+  },
+  "privacy": "Lookup is entirely local. No external geocoder, map tiles, address collection, analytics or network request is used. The postcode enters the opt-in enquiry snapshot only if the visitor explicitly chooses to attach scoring answers."
+}

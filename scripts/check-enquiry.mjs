@@ -3,12 +3,14 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import * as pointsEnquiry from '../public/points-enquiry.mjs';
 import {calculate} from '../public/points-rules.mjs';
+import {stateCodes} from '../public/state-nomination.mjs';
+const examplePostcodes={vic:'3220',nsw:'2300',qld:'4217',wa:'6000',sa:'5000',tas:'7000',act:'2601',nt:'0800'};
 
 // Exercise the actual contact handler without opening an email app or sending a message.
 const script = await readFile(new URL('../public/script.js',import.meta.url),'utf8');
 const html = await readFile(new URL('../content/contact.html',import.meta.url),'utf8');
 const handler = script.slice(script.indexOf('  if (form) {'),script.indexOf('  // Do not re-hide'))
-  .replace("import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261015-experience' : '/points-enquiry.mjs?v=20261015-experience')",'Promise.resolve(pointsEnquiry)');
+  .replace(/import\(location\.pathname\.endsWith\('\.html'\) \? '\.\/public\/points-enquiry\.mjs\?v=[^']+' : '\/points-enquiry\.mjs\?v=[^']+'\)/,'Promise.resolve(pointsEnquiry)');
 async function setup(hash='',lang='en') {
   const nodes = new Map();
   const node = key => {
@@ -69,7 +71,13 @@ const eoi = {state:'nsw',visa:'190',age:'25',englishMode:'level',english:'profic
 function fragment(answers) {
   return '#enquiry?'+new URLSearchParams({pathway:answers.state+'-'+answers.visa,score:String(calculate(answers).total),details:JSON.stringify(pointsEnquiry.createPointsSnapshot(answers))});
 }
-for(const lang of ['en','zh']) for (const answers of [vpt,{...vpt,experience:'8'},{...vpt,experience:'9'},eoi,{...eoi,state:'vic',visa:'189'},{...eoi,visa:'189'}]) {
+const extraEnglish = [
+  {...eoi,englishMode:'cambridge',listening:'175',reading:'179',writing:'193',speaking:'194',testDate:'2026-10-01'},
+  {...eoi,englishMode:'toefl',listening:'22',reading:'22',writing:'26',speaking:'24',testDate:'2026-10-01',testEvidence:'yes'},
+  {...eoi,englishMode:'oet',listening:'B',reading:'B',writing:'B',speaking:'B',testDate:'2025-08-06'},
+  {...eoi,englishMode:'passport',passportCountry:'uk'},
+];
+for(const lang of ['en','zh']) for (const answers of [vpt,{...vpt,experience:'8'},{...vpt,experience:'9'},...stateCodes.flatMap(state=>['189','190','491'].filter(visa=>state!=='vic'||visa!=='190').map(visa=>({...eoi,state,visa,...(visa==='491'?{regionalConfirmed:true,regionalPostcode:examplePostcodes[state]}:{})}))),...extraEnglish]) {
   const imported=await setup(fragment(answers),lang);
   assert(imported.node('[name="estimatedScore"]').readOnly);
   assert(imported.node('[name="estimatePathway"]').disabled);
@@ -82,6 +90,15 @@ for(const lang of ['en','zh']) for (const answers of [vpt,{...vpt,experience:'8'
   imported.node('[name="includeEstimate"]').checked=false;
   imported.node('[name="includeEstimate"]').events.change();
   assert.doesNotMatch(await imported.submit(),/Answers and points|各项填写与得分|Rule version|规则版本/);
+}
+for (const answers of extraEnglish) {
+  const snapshot=pointsEnquiry.createPointsSnapshot(answers);
+  assert(snapshot,'English evidence survives enquiry serialisation');
+  assert.equal(calculate(snapshot.answers).total,calculate(answers).total);
+  const body=pointsEnquiry.formatPointsEnquiry(snapshot);
+  if(answers.englishMode==='passport')assert.match(body,/Passport exemption.*United Kingdom/);
+  else assert(body.includes(answers.testDate));
+  assert.doesNotMatch(body,/undefined|NaN/);
 }
 const capped=pointsEnquiry.createPointsSnapshot({...eoi,overseas:'8',australian:'8'});
 const eightYears=pointsEnquiry.createPointsSnapshot({...vpt,experience:'8'});
@@ -108,4 +125,16 @@ assert.equal(pointsEnquiry.parsePointsSnapshot('{invalid','vic-190',679),null);
 assert.equal(pointsEnquiry.parsePointsSnapshot('x'.repeat(4097),'vic-190',679),null);
 assert.equal(pointsEnquiry.createPointsSnapshot({...eoi,study:'true'}),null);
 assert.equal(pointsEnquiry.createPointsSnapshot({...vpt,age:'29\nInjected text'}),null);
-console.log('PASS: four pathways, bilingual itemised email bodies, work-points cap, opt-out, legacy totals, snapshot validation and no automatic sending.');
+for(const state of stateCodes){
+  const answers={...eoi,state,visa:'491',regionalConfirmed:true,regionalPostcode:examplePostcodes[state]};
+  const snapshot=pointsEnquiry.createPointsSnapshot(answers);
+  const rows=pointsEnquiry.pointsEnquiryRows(snapshot);
+  assert.equal(rows.filter(row=>row.additive).reduce((sum,row)=>sum+row.points,0),calculate(answers).total);
+  assert.equal(rows.find(row=>row.key==='nomination').points,15);
+  assert.equal(pointsEnquiry.createPointsSnapshot({...answers,regionalConfirmed:false}),null);
+  const imported=await setup(fragment(answers));
+  assert.match(await imported.submit(),/conditional \+15 nomination points/);
+  assert.match(await imported.submit(),/491 designated regional requirements/);
+}
+assert(!(await setup('#enquiry?pathway=vic-491&score=146')).node('[name="includeEstimate"]').checked);
+console.log('PASS: 24 state/visa combinations, bilingual itemised email bodies, 491 regional confirmation and +15, score limits, opt-out, snapshot validation and no automatic sending.');
