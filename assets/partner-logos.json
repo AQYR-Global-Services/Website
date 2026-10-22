@@ -50,14 +50,14 @@
       ]
     },
     {
-      "file": "audd-circle.webp",
-      "source": "https://partners.circle.com/partner/audc-pty-ltd",
+      "file": "audd-transparent.webp",
+      "source": "User-supplied AUDD artwork",
       "website": "https://www.audd.digital/",
       "dimensions": [
-        384,
-        384
+        1200,
+        600
       ],
-      "notes": "User-selected purple AUDD artwork from the Circle Alliance Directory, downloaded unchanged from its 4x logo source. Link remains the AUDD official website."
+      "notes": "User-supplied purple-on-transparent WebP for the light partner section, copied unchanged. Link remains the AUDD official website."
     },
     {
       "file": "hello-kitchen.jpg",

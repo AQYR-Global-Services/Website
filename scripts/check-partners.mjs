@@ -14,10 +14,10 @@ assert.equal(links.length, 16);
 assert.equal(manifest.logos.length, 16);
 assert.doesNotMatch(source, /partner-motion-toggle/);
 assert.doesNotMatch(source, /partner-hint|partner-tools|Select a logo to visit their website\.|点击 Logo，访问合作伙伴官网。/);
-for (const removed of ['lexi-lighting.png', 'kwl-lawyers.png', 'aform.png', 'parallel-workshop.png', 'audd-digital.png']) {
+for (const removed of ['lexi-lighting.png', 'kwl-lawyers.png', 'aform.png', 'parallel-workshop.png', 'audd-digital.png', 'audd-circle.webp']) {
   assert(!source.includes('/partners/' + removed), 'Removed or replaced logo is not rendered: ' + removed);
 }
-assert(source.includes('src="/partners/audd-circle.webp"'));
+assert(source.includes('src="/partners/audd-transparent.webp"'));
 assert(source.includes('href="https://www.jtlawyers.com.au/"'));
 assert(source.includes('href="https://www.brightstonelegal.com.au/"'));
 const sharedScript = await readFile(new URL('../public/script.js', import.meta.url), 'utf8');
@@ -28,6 +28,10 @@ for (const logo of manifest.logos) {
   assert(link, `Listed logo: ${logo.file}`);
   if (logo.website) assert(link.includes(`href="${logo.website}"`));
   const image = await sharp(fileURLToPath(new URL(`../public/partners/${logo.file}`, import.meta.url))).metadata();
+  if (logo.file === 'audd-transparent.webp') {
+    assert.equal(image.hasAlpha, true, 'AUDD artwork blends into the light section without a solid purple square');
+    assert.doesNotMatch(link, /partner-logo--symbol/, 'Use the supplied landscape artwork at its natural aspect ratio');
+  }
   assert.equal(Number(link.match(/width="(\d+)"/)[1]), image.width);
   assert.equal(Number(link.match(/height="(\d+)"/)[1]), image.height);
 }
