@@ -5,11 +5,17 @@ import { casePreparation } from '../lib/case-preparation.mjs';
 import { individualCaseCopy } from '../lib/individual-case-copy.mjs';
 
 const root = resolve(import.meta.dirname, '..');
+const watermarks = JSON.parse(readFileSync(resolve(root, 'assets/case-preview-watermarks.json'), 'utf8'));
 const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const bi = (tag, en, zh, attrs = '') => `<${tag}${attrs} data-en="${esc(en)}" data-zh="${esc(zh)}">${esc(en)}</${tag}>`;
 const monthEn = value => new Intl.DateTimeFormat('en-AU', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(value + '-01T00:00:00Z'));
 const monthZh = value => `${value.slice(0, 4)} 年 ${Number(value.slice(5))} 月`;
-const image = (c, kind) => `/case-previews/${c.id}-${kind}.webp`;
+const image = (c, kind) => {
+  const name = `${c.id}-${kind}.webp`;
+  const entry = watermarks.images[name];
+  if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw new Error('Missing watermark manifest: ' + name);
+  return `/case-previews/${name}?v=${entry.sha256.slice(0, 12)}`;
+};
 const arrow = '<svg class="link-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"></path></svg>';
 const groups = [
   { id: 'case-186', visa: '186', en: '186 · Employer Nomination Scheme', zh: '186 · 雇主提名计划', descEn: 'Direct Entry cases with nomination and visa decisions.', descZh: 'Direct Entry 类别，分别展示提名与签证批准记录。' },

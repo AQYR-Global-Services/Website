@@ -1,3 +1,5 @@
+export const safeCasePreviewSource = value => /^\/case-previews\/[a-z0-9-]+\.webp(?:\?v=[a-f0-9]{12})?$/.test(value || '') ? value : null;
+
 export function initCaseDocumentPreview() {
   const dialog = document.getElementById('case-document-dialog');
   if (!dialog || dialog.dataset.ready || typeof dialog.showModal !== 'function') return;
@@ -15,7 +17,7 @@ export function initCaseDocumentPreview() {
   let selected = 'nomination';
   let previousOverflow;
   const isZh = () => document.documentElement.dataset.lang === 'zh';
-  const safeSource = value => /^\/case-previews\/[a-z0-9-]+\.webp$/.test(value || '') ? value : null;
+  const safeSource = safeCasePreviewSource;
 
   function labels() {
     if (!opener) return;

@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "text": "AQYR GLOBAL SERVICES",
+  "angle": 28,
+  "opacity": 0.18,
+  "flattened": true,
+  "source": "Previously redacted raster excerpts only; original PDFs are not used.",
+  "images": {
+    "ai-scientist-858-visa.webp": {
+      "sha256": "e0850a4f5cc0c1f32eca213d713c40e1169fdbbcac36cc8567786524b46dba03",
+      "width": 1075,
+      "height": 1521
+    },
+    "dental-technician-482-nomination-detail.webp": {
+      "sha256": "851bfdac38af71b6c4bf3846ec62d9a7b9949d7d473daa2282768e00321700f0",
+      "width": 1075,
+      "height": 1521
+    },
+    "dental-technician-482-nomination.webp": {
+      "sha256": "10f235c4c15c8cd36e037e8f6ac6d7ce996e0a0695f1802710f97fe7e56e661e",
+      "width": 1075,
+      "height": 1521
+    },
+    "dental-technician-482-visa.webp": {
+      "sha256": "cb3c203efa805c18748643f0c98bc5f6b6959b2f55a1f0f6335b2fc8032e9d8e",
+      "width": 1075,
+      "height": 1521
+    },
+    "electrical-engineer-186-nomination.webp": {
+      "sha256": "2fbb4ab6ebc5357b4a960add0acdb786f9b2deb8cfbb9e89756411b22ca93b16",
+      "width": 1075,
+      "height": 1521
+    },
+    "electrical-engineer-186-visa.webp": {
+      "sha256": "e295990d85b650c4f636a797826ad59e3353a1b30cd2bd38c23fed52aeac394c",
+      "width": 1075,
+      "height": 1521
+    },
+    "hotel-manager-482-nomination-detail.webp": {
+      "sha256": "505875b21828ed3befbbbbdb3830665d8a017335b81fba27222f41176f638f8d",
+      "width": 1075,
+      "height": 1521
+    },
+    "hotel-manager-482-nomination.webp": {
+      "sha256": "30068a7d30c318fc6524299207c1563c351f78d7f504c37cf02ff85e5bda4b7e",
+      "width": 1075,
+      "height": 1521
+    },
+    "hotel-manager-482-visa.webp": {
+      "sha256": "889f4f4bd0e14d98b9ed54359fa055d5fbb0a53929702e59f4ea7c083d72854b",
+      "width": 1075,
+      "height": 1521
+    },
+    "ict-project-manager-482-nomination-detail.webp": {
+      "sha256": "071734df3b9975d026621334139fd53daf064f10589bb13882d54ea628a15518",
+      "width": 1075,
+      "height": 1521
+    },
+    "ict-project-manager-482-nomination.webp": {
+      "sha256": "17413c6d001d899f7aa5462ca1ad47d6fdef570db4ff6cf78ace5e68b92ab8ae",
+      "width": 1075,
+      "height": 1521
+    },
+    "ict-project-manager-482-visa.webp": {
+      "sha256": "5d944921c01cc2fdba929be7f37c33125e769c15fbd9202ee4ef937a8155543e",
+      "width": 1075,
+      "height": 1521
+    },
+    "mechanical-engineer-186-nomination.webp": {
+      "sha256": "84243a79ba9cbafd6211b0c08c195e23e375078cc88aa123e6ecd09a8c5f4d1b",
+      "width": 1075,
+      "height": 1521
+    },
+    "mechanical-engineer-186-visa.webp": {
+      "sha256": "5b1a334cab956df6f5a94f703918a57541a4131e68a672dcb95d00191650b6a4",
+      "width": 1075,
+      "height": 1521
+    },
+    "parent-visitor-600-visa.webp": {
+      "sha256": "7688d044fd7cee11e0ba926c1f665e7ad1592ae876c5d8057d833c830c597a99",
+      "width": 1075,
+      "height": 1521
+    },
+    "recruitment-consultant-482-nomination-detail.webp": {
+      "sha256": "a6fdf394b1fa092ba59c8ea8bcc88b783628f3c0452c1e6bde86009d8fc6c816",
+      "width": 1075,
+      "height": 1521
+    },
+    "recruitment-consultant-482-nomination.webp": {
+      "sha256": "659e819380899e2dc19b98a539ed1e8872f5c0d7c913b485392fc7102b351679",
+      "width": 1075,
+      "height": 1521
+    },
+    "recruitment-consultant-482-visa.webp": {
+      "sha256": "67f0062b466f970fff4f9276bc0bc3c8eae58a47a953171e6bb3be215093f9aa",
+      "width": 1075,
+      "height": 1521
+    },
+    "taxation-accountant-482-nomination-detail.webp": {
+      "sha256": "1213f98c53ef7248197bd6e8678dee0aa3b3b89f64ea386886754bab2a312271",
+      "width": 1075,
+      "height": 1521
+    },
+    "taxation-accountant-482-nomination.webp": {
+      "sha256": "1643120923d4ac5bcc4b2bbe4b68f2b49dae86190be9e01b7a4701e6fe3a9d77",
+      "width": 1075,
+      "height": 1521
+    },
+    "taxation-accountant-482-visa.webp": {
+      "sha256": "dd035ea8006f0b5435e87cf0a9b1393372b461374b9cab78fc1da579a35959e0",
+      "width": 1075,
+      "height": 1521
+    }
+  }
+}

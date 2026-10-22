@@ -1,13 +1,25 @@
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 import { verifiedCases } from '../lib/verified-cases.mjs';
 import { casePreparation } from '../lib/case-preparation.mjs';
 import { individualCaseCopy } from '../lib/individual-case-copy.mjs';
 import { loadPageSource } from '../lib/content-source.mjs';
+import { safeCasePreviewSource } from '../public/case-document-preview.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const base = process.argv[2];
+const watermarks = JSON.parse(await readFile(resolve(root, 'assets/case-preview-watermarks.json'), 'utf8'));
+assert.equal(watermarks.text, 'AQYR GLOBAL SERVICES');
+assert.equal(watermarks.flattened, true);
+assert.equal(watermarks.opacity, 0.18);
+assert.equal(watermarks.angle, 28);
+assert.equal(Object.keys(watermarks.images).length, 21);
+assert.equal(safeCasePreviewSource('/case-previews/sample-visa.webp?v=123456abcdef'), '/case-previews/sample-visa.webp?v=123456abcdef');
+for (const unsafe of ['https://example.com/x.webp', '/case-previews/../secret.webp', '/case-previews/x.webp?v=invalid', '/case-previews/x.webp?v=123456abcdef&extra=1']) {
+  assert.equal(safeCasePreviewSource(unsafe), null);
+}
 const sources = JSON.parse(await readFile(resolve(root, 'scripts/case-preview-sources.json'), 'utf8'));
 assert.equal(verifiedCases.length, 9);
 assert.equal(new Set(verifiedCases.map(c => c.id)).size, 9);
@@ -52,16 +64,22 @@ for (const record of verifiedCases) {
 assert.equal(assets.size, 21);
 const actual = await readdir(resolve(root, 'public/case-previews'));
 assert.deepEqual(actual.sort(), [...assets].sort(), 'Only the expected raster excerpts belong in the public case folder');
+assert.deepEqual(Object.keys(watermarks.images).sort(), [...assets].sort());
 for (const name of assets) {
   const bytes = await readFile(resolve(root, 'public/case-previews', name));
   assert.equal(bytes.subarray(0, 4).toString(), 'RIFF');
   assert.equal(bytes.subarray(8, 12).toString(), 'WEBP');
   assert(!bytes.includes(Buffer.from('EXIF')), 'No source file metadata in public images');
+  assert(!bytes.includes(Buffer.from('XMP ')), 'No hidden source metadata');
+  const entry = watermarks.images[name];
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, 'Confirmed watermarked asset: ' + name);
+  assert.deepEqual([entry.width, entry.height], [1075, 1521]);
   if (base) {
-    const response = await fetch(`${base}/case-previews/${name}`);
+    const response = await fetch(`${base}/case-previews/${name}?v=${entry.sha256.slice(0, 12)}`, { signal: AbortSignal.timeout(20000) });
     assert.equal(response.status, 200, name);
     assert.match(response.headers.get('content-type'), /image\/webp/);
-    await response.arrayBuffer();
+    const liveBytes = Buffer.from(await response.arrayBuffer());
+    assert.equal(createHash('sha256').update(liveBytes).digest('hex'), entry.sha256, 'Live watermarked bytes: ' + name);
   }
 }
 const page = loadPageSource('case-studies.html', root);
@@ -75,7 +93,8 @@ assert.equal((page.match(/class="section project-cases"/g) || []).length, 1);
 for (const c of verifiedCases) {
   assert(page.includes(`id="${c.id}"`));
   assert(page.includes(`href="#${c.id}"`));
-  assert(page.includes(`data-visa-src="/case-previews/${c.id}-visa.webp"`));
+  const name = `${c.id}-visa.webp`;
+  assert(page.includes(`data-visa-src="/case-previews/${name}?v=${watermarks.images[name].sha256.slice(0, 12)}"`));
 }
 for (const subclass of ['186', '482', '858', '600']) assert(page.includes(`id="case-${subclass}"`));
 assert.match(page, /three-year multiple.entry/);
@@ -88,4 +107,4 @@ for (const route of ['index', 'employers', 'about', 'employer-sponsorship', 'spo
   const source = loadPageSource(route + '.html', root);
   assert.doesNotMatch(source, /case-studies#(?:business-cases|individual-cases|fintech-software-engineer|civil-engineering-draftsperson)/);
 }
-console.log('PASS: 7 paired cases + 2 visa-only cases; 21 metadata-free raster previews; four categories in one existing case layout.');
+console.log('PASS: 9 cases; all 21 metadata-free, watermarked raster previews match the verified manifest; cache-versioned safe preview URLs.');

@@ -236,8 +236,8 @@ for (const route of routes) {
       else assert.doesNotMatch(article, /提名获批|ANZSCO|data-nomination-src=/);
       assert.match(article, /data-zh="签证获批"/);
       assert.match(article, /data-case-preview/);
-      if (article.includes('data-nomination-src=')) assert.match(article, /data-nomination-src="\/case-previews\/[a-z0-9-]+-nomination.webp"/);
-      assert.match(article, /data-visa-src="\/case-previews\/[a-z0-9-]+-visa.webp"/);
+      if (article.includes('data-nomination-src=')) assert.match(article, /data-nomination-src="\/case-previews\/[a-z0-9-]+-nomination\.webp\?v=[a-f0-9]{12}"/);
+      assert.match(article, /data-visa-src="\/case-previews\/[a-z0-9-]+-visa\.webp\?v=[a-f0-9]{12}"/);
     }
     assert.doesNotMatch(source, /class="case-legacy-anchor"|id="historical-cases"/, "No pre-launch compatibility anchors");
     assert.match(source, /Nomination approval and visa grant are separate outcomes/);
