@@ -64,6 +64,12 @@ NSW's page describes multiple selection factors and ANZSCO-unit-group ranking bu
 
 ## Maintenance and testing
 
+### South Australian program status (checked 23 October 2026)
+
+The [22 October 2026 announcement](https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update) says onshore ROI is currently open to people living and working in SA whose current visas expire on or before31January2027. Offshore candidates continue through SkillSelect EOI without submitting an ROI. It identifies building/construction, defence, education, engineering, health and manufacturing as priority sectors, while allowing consideration of high-ranking candidates in other sectors. This is a current intake-status notice, not a change to federal points or an automatic eligibility decision. The announcement does not identify a separate commencement date.
+
+SA190/491 display the bilingual notice directly after the visa choices, without requiring the optional nomination guide to be opened. It includes the publication/check dates and official announcement link. SA189 and all other states do not display it. No visa expiry field, eligibility gate, new self-certification or scoring weights are added. Federal EOI totals and491 postcode safeguards are unchanged. Some official stream pages retain old-year invitation wording; do not infer that every applicant is eligible or rewrite unrelated state review dates.
+
 ### 491 regional scenario (reviewed 22 October 2026)
 
 Victoria 491 now uses the official VPT model, independently of federal EOI. Verified on 23 October 2026: the official VPT page expressly applies its seven factors to both 190 and 491 ROI ranking. VIC491 has a maximum950, never VPT+15. Regional postcode and acknowledgement checks remain required. Other states retain the **state-nominated federal EOI scenario**: conditional nomination adds **15**, never 5+15; maximum145. ACT/TAS491 do not reuse their 190 ranking tables. No family sponsorship or nomination eligibility decision is made.

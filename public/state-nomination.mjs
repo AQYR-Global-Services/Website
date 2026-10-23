@@ -11,6 +11,21 @@ export const states = {
   nt:{en:'Northern Territory',zh:'北领地',url:'https://australiasnorthernterritory.com.au/move/migrate-to-work/nt-government-visa-nomination/eligibility',note:['NT checks local employment outcomes and long-term settlement commitment, with different resident, graduate and offshore criteria. 190 and 491 eligibility differ. Check current application restrictions before relying on a points estimate.','北领地重视本地就业及长期定居承诺，居民、毕业生和境外申请人条件不同，190 与 491 资格也有区别。请先核对当前申请限制，不能仅凭分数判断可申请。']},
 };
 export const stateCodes = Object.keys(states);
+// Program availability is dated guidance, not a federal scoring or eligibility gate.
+const saProgramNotice={
+  published:'2026-10-22',checked:'2026-10-23',
+  url:'https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update',
+  title:['South Australia · 2026–27 program update','南澳 · 2026–27 项目更新'],
+  items:[
+    {label:['Onshore · ROI','境内 · ROI'],body:['Currently open to people living and working in South Australia whose current visas expire on or before 31 January 2027. The relevant stream and occupation requirements still apply.','目前向在南澳居住、工作，且当前签证于 2027 年 1 月 31 日或之前到期的人士开放。仍须满足相应路径及职业要求。']},
+    {label:['Offshore · EOI','境外 · EOI'],body:['Candidates can continue to lodge an EOI through SkillSelect. South Australia selects suitable candidates from EOIs; offshore applicants do not submit an ROI.','申请人可继续通过 SkillSelect 提交 EOI，南澳从 EOI 中筛选合适人选；境外申请人无需提交 ROI。']},
+    {label:['Priority sectors','优先行业'],body:['Building and construction, defence, education, engineering, health and manufacturing. High-ranking candidates in other sectors may also be considered.','建筑、国防、教育、工程、医疗及制造业；其他行业中排名较高的申请人亦可能获考虑。']},
+  ],
+  note:['This is a program-status notice, not an eligibility decision or invitation guarantee. It does not change federal EOI points. Check the latest announcement and stream requirements before applying.','此为项目状态提示，不代表符合提名资格或保证获邀，也不改变联邦 EOI 计分。申请前请核对最新公告及具体路径条件。'],
+};
+export function getNominationProgramNotice(state,visa){
+  return state==='sa'&&['190','491'].includes(visa)?saProgramNotice:null;
+}
 export const regional491 = {
   vic:{url:'https://liveinmelbourne.vic.gov.au/migrate/skilled-migration-visas/skilled-visa-faqs',area:['Only designated regional Victorian postcodes qualify; metropolitan Melbourne is excluded. Check the actual postcode, not just the state.','仅指定偏远地区的维州邮编适用，墨尔本都会区不包括在内；须核对实际邮编，不能仅凭所在州判断。']},
   nsw:{url:'https://www.nsw.gov.au/visas-and-migration/skilled-visas/skilled-work-regional-visa-subclass-491',area:['Only designated regional NSW postcodes qualify; Sydney is excluded. Newcastle and Wollongong include eligible areas. Check the actual postcode.','仅指定偏远地区的新州邮编适用，悉尼不包括在内；纽卡斯尔、卧龙岗包含符合地区，须核对实际邮编。']},

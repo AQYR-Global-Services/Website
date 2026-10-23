@@ -411,7 +411,7 @@
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-empty-attachments' : '/points-calculator.mjs?v=20261023-empty-attachments')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-sa-notice' : '/points-calculator.mjs?v=20261023-sa-notice')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');

@@ -1,6 +1,6 @@
 import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
-import {states, stateCodes, regional491} from './state-nomination.mjs?v=20261023-vic491';
+import {states, stateCodes, regional491, getNominationProgramNotice} from './state-nomination.mjs?v=20261023-sa-notice';
 import {initialiseRankingTool} from './nomination-ranking.mjs?v=20261023-enquiry';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
@@ -44,7 +44,10 @@ export function initialisePointsCalculator() {
   const missingTitle=document.createElement('p');missingTitle.setAttribute('role','status');
   const missingHelp=document.createElement('p');
   const missingList=document.createElement('ul');missingPanel.append(missingTitle,missingHelp,missingList);
-  host.querySelector('#pc-pathway').after(missingPanel);
+  const programNotice=document.createElement('section');programNotice.id='pc-program-notice';programNotice.className='pc-program-notice';programNotice.hidden=true;
+  programNotice.setAttribute('aria-labelledby','pc-program-notice-title');
+  host.querySelector('#pc-pathway').after(programNotice);
+  programNotice.after(missingPanel);
   const ageError=document.createElement('p');ageError.id='pc-age-error';ageError.className='pc-field-error';
   host.querySelector('#pc-age').after(ageError);
   host.querySelector('#pc-age').setAttribute('aria-describedby','pc-age-hint pc-age-error');
@@ -88,6 +91,21 @@ export function initialisePointsCalculator() {
     const input = values();
     host.querySelectorAll('[data-pc-state]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.pcState===input.state)));
     const chosen = stateCodes.includes(input.state) && ['189','190','491'].includes(input.visa);
+    const notice=getNominationProgramNotice(input.state,input.visa);
+    programNotice.hidden=!notice;programNotice.replaceChildren();
+    if(notice){
+      const title=document.createElement('h3');title.id='pc-program-notice-title';title.textContent=text(...notice.title);
+      const dates=document.createElement('p');dates.className='pc-program-notice-meta';
+      dates.textContent=text('Official announcement: ','官方公告：')+notice.published+text(' · Checked: ',' · 核对：')+notice.checked;
+      programNotice.append(title,dates);
+      for(const item of notice.items){
+        const paragraph=document.createElement('p'),label=document.createElement('strong');label.textContent=text(...item.label)+text(': ','：');
+        paragraph.append(label,document.createTextNode(text(...item.body)));programNotice.append(paragraph);
+      }
+      const note=document.createElement('p');note.className='pc-hint';note.textContent=text(...notice.note);
+      const source=document.createElement('a');source.href=notice.url;source.target='_blank';source.rel='noopener noreferrer';source.textContent=text('Read the official South Australian announcement ↗','查阅南澳官方公告 ↗');
+      programNotice.append(note,source);
+    }
     const vic = chosen && usesVpt(input);
     const federal = chosen && !vic;
     show('[data-pc-state-info]', chosen && input.visa === '190');
