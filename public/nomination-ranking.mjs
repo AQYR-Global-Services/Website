@@ -1,6 +1,6 @@
 // Separate nomination self-assessment, never added to federal EOI or VPT.
 // Sources are the linked ACT calculators and Tasmania 190 priority-attribute tables.
-import {nominationPathways,checklistProgress} from './nomination-pathways.mjs?v=20261022-pathways';
+import {nominationPathways} from './nomination-pathways.mjs?v=20261023-guidance';
 import {states} from './state-nomination.mjs?v=20261022-all-states';
 import {englishLevel} from './english-rules.mjs?v=20261022-all-tests';
 const option = (points,en,zh,tier='') => ({points,en,zh,tier});
@@ -143,7 +143,11 @@ export function initialiseRankingTool(host) {
   const text=(en,zh)=>document.documentElement.dataset.lang==='zh'?zh:en;
   const el=(tag,content,className)=>{const n=document.createElement(tag);if(content)n.textContent=content;if(className)n.className=className;return n;};
   const programs={...nominationPathways,...rankingPrograms};
-  const details=el('div',null,'pc-local-ranking');
+  const details=el('details',null,'pc-local-ranking');
+  const toggle=el('summary');details.append(toggle);
+  // Guidance is optional; only genuine numeric ranking factors become controls.
+  const stateSource=host.querySelector('#pc-state-link');
+  details.append(stateSource);
   const badge=el('p',null,'label');details.append(badge);
   const summary=el('h3');details.append(summary);
   const intro=el('p',null,'pc-hint');details.append(intro);
@@ -153,6 +157,7 @@ export function initialiseRankingTool(host) {
   for(const [key,config] of Object.entries(programs)){const opt=el('option');opt.value=key;path.append(opt);}
   const source=el('a');source.target='_blank';source.rel='noopener noreferrer';details.append(source);
   const notes=el('div');details.append(notes);
+  const requirements=el('ul',null,'pc-nomination-requirements');details.append(requirements);
   const fields=el('div',null,'pc-grid');details.append(fields);
   const confirmLabel=el('label',null,'pc-check');
   const confirm=el('input');confirm.type='checkbox';confirm.id='pc-ranking-confirm';const confirmText=el('span');confirmLabel.append(confirm,confirmText);details.append(confirmLabel);
@@ -164,27 +169,32 @@ export function initialiseRankingTool(host) {
   const result=el('p',null,'pc-inline-result');result.setAttribute('role','status');details.append(result);
   const reset=el('button',null,'pc-reset');reset.type='button';details.append(reset);
   root.append(details);
+  const reminder=el('p',null,'pc-hint pc-nomination-reminder');root.append(reminder);
   let currentState='',currentProgram='',currentVisa='',currentEnglishInput={};
   const controls=new Map();
   function update(state,visa,englishInput=currentEnglishInput){
     currentEnglishInput=englishInput;
     if(currentState!==state||currentVisa!==visa){
       currentState=state;currentVisa=visa;currentProgram='';path.value='';fields.replaceChildren();controls.clear();confirm.checked=false;
+      details.open=state==='act'||state==='tas';
     }
     root.hidden=visa!=='190'||!Object.hasOwn(states,state);
     if(root.hidden)return;
+    const hasRanking=state==='act'||state==='tas';
+    toggle.textContent=hasRanking?text('State ranking calculator · optional','州提名排序计算（可选）'):text('State nomination conditions · optional reading','州提名条件说明（选读）');
+    reminder.textContent=text('A points estimate does not establish state nomination eligibility. Occupation, study and employment conditions need an individual review.','分数估算不等于符合州提名资格，具体条件需结合职业、学习及工作情况进一步核对。');
     badge.textContent=text('STATE NOMINATION · '+state.toUpperCase(),'州提名 · '+state.toUpperCase());
-    summary.textContent=text('Choose your '+states[state].en+' pathway','选择'+states[state].zh+'提名路径');
-    intro.textContent=text('Start with your nomination pathway. Its questions and selection method appear below; federal EOI is a separate calculation.','先选择适合自己的提名路径，再核对对应问题与筛选方式；联邦 EOI 单独计算。');
-    label.textContent=text('Nomination assessment pathway','州提名评估路径');empty.textContent=text('Please select','请选择');
+    summary.textContent=hasRanking?text(states[state].en+' ranking',''+states[state].zh+'提名排序'):text(states[state].en+' nomination guide',states[state].zh+'提名说明');
+    intro.textContent=hasRanking?text('Choose a pathway to estimate its separate state ranking score. It is never added to federal EOI points.','选择路径可估算独立的州排序分，不与联邦 EOI 分数相加。'):text('You can calculate points without selecting a pathway here. Select one only if you want to read its nomination conditions.','无需在此选择路径即可计算分数。如需了解提名条件，可选择相应路径查看说明。');
+    label.textContent=text('Pathway','提名路径');empty.textContent=text('Select to view','选择后查看');
     for(const opt of path.options){if(!opt.value)continue;const c=programs[opt.value];opt.hidden=c.state!==state;opt.disabled=c.state!==state;opt.textContent=text(c.en,c.zh);}
     const config=Object.hasOwn(programs,path.value)?programs[path.value]:null;
     if(currentProgram!==path.value){
       currentProgram=path.value;fields.replaceChildren();controls.clear();confirm.checked=false;
-      if(config)for(const f of config.fields||config.checks.map((pair,i)=>({key:String(i),en:pair[0],zh:pair[1]}))){
+      for(const f of config?.fields||[]){
         const wrap=el('div',null,'pc-field'),lab=el('label'),select=el('select');select.id='pc-rank-'+f.key;lab.htmlFor=select.id;
         const pending=el('option');pending.value='';select.append(pending);
-        (f.options||[{value:'yes'},{value:'no'},{value:'unsure'}]).forEach((o,i)=>{const opt=el('option');opt.value=o.value||String(i);select.append(opt);});
+        f.options.forEach((o,i)=>{const opt=el('option');opt.value=String(i);select.append(opt);});
         wrap.append(lab,select);
         if(f.key==='english'){
           const edit=el('button',null,'pc-reset');edit.type='button';edit.dataset.pcEditEnglish='';
@@ -194,7 +204,7 @@ export function initialiseRankingTool(host) {
         fields.append(wrap);controls.set(f.key,{lab,select});
       }
     }
-    source.hidden=!config;confirmLabel.hidden=!config?.fields;notes.replaceChildren();
+    source.hidden=!config;confirmLabel.hidden=!config?.fields;notes.replaceChildren();requirements.replaceChildren();requirements.hidden=!config?.checks;
     if(config){
       source.href=config.url;source.textContent=text('Read the full official pathway rules','阅读该路径完整官方条件');
       const method=el('div',null,'pc-selection-method');
@@ -202,12 +212,12 @@ export function initialiseRankingTool(host) {
       method.append(el('p',config.order?text(...config.order):state==='act'?text('Canberra Matrix ranks separately from EOI, using the selected resident or overseas table. The self-assessment below does not establish eligibility.','Canberra Matrix 独立于 EOI 排序，居民与境外使用不同表格；下方自评不等于满足资格。'):text('Tasmania uses pathway-specific priority attributes and pass categories, not federal EOI rankings.','塔州按路径对应的优先属性及通行类别排序，不是联邦 EOI 排名。')));
       notes.append(method);
       for(const note of config.notes||[])notes.append(el('p',text(...note),'pc-hint'));
-      for(const f of config.fields||config.checks.map((pair,i)=>({key:String(i),en:pair[0],zh:pair[1]}))){const c=controls.get(f.key);c.lab.textContent=text(f.en,f.zh);c.select.options[0].textContent=text('Please select','请选择');
-        if(f.options)f.options.forEach((o,i)=>c.select.options[i+1].textContent=text(o.en,o.zh)+' · '+o.points);
-        else [['Self-checked','已自核'],['Not met / needs attention','不满足／需处理'],['Not sure yet','尚不确定']].forEach((pair,i)=>c.select.options[i+1].textContent=text(...pair));
+      for(const pair of config.checks||[])requirements.append(el('li',text(...pair)));
+      for(const f of config.fields||[]){const c=controls.get(f.key);c.lab.textContent=text(f.en,f.zh);c.select.options[0].textContent=text('Please select','请选择');
+        f.options.forEach((o,i)=>c.select.options[i+1].textContent=text(o.en,o.zh)+' · '+o.points);
       }
     }
-    confirmText.textContent=text('I have checked the official 190 minimum requirements, category conditions and exclusions for this pathway. Every selected claim is supported by current evidence.','我已核对该路径官方 190 最低要求、各项条件及排除规则，所有选择均有当前有效证据支持。');
+    confirmText.textContent=text('My answers reflect my circumstances. Points claimed still need valid supporting evidence.','我已按实际情况填写，所申报加分仍需有效材料支持。');
     const localEnglish=controls.get('english');
     if(localEnglish){
       localEnglish.select.value=rankingEnglishSelection(path.value,currentEnglishInput);
@@ -241,20 +251,21 @@ export function initialiseRankingTool(host) {
       item.append(button);pendingList.append(item);
     };
     for(const f of config?.fields||[])if(incompleteFields.has(f.key))addPending(text(f.en,f.zh)+(score.invalid?.includes(f.key)?text(' — choose a valid option','——请重新选择有效选项'):''),f.key==='english'?host.querySelector('#pc-englishMode'):controls.get(f.key).select);
-    if(score.confirmationRequired)addPending(text('Confirm the official requirements and evidence conditions','勾选“已核对官方要求及材料条件”确认项'),confirm);
+    if(score.confirmationRequired)addPending(text('Confirm your answers reflect your circumstances','确认已按实际情况填写'),confirm);
     if(score.confirmationRequired)confirm.setAttribute('aria-describedby',pendingTitle.id);else confirm.removeAttribute('aria-describedby');
-    const progress=config?.checks?checklistProgress(config.checks,answers):null;
-    result.hidden=!config;
-    result.textContent=score.conflicts?.length?text('Calculation stopped — resolve conflicting selections first.','发现选项冲突，已停止计算；解决冲突后再显示分数。'):progress?text(progress.verified+' self-checked · '+progress.unresolved+' need attention · '+progress.pending+' pending. Checkpoints only, not an eligibility decision.',progress.verified+' 项已自核 · '+progress.unresolved+' 项需处理 · '+progress.pending+' 项待核对。仅为准备清单，不是资格结论。'):score.total==null?text('Complete the items listed above. Local ranking is not added to EOI or included in the enquiry score.','请完成上方列出的项目。州排序分不与 EOI 相加，也不会附入咨询分数。'):
+    result.hidden=!config?.fields;
+    result.textContent=score.conflicts?.length?text('Calculation stopped — resolve conflicting selections first.','发现选项冲突，已停止计算；解决冲突后再显示分数。'):score.total==null?text('Complete the items listed above. State ranking is separate from EOI and can be attached independently for consultation.','请完成上方列出的项目。州排序分不与 EOI 相加，咨询时可选择单独附上自评。'):
       (state==='act'?'Canberra Matrix':text('TAS ROI priority attributes','塔州 ROI 优先属性'))+': '+score.total+text(' points',' 分')+(state==='tas'?' · '+({none:text('No priority claim','未申报优先属性'),orange:'Orange','orange-plus':'Orange Plus',green:'Green',gold:'Gold'}[score.tier]):'')+text(' · Self-assessed, not an invitation or eligibility decision.',' · 仅为自评，不代表获邀或资格决定。');
     reset.textContent=text('Reset nomination assessment','重置州提名自评');
-    reset.hidden=!config;
+    reset.hidden=!config?.fields;
   }
   details.addEventListener('change',()=>update(currentState,'190'));
   reset.addEventListener('click',()=>{path.value='';currentProgram='';fields.replaceChildren();controls.clear();confirm.checked=false;update(currentState,'190');path.dispatchEvent(new Event('change',{bubbles:true}));});
   return {update,selected(){return path.value;},
+    values(){return {program:currentVisa==='190'?path.value:'',answers:Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value])),confirmed:confirm.checked};},
     assessment(){return currentVisa==='190'?getRankingAssessment(path.value,Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value])),confirm.checked):null;},
     review(){
+      details.open=true;
       const assessment=this.assessment();
       const key=assessment?.score.conflicts?.[0]?.fields[0]||assessment?.score.missing?.[0]||assessment?.score.invalid?.[0];
       const target=key==='english'?host.querySelector('#pc-englishMode'):key?controls.get(key)?.select:assessment?.score.confirmationRequired?confirm:path;

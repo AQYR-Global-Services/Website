@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {nominationPathways,checklistProgress} from '../public/nomination-pathways.mjs';
+import {nominationPathways} from '../public/nomination-pathways.mjs';
+import {readFileSync} from 'node:fs';
 import {rankingPrograms,calculateRanking,getRankingAssessment} from '../public/nomination-ranking.mjs';
 import {nominationScoreCard} from '../public/points-calculator.mjs';
 import {stateCodes} from '../public/state-nomination.mjs';
@@ -10,8 +11,6 @@ for(const [id,path] of Object.entries(nominationPathways)){
   assert.ok(path.en&&path.zh&&path.order.length===2&&path.url.startsWith('https://'),id);
   assert.ok(path.checks.length>=3,id);
   for(const pair of path.checks)assert.ok(pair[0]&&pair[1],id);
-  assert.deepEqual(checklistProgress(path.checks,{}),{verified:0,unresolved:0,pending:path.checks.length});
-  assert.deepEqual(checklistProgress(path.checks,{0:'yes',1:'no',2:'unsure'}),{verified:1,unresolved:1,pending:path.checks.length-2});
   assert.equal(calculateRanking(id,{},true).total,null,'Checklist must not become a numerical score');
 }
 assert.equal(Object.values(all).filter(p=>p.state==='qld').length,4);
@@ -40,4 +39,11 @@ assert.equal(getRankingAssessment('__proto__',{},true),null);
 const tsgZero=Object.fromEntries(rankingPrograms['tas-tsg'].fields.map(f=>[f.key,'0']));
 const conflictHtml=nominationScoreCard(getRankingAssessment('tas-tsg',{...tsgZero,employment:'1',interviews:'1'},true),(en,zh)=>zh);
 assert.ok(conflictHtml.includes('>—</strong>')&&conflictHtml.includes('选项冲突')&&!conflictHtml.includes('501'));
-console.log('PASS: 23 bilingual nomination paths across eight states, distinct checklists, no invented scores or offshore NT190 route.');
+const ui=readFileSync(new URL('../public/nomination-ranking.mjs',import.meta.url),'utf8');
+const controller=readFileSync(new URL('../public/points-calculator.mjs',import.meta.url),'utf8');
+assert.ok(ui.includes("el('details',null,'pc-local-ranking')"),'Guidance uses a native optional disclosure');
+assert.ok(ui.includes('for(const f of config?.fields||[])'),'Only numeric ranking factors generate form controls');
+assert.ok(!ui.includes('checklistProgress')&&!ui.includes('已自核')&&!ui.includes('config.checks.map'),'No professional self-check dropdowns or progress counts');
+assert.ok(!controller.includes('hasNominationPath'),'Nomination guidance cannot gate the scoring form');
+assert.ok(controller.includes('federalPanel.hidden=!chosen;')&&controller.includes('federalPanel.open=true;'),'EOI/VPT inputs are directly available');
+console.log('PASS: 23 bilingual nomination paths across eight states; optional read-only guidance, direct scoring and five independent numeric ranking paths.');

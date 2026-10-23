@@ -411,7 +411,7 @@
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261022-postcodes-english' : '/points-calculator.mjs?v=20261022-postcodes-english')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-enquiry' : '/points-calculator.mjs?v=20261023-enquiry')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -488,6 +488,12 @@
     const detailText = form.querySelector('#enquiry-points-detail-text');
     const detailStatus = form.querySelector('#enquiry-points-status');
     let pointsSnapshot = null;
+    const nominationSection=form.querySelector('#enquiry-nomination');
+    const includeNomination=form.querySelector('[name="includeNomination"]');
+    const nominationDetail=form.querySelector('#enquiry-nomination-detail');
+    const nominationText=form.querySelector('#enquiry-nomination-text');
+    const nominationStatus=form.querySelector('#enquiry-nomination-status');
+    let nominationSnapshot=null,nominationRequested=false,nominationLoaded=false;
     let pointsEnquiryModule = null;
     let detailsRequested = false;
     let detailsReady = Promise.resolve();
@@ -508,6 +514,12 @@
       estimatePathway.disabled = !include || detailsRequested;
       detailPreview.hidden = !include || !pointsSnapshot;
       detailText.textContent = pointsSnapshot ? pointsEnquiryModule.formatPointsEnquiry(pointsSnapshot,root.dataset.lang) : '';
+      nominationSection.hidden=!nominationRequested;
+      includeNomination.disabled=!nominationRequested;
+      nominationDetail.hidden=!includeNomination.checked||!nominationSnapshot;
+      nominationText.textContent=nominationSnapshot?pointsEnquiryModule.formatNominationEnquiry(nominationSnapshot,root.dataset.lang):'';
+      nominationStatus.hidden=!nominationRequested||!includeNomination.checked||!!nominationSnapshot;
+      nominationStatus.textContent=root.dataset.lang==='zh'?(nominationLoaded?'未能读取州提名自评。请返回计算器重新附上，或取消此项后咨询。':'正在读取州提名自评……'):(nominationLoaded?'State assessment could not be read. Return to the calculator, or uncheck this attachment to continue.':'Loading state nomination assessment…');
       if (detailsRequested && !pointsSnapshot) {
         detailStatus.textContent = root.dataset.lang === 'zh' ? '正在读取计分明细。如无法读取，请返回打分工具重新计算。' : 'Loading your points breakdown. If it cannot be loaded, return to the calculator and recalculate.';
       } else detailStatus.textContent = '';
@@ -517,27 +529,32 @@
     };
     requestSelect.addEventListener('change', updateEstimate);
     includeEstimate.addEventListener('change', updateEstimate);
+    includeNomination.addEventListener('change',updateEstimate);
     estimatePathway.addEventListener('change', updateEstimate);
     // Scoring answers are carried only after opt-in, in a fragment rather than an HTTP request.
     if (location.hash.startsWith('#enquiry?')) {
       const estimate = new URLSearchParams(location.hash.slice('#enquiry?'.length));
       const pathway = estimate.get('pathway');
       const score = estimate.get('score');
+      const rawNomination=estimate.get('nomination');
+      let rawDetails=null;
       if (requestedService === 'skilled' && Object.hasOwn(estimateLimits,pathway) &&
           /^\d{1,3}$/.test(score || '') && Number(score) <= estimateLimits[pathway]) {
         includeEstimate.checked = true;
         estimatePathway.value = pathway;
         estimatedScore.value = score;
-        const rawDetails = estimate.get('details');
-        if (rawDetails != null) {
-          detailsRequested = true;
-          detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261022-postcodes' : '/points-enquiry.mjs?v=20261022-postcodes')
-            .then(module => {
-              pointsEnquiryModule = module;
-              pointsSnapshot = module.parsePointsSnapshot(rawDetails,pathway,score);
-              updateEstimate();
-            }).catch(() => { updateEstimate(); });
-        }
+        rawDetails = estimate.get('details');
+        detailsRequested=rawDetails!=null;
+      }
+      if(rawNomination!=null){nominationRequested=true;includeNomination.checked=true;}
+      if(detailsRequested||nominationRequested){
+        detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261023-enquiry' : '/points-enquiry.mjs?v=20261023-enquiry')
+          .then(module=>{
+            pointsEnquiryModule=module;
+            if(detailsRequested)pointsSnapshot=module.parsePointsSnapshot(rawDetails,pathway,score);
+            if(nominationRequested)nominationSnapshot=module.parseNominationSnapshot(rawNomination);
+            nominationLoaded=true;updateEstimate();
+          }).catch(()=>{nominationLoaded=true;updateEstimate();});
       }
       history.replaceState(history.state,'',location.pathname+location.search+'#enquiry');
       requestAnimationFrame(() => document.querySelector('#enquiry').scrollIntoView({block:'start'}));
@@ -555,6 +572,10 @@
           return;
         }
       }
+      if(includeNomination.checked&&nominationRequested){
+        await detailsReady;
+        if(!nominationSnapshot){nominationStatus.hidden=false;return;}
+      }
       const zh = root.dataset.lang === 'zh';
       const data = new FormData(form);
       const labels = zh ? ['咨询身份', '咨询需求', '姓名', '公司 / 职业', '邮箱', '电话', '需求说明']
@@ -571,6 +592,10 @@
           ? (zh ? '（含有条件州提名 +'+(estimatePathway.value.endsWith('-491')?15:5)+' 分）' : ' (includes conditional +'+(estimatePathway.value.endsWith('-491')?15:5)+' nomination points)') : '';
         values.push(optionText('estimatePathway') + nominationNote + ': ' + data.get('estimatedScore') + (zh ? ' 分' : ' points')
           + (pointsSnapshot ? '\n\n'+pointsEnquiryModule.formatPointsEnquiry(pointsSnapshot,root.dataset.lang) : ''));
+      }
+      if(includeNomination.checked&&nominationSnapshot){
+        labels.push(zh?'州提名／ROI 自评附件':'State nomination / ROI assessment');
+        values.push(pointsEnquiryModule.formatNominationEnquiry(nominationSnapshot,root.dataset.lang));
       }
       const subject = zh ? 'AQYR 网站咨询' : 'AQYR website enquiry';
       const body = labels.map((label, index) => label + ': ' + values[index]).join('\n\n');

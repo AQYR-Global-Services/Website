@@ -4,6 +4,8 @@ import vm from 'node:vm';
 import * as pointsEnquiry from '../public/points-enquiry.mjs';
 import {calculate} from '../public/points-rules.mjs';
 import {stateCodes} from '../public/state-nomination.mjs';
+import {rankingPrograms,calculateRanking} from '../public/nomination-ranking.mjs';
+import {nominationPathways} from '../public/nomination-pathways.mjs';
 const examplePostcodes={vic:'3220',nsw:'2300',qld:'4217',wa:'6000',sa:'5000',tas:'7000',act:'2601',nt:'0800'};
 
 // Exercise the actual contact handler without opening an email app or sending a message.
@@ -125,6 +127,51 @@ assert.equal(pointsEnquiry.parsePointsSnapshot('{invalid','vic-190',679),null);
 assert.equal(pointsEnquiry.parsePointsSnapshot('x'.repeat(4097),'vic-190',679),null);
 assert.equal(pointsEnquiry.createPointsSnapshot({...eoi,study:'true'}),null);
 assert.equal(pointsEnquiry.createPointsSnapshot({...vpt,age:'29\nInjected text'}),null);
+for(const [program,config]of Object.entries({...nominationPathways,...rankingPrograms})){
+  const source={state:config.state,visa:'190',program,answers:Object.fromEntries((config.fields||[]).map(f=>[f.key,'0'])),confirmed:true,context:{age:'',englishMode:'level',english:'superior'}};
+  const snapshot=pointsEnquiry.createNominationSnapshot({...source,name:'DO NOT COPY',context:{...source.context,name:'DO NOT COPY'}});
+  assert(snapshot,program);
+  assert(!JSON.stringify(snapshot).includes('DO NOT COPY'));
+  for(const lang of ['en','zh']){
+    const formatted=pointsEnquiry.formatNominationEnquiry(snapshot,lang);
+    assert(!/undefined|NaN/.test(formatted));
+    assert(formatted.includes(lang==='zh'?'未填写':'Not supplied'),'Missing age stays explicit in ROI-only consultation');
+    const suffix='#enquiry?'+new URLSearchParams({nomination:JSON.stringify(snapshot)});
+    const roiOnly=await setup(suffix,lang);
+    assert(!roiOnly.node('[name="includeEstimate"]').checked);
+    assert(roiOnly.node('[name="includeNomination"]').checked);
+    assert((await roiOnly.submit()).includes(formatted),'ROI-only email without completed EOI');
+    roiOnly.node('[name="includeNomination"]').checked=false;
+    roiOnly.node('[name="includeNomination"]').events.change();
+    assert(!(await roiOnly.submit()).includes(formatted),'ROI opt-out removes all state answers');
+  }
+}
+const roi=pointsEnquiry.createNominationSnapshot({state:'act',visa:'190',program:'act-resident',answers:Object.fromEntries(rankingPrograms['act-resident'].fields.map(f=>[f.key,'0'])),confirmed:true,context:{age:'30',englishMode:'level',english:'superior'}});
+assert.equal(roi.answers.english,'1','State English is re-derived from supplied evidence');
+for(const lang of ['en','zh']){
+  const both=await setup(fragment({...eoi,state:'act'})+'&'+new URLSearchParams({nomination:JSON.stringify(roi)}),lang);
+  const body=await both.submit();
+  assert(body.includes('Canberra Matrix: 15'));
+  assert(body.includes(pointsEnquiry.formatPointsEnquiry(pointsEnquiry.createPointsSnapshot({...eoi,state:'act'}),lang)));
+  both.node('[name="includeEstimate"]').checked=false;both.node('[name="includeEstimate"]').events.change();
+  assert((await both.submit()).includes('Canberra Matrix: 15'),'Independent EOI opt-out keeps ROI');
+  both.node('[name="requestType"]').value='hiring';both.node('[name="requestType"]').events.change();
+  assert((await both.submit()).includes('Canberra Matrix: 15'),'Changing enquiry topic does not silently discard a selected ROI attachment');
+}
+const unfinished=pointsEnquiry.createNominationSnapshot({...roi,answers:{},confirmed:false});
+assert.match(pointsEnquiry.formatNominationEnquiry(unfinished,'zh'),/自评未完成，不计算总分/);
+const tsgConflict=pointsEnquiry.createNominationSnapshot({state:'tas',visa:'190',program:'tas-tsg',answers:{...Object.fromEntries(rankingPrograms['tas-tsg'].fields.map(f=>[f.key,'0'])),employment:'1',interviews:'1'},confirmed:true,context:{englishMode:'level',english:'competent'}});
+assert.match(pointsEnquiry.formatNominationEnquiry(tsgConflict,'zh'),/存在冲突.*不计算总分/);
+assert.equal(calculateRanking('tas-tsg',tsgConflict.answers,true).total,null);
+assert.equal(pointsEnquiry.parseNominationSnapshot('{invalid'),null);
+assert.equal(pointsEnquiry.parseNominationSnapshot('x'.repeat(6145)),null);
+assert.equal(pointsEnquiry.createNominationSnapshot({...roi,state:'nsw'}),null);
+assert.equal(pointsEnquiry.createNominationSnapshot({...roi,visa:'189'}),null);
+assert.equal(pointsEnquiry.createNominationSnapshot({...roi,answers:{residence:'999'}}),null);
+const unreadable=await setup('#enquiry?nomination=%7Bbad');
+assert.equal(await unreadable.submit(),null,'Invalid selected ROI cannot silently send without its attachment');
+unreadable.node('[name="includeNomination"]').checked=false;unreadable.node('[name="includeNomination"]').events.change();
+assert(await unreadable.submit(),'Opt-out allows ordinary consultation even if imported ROI was invalid');
 for(const state of stateCodes){
   const answers={...eoi,state,visa:'491',regionalConfirmed:true,regionalPostcode:examplePostcodes[state]};
   const snapshot=pointsEnquiry.createPointsSnapshot(answers);
@@ -137,4 +184,4 @@ for(const state of stateCodes){
   assert.match(await imported.submit(),/491 designated regional requirements/);
 }
 assert(!(await setup('#enquiry?pathway=vic-491&score=146')).node('[name="includeEstimate"]').checked);
-console.log('PASS: 24 state/visa combinations, bilingual itemised email bodies, 491 regional confirmation and +15, score limits, opt-out, snapshot validation and no automatic sending.');
+console.log('PASS: 24 scoring modes and 23 nomination paths; bilingual EOI-only, ROI-only and combined drafts, independent opt-outs, incomplete/conflicting ROI labels, snapshot validation and no automatic sending.');

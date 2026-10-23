@@ -241,7 +241,13 @@ assert.doesNotMatch(picker,/localStorage|sessionStorage|fetch\(|XMLHttpRequest|s
 const controller = await readFile(new URL('../public/points-calculator.mjs',import.meta.url),'utf8');
 assert.doesNotMatch(html+controller,/你/);
 assert.doesNotMatch(controller,/localStorage|sessionStorage|fetch\(|XMLHttpRequest|sendBeacon|\.submit\(/);
+assert.match(controller,/pc-age-error/,'Missing age has an inline error');
+assert.match(controller,/pc-missing-summary/,'Missing scoring fields have a prominent form-level checklist');
+assert.match(controller,/data\.pcMissingTarget|dataset\.pcMissingTarget/,'Missing-field links point back to actual controls');
+assert.match(html,/id="pc-include-nomination"/,'State ranking has an independent opt-in');
 assert.match(html,/id="points-sources"/);
+assert.match(html,/<section class="pc-breakdown" aria-labelledby="pc-breakdown-title">/,'Breakdown is permanently expanded, not a disclosure');
+assert.doesNotMatch(html,/<details class="pc-breakdown"/);
 assert.match(html,/<option value="8"[^>]*data-zh="8 年及以上 · \+100"/);
 assert.doesNotMatch(html,/<option value="9"|withholds the VPT total|暂不显示 VPT 总分/);
 assert.match(html,/2026–27/);

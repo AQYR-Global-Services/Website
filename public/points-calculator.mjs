@@ -1,11 +1,11 @@
 import {calculate, priorityCodes} from './points-rules.mjs?v=20261022-postcodes';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
 import {states, stateCodes, regional491} from './state-nomination.mjs?v=20261022-491';
-import {initialiseRankingTool} from './nomination-ranking.mjs?v=20261022-shared-english';
+import {initialiseRankingTool} from './nomination-ranking.mjs?v=20261023-enquiry';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
-import {createPointsSnapshot} from './points-enquiry.mjs?v=20261022-postcodes';
+import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261023-enquiry';
 
 export function nominationScoreCard(assessment,text) {
   if(!assessment)return '';
@@ -32,7 +32,15 @@ export function initialisePointsCalculator() {
   const form = host.querySelector('form');
   const root = document.documentElement;
   const text = (en, zh) => root.dataset.lang === 'zh' ? zh : en;
-  // Keep the common federal form secondary to the state-specific 190 pathway.
+  const missingPanel=document.createElement('div');missingPanel.id='pc-missing-summary';missingPanel.className='pc-missing-summary';
+  const missingTitle=document.createElement('p');missingTitle.setAttribute('role','status');
+  const missingHelp=document.createElement('p');
+  const missingList=document.createElement('ul');missingPanel.append(missingTitle,missingHelp,missingList);
+  host.querySelector('#pc-pathway').after(missingPanel);
+  const ageError=document.createElement('p');ageError.id='pc-age-error';ageError.className='pc-field-error';
+  host.querySelector('#pc-age').after(ageError);
+  host.querySelector('#pc-age').setAttribute('aria-describedby','pc-age-hint pc-age-error');
+  // Scoring questions remain available without a nomination self-certification step.
   const federalPanel=document.createElement('details');
   federalPanel.id='pc-federal-panel';federalPanel.className='pc-federal-panel';
   const federalSummary=document.createElement('summary');
@@ -80,10 +88,11 @@ export function initialisePointsCalculator() {
     if(vic&&rankingTool.selected()==='vic-offshore'){
       input.earningEligible='no';form.elements.namedItem('earningEligible').value='no';
     }
-    const hasNominationPath=input.visa!=='190'||!!rankingTool.selected();
     const pathwayKey=input.state+'-'+input.visa;
     if(lastPathway!==pathwayKey){
-      federalPanel.open=input.visa!=='190'||vic;
+      federalPanel.open=true;
+      const guidance=host.querySelector('[data-pc-state-info]');
+      if(['act','tas'].includes(input.state))federalPanel.before(guidance);else federalPanel.after(guidance);
       form.elements.namedItem('regionalConfirmed').checked=false;input.regionalConfirmed=false;
       lastPathway=pathwayKey;
     }
@@ -116,8 +125,8 @@ export function initialisePointsCalculator() {
       const postcodeField=form.elements.namedItem('regionalPostcode');
       if(lookup.status!=='empty'&&!regionalPostcodeCanProceed(lookup))postcodeField.setAttribute('aria-invalid','true');else postcodeField.removeAttribute('aria-invalid');
     }
-    federalPanel.hidden=!chosen||!hasNominationPath;
-    federalPanel.classList.toggle('pc-federal-panel--plain',input.visa!=='190'||vic);
+    federalPanel.hidden=!chosen;
+    federalPanel.classList.add('pc-federal-panel--plain');
     federalSummary.textContent=text('Federal EOI · open the separate points calculator','联邦 EOI · 展开独立计分');
     show('[data-pc-common]', chosen);
     show('[data-pc-federal]', federal);
@@ -196,13 +205,38 @@ export function initialisePointsCalculator() {
     });
     const result = calculate(input);
     const includeScore = host.querySelector('#pc-include-score');
-    show('[data-pc-enquiry]', chosen && result.total != null);
+    show('[data-pc-enquiry]', chosen);
+    includeScore.disabled=result.total==null;
     if (result.total == null) includeScore.checked = false;
+    const includeNomination=host.querySelector('#pc-include-nomination');
+    const hasNomination=chosen&&input.visa!=='189';
+    host.querySelector('[data-pc-nomination-share]').hidden=!hasNomination;
+    includeNomination.disabled=!hasNomination;
+    if(!hasNomination)includeNomination.checked=false;
+    host.querySelector('#pc-share-score-label').textContent=vic?text('Attach VPT estimate and breakdown','附上 VPT 预估分数与明细'):text('Attach EOI estimate and breakdown','附上 EOI 预估分数与明细');
+    host.querySelector('#pc-share-score-hint').textContent=result.total==null?text('Complete the required scoring questions to attach this estimate. You can still consult without it.','完成必填计分项目后即可附上；不附分数也可以咨询。'):text('Your answers and itemised points will be available to review before sending.','附上计分选项及每项得分，发送前可再次确认。');
     const contactBase = '/contact?service=skilled&audience=individual#enquiry';
     const snapshot = includeScore.checked ? createPointsSnapshot(input) : null;
-    host.querySelector('#pc-contact').href = includeScore.checked
-      ? contactBase + '?' + new URLSearchParams({pathway:input.state+'-'+input.visa,score:String(result.total),details:JSON.stringify(snapshot)})
-      : contactBase;
+    const nominationSnapshot=includeNomination.checked?createNominationSnapshot({state:input.state,visa:input.visa,context:input,...rankingTool.values()}):null;
+    const attachments=new URLSearchParams();
+    if(snapshot){attachments.set('pathway',input.state+'-'+input.visa);attachments.set('score',String(result.total));attachments.set('details',JSON.stringify(snapshot));}
+    if(nominationSnapshot)attachments.set('nomination',JSON.stringify(nominationSnapshot));
+    host.querySelector('#pc-contact').href=contactBase+(attachments.size?'?'+attachments:'');
+    missingPanel.hidden=!chosen||!result.missing.length;
+    missingTitle.textContent=text(result.missing.length+' required item(s) remain — no total yet.','还有 '+result.missing.length+' 项未完成，暂不能出分。');
+    missingHelp.textContent=text('Select an item to return to the question.','点击下列项目，直接跳回填写位置。');missingList.replaceChildren();
+    const missingTargets={english:'pc-englishMode',occupation:'pc-occupation-query','occupation-level':'pc-occupation-query','partner-code':'pc-partner-occupation-query','earnings-status':'pc-earningEligible',regionalConfirmed:'pc-regional-confirmed',regionalPostcode:'pc-regional-postcode'};
+    host.querySelectorAll('[data-pc-required-missing]').forEach(node=>{node.removeAttribute('data-pc-required-missing');node.removeAttribute('aria-invalid');});
+    for(const key of result.missing){
+      const target=host.querySelector('#'+(missingTargets[key]||'pc-'+key));
+      if(!target)continue;
+      target.setAttribute('data-pc-required-missing','');target.setAttribute('aria-invalid','true');
+      const item=document.createElement('li'),button=document.createElement('button');button.type='button';button.textContent=label(key);button.dataset.pcMissingTarget=target.id;
+      button.addEventListener('click',()=>{target.focus({preventScroll:true});target.scrollIntoView({block:'center',behavior:'instant'});});
+      item.append(button);missingList.append(item);
+    }
+    ageError.hidden=!chosen||!result.missing.includes('age');
+    ageError.textContent=input.age===''?text('Age is missing. Enter your age to calculate the total.','尚未填写年龄，填好后才能计算总分。'):text('Enter a whole-number age between 18 and 100.','请输入 18 至 100 之间的周岁整数。');
     const pathway = nomination?input.state.toUpperCase()+' 190 · '+text('Two separate scores','两项独立评分'):vic ? text('VIC 190 · Victorian Points Test','VIC 190 · 维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · EOI' : text('Select your pathway','请选择路径');
     host.querySelector('.pc-form-heading h2').textContent = state?input.state.toUpperCase()+' · '+text('189 / 190 / 491 calculator','189／190／491 计算器'):text('Choose a state calculator','选择州计算器');
     host.querySelector('#pc-result-title').textContent = pathway;
@@ -211,7 +245,7 @@ export function initialisePointsCalculator() {
       : vic ? text('Victorian 190: only the 2026–27 VPT is calculated here. Seven factors, one total. There is no fixed pass mark.','维州 190：此处仅计算 2026–27 新版 VPT。七项因素，一个总分，没有固定及格分。')
       : input.visa === '189' ? text('189 uses the federal points test. There are no state nomination or salary points.','189 使用联邦计分规则，不含州提名或薪资加分。')
       : input.visa === '491' ? text('491: federal EOI plus 15 conditional state nomination points, not +5 and +15 together. Check the regional requirements below before calculating.','491：联邦 EOI 加有条件州提名 15 分，不与 190 的 5 分叠加。请先核对下方偏远地区要求。')
-      : text('Choose a '+state.en+' nomination pathway below. Review its selection method first; open the separate federal EOI calculator when needed.','请先选择下方'+state.zh+'提名路径，核对该路径的筛选方式；需要时再展开独立的联邦 EOI 计算。');
+      : text('Complete the questions below to estimate federal EOI points, including 5 conditional nomination points. State nomination guidance is optional.','填写下方问题即可估算联邦 EOI 分数，含有条件州提名 5 分；州提名条件说明可按需展开。');
     host.querySelector('#pc-english-result').textContent = result.english ? text('English level: ','英语等级：') + text(...englishOptions[result.english])+' · '+text(vic?'VPT English points: +':'Federal EOI English points: +',vic?'VPT 英语加分：+':'联邦 EOI 英语加分：+')+englishPoints[result.english] : text('Select your test and enter all four component scores, the date and any required confirmations. Your English level will be calculated automatically.','选择考试类型，填写听说读写各单项成绩、考试日期及必要确认，系统将自动判断英语等级。');
     if (vic && input.vptPartner === 'yes') host.querySelector('#pc-partner-result').textContent = !getOccupation(input.partnerCode)
       ? text('Search for your partner’s occupation and select a matching result.','请搜索配偶职业，并选中对应的搜索结果。')
@@ -224,7 +258,7 @@ export function initialisePointsCalculator() {
     if (!chosen) markup = '<p class="pc-hint">'+text('Choose a state from the index, then select 189, 190 or 491.','请从索引进入州计算器，再选择 189、190 或 491。')+'</p>';
     else {
       markup = nominationScoreCard(nomination,text);
-      if(nomination)markup+='<p class="pc-dual-score-note">'+text('Independent scores — do not add them together. The enquiry checkbox attaches federal EOI only.','两项分数独立，不可相加。咨询勾选项仅附上联邦 EOI。')+'</p>';
+      if(nomination)markup+='<p class="pc-dual-score-note">'+text('Independent scores — do not add them together. Choose below which assessments to attach to your enquiry.','两项分数独立，不可相加。下方可分别选择是否附上各项自评。')+'</p>';
       markup += '<div class="pc-score-card'+(vic?' pc-vpt-score':'')+'"><div>'+text(vic?'VPT total':nomination?'Federal EOI total':'EOI total',vic?'VPT 总分':nomination?'联邦 EOI 总分':'EOI 总分')+'</div><strong data-score="'+(vic?'vpt':'federal')+'">'+(result.total == null?'—':result.total)+'</strong><small>'+text(vic?'/ 950 points':'points',vic?'/ 950 分':'分')+'</small><p>';
       markup += result.total == null ? (postcodeBlocked?text('Resolve the postcode / selected-state check before a 491 total can be shown.','邮编或所选州的核对未通过，暂不显示 491 总分。'):blocked ? text('A basic age or English requirement is not met.','年龄或英语基本要求未满足。') : text('Complete the required selections.','请完成必填选项。'))
         : vic ? text('No fixed pass mark. This score does not predict an invitation.','没有固定及格分，此分数不代表能够获邀。')
@@ -236,11 +270,14 @@ export function initialisePointsCalculator() {
       if (federal && result.total != null) markup += '<p class="pc-score-status">'+(result.total >=65 ? text('At or above the 65-point federal minimum. This does not establish eligibility or guarantee invitation.','达到联邦 65 分最低分数要求，但不代表资格成立或保证获邀。') : text('Below the federal 65-point minimum.','未达到联邦 65 分最低分数要求。'))+'</p>';
     }
     host.querySelector('#pc-live-score').innerHTML = markup;
-    host.querySelector('.pc-breakdown summary').textContent=nomination?text('Federal EOI breakdown','联邦 EOI 计分明细'):text('See the points breakdown','查看计分明细');
+    host.querySelector('#pc-breakdown-title').textContent=nomination?text('Federal EOI breakdown','联邦 EOI 计分明细'):text('Points breakdown','计分明细');
     host.querySelector('.pc-assumptions summary').textContent=nomination?text('Federal EOI assumptions','联邦 EOI 计算前提'):text('Assumptions & important notes','计算前提与重要提示');
     show('.pc-breakdown', chosen);
     show('.pc-assumptions', chosen);
-    host.querySelector('#pc-breakdown').innerHTML = chosen ? rows(result.breakdown)+(federal && result.nomination ? '<p>'+text('Conditional nomination: +','有条件州提名：+')+result.nomination+'</p>':'') : '';
+    const displayedBreakdown={...result.breakdown};
+    const missingRows={overseas:'employment',australian:'employment',vptEducation:'education',vptPartner:'partner',occupation:'skill','occupation-level':'skill','earnings-status':'earnings',salary:'earnings','partner-code':'partner'};
+    for(const key of result.missing){const row=missingRows[key]||key;if(Object.hasOwn(displayedBreakdown,row))displayedBreakdown[row]=null;}
+    host.querySelector('#pc-breakdown').innerHTML = chosen ? rows(displayedBreakdown)+(federal && result.nomination ? '<p>'+text('Conditional nomination: +','有条件州提名：+')+result.nomination+'</p>':'') : '';
     const notes = [];
     if (result.issues.includes('age-limit')) notes.push(text('189 / 190 / 491 requires being under 45 when invited. Age 45+ cannot produce a qualifying total here.','189／190／491 要求签证获邀时未满 45 岁，45 岁及以上不显示可用总分。'));
     if (result.issues.includes('english-minimum')) notes.push(text('At least Competent English is required. Other points cannot replace this requirement.','需至少达到 Competent English，其他分数不能替代此要求。'));
@@ -265,6 +302,7 @@ export function initialisePointsCalculator() {
     update();
   });
   host.querySelector('#pc-include-score').addEventListener('change', update);
+  host.querySelector('#pc-include-nomination').addEventListener('change', update);
   const runPostcodeCheck=()=>{update();host.querySelector('#pc-postcode-result').focus({preventScroll:true});};
   host.querySelector('#pc-postcode-check').addEventListener('click',runPostcodeCheck);
   host.querySelector('#pc-regional-postcode').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();runPostcodeCheck();}});
