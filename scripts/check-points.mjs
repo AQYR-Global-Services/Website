@@ -6,7 +6,7 @@ import {calculate, englishLevel, federalAge, vptAge, vptAges, vptEarnings, earni
 import {englishTests} from '../public/english-rules.mjs';
 import {states,stateCodes,estimateLimits,regional491} from '../public/state-nomination.mjs';
 import {rankingPrograms,calculateRanking} from '../public/nomination-ranking.mjs';
-import {calculatorValues,calculatorAttachmentOptions} from '../public/points-calculator.mjs';
+import {calculatorValues,calculatorAttachmentOptions,scoreMaximumLabel} from '../public/points-calculator.mjs';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed,regionalRanges,sharedPostcodes} from '../public/regional-postcodes.mjs';
 import {geographicPostcodes} from '../public/postcode-reference.mjs';
 import {rankingEnglishSelection} from '../public/nomination-ranking.mjs';
@@ -36,9 +36,14 @@ assert.equal(vpt().nomination,0);
 assert.equal(vpt().mode,'vpt');
 assert.equal(vpt().missing.length,0,'VPT does not require federal-only fields');
 for (const state of stateCodes) for (const visa of ['189','190','491']) {
+  for(const lang of ['en','zh']){
+    const expected=state==='vic'&&visa!=='189'?950:visa==='491'?145:visa==='190'?135:130;
+    assert.equal(scoreMaximumLabel({state,visa},(en,zh)=>lang==='zh'?zh:en),'/ '+expected+(lang==='zh'?' 分':' points'));
+  }
   const result = calc({state,visa,regionalConfirmed:true,regionalPostcode:examplePostcodes[state]});
   assert.equal(result.mode,state==='vic'&&['190','491'].includes(visa)?'vpt':'federal');
   if(result.mode==='federal') assert.equal(result.total,visa==='491'?90:visa==='190'?80:75);
+  if(result.mode==='federal')assert.equal(calc({state,visa,age:'29',english:'superior',study:true,regional:true,professional:true,language:true,specialist:true,education:'phd',australian:'8',overseas:'8',regionalConfirmed:true,regionalPostcode:examplePostcodes[state]}).total,estimateLimits[state+'-'+visa],'Displayed federal maximum matches a valid capped scoring combination');
   if(visa==='491') {
     assert.equal(result.nomination,state==='vic'?0:15,'491 nomination +15 belongs only to federal EOI, never VPT');
     assert.equal(estimateLimits[state+'-491'],state==='vic'?950:145);
@@ -49,6 +54,7 @@ for (const state of stateCodes) for (const visa of ['189','190','491']) {
   }
 }
 assert.equal(stateCodes.length,8);
+assert.equal(scoreMaximumLabel({state:'unknown',visa:'190'},(en,zh)=>en),'');
 for(const state of stateCodes)for(const visa of ['189','190','491']){
   const vpt=state==='vic'&&['190','491'].includes(visa);
   const empty=calculatorAttachmentOptions({state,visa},null);

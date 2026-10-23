@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import {nominationPathways} from '../public/nomination-pathways.mjs';
 import {readFileSync} from 'node:fs';
 import {rankingPrograms,calculateRanking,getRankingAssessment} from '../public/nomination-ranking.mjs';
-import {nominationScoreCard} from '../public/points-calculator.mjs';
+import {nominationScoreCard,rankingMaximum} from '../public/points-calculator.mjs';
 import {stateCodes,getNominationProgramNotice} from '../public/state-nomination.mjs';
 const all={...nominationPathways,...rankingPrograms};
+assert.equal(rankingMaximum('act-resident'),195);
+assert.equal(rankingMaximum('act-overseas'),185);
+for(const id of ['tas-tse','tas-tsg','tas-ter','unknown','__proto__'])assert.equal(rankingMaximum(id),null);
 for(const state of stateCodes)for(const visa of ['189','190','491']){
   const notice=getNominationProgramNotice(state,visa);
   assert.equal(!!notice,state==='sa'&&visa!=='189','SA program status appears only for its190/491 scenarios');
@@ -45,9 +48,13 @@ for(const [program,config] of Object.entries(all)){
     else{
       assert.ok(html.includes('data-score="'+(config.state==='act'?'matrix':'tas')+'">0</strong>'));
       assert.ok(html.includes(translate(config.en,config.zh)));
+      const maximum=rankingMaximum(program);
+      if(maximum!=null)assert.ok(html.includes(translate('/ '+maximum+' points','/ '+maximum+' 分')));
+      else assert.ok(html.includes(translate('no common maximum is published','官方未列统一满分')));
       const pending=nominationScoreCard(getRankingAssessment(program,{},false),translate);
       assert.ok(pending.includes('>—</strong>'));
       assert.ok(pending.includes(String(config.fields.length+1)));
+      if(maximum!=null)assert.ok(pending.includes(translate('/ '+maximum+' points','/ '+maximum+' 分')),'Maximum remains visible before answers are complete');
     }
   }
 }

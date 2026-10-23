@@ -1,11 +1,22 @@
 import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
-import {states, stateCodes, regional491, getNominationProgramNotice} from './state-nomination.mjs?v=20261023-sa-notice';
-import {initialiseRankingTool} from './nomination-ranking.mjs?v=20261023-enquiry';
+import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261023-sa-notice';
+import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261023-enquiry';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
 import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261023-vic491';
+
+export function scoreMaximumLabel(input,text) {
+  const maximum=estimateLimits[input.state+'-'+input.visa];
+  return Number.isFinite(maximum)?text('/ '+maximum+' points','/ '+maximum+' 分'):'';
+}
+
+export function rankingMaximum(program) {
+  const config=Object.hasOwn(rankingPrograms,program||'')?rankingPrograms[program]:null;
+  // ACT permits one option per category. TAS priority attributes have no published common maximum.
+  return config?.state==='act'?config.fields.reduce((sum,f)=>sum+Math.max(...f.options.map(o=>o.points)),0):null;
+}
 
 export function nominationScoreCard(assessment,text) {
   if(!assessment)return '';
@@ -17,7 +28,10 @@ export function nominationScoreCard(assessment,text) {
     :score.total==null?text(count+' item(s) to complete, including any evidence confirmation.','尚有 '+count+' 项待完成（包括所需材料确认）。')
     :system==='tas'?text('Priority category: ','优先类别：')+tier+text('. Self-assessed; not an invitation.','。仅为自评，不代表获邀。')
     :text('Independent ACT ranking. Self-assessed; not an invitation.','ACT 独立排序分，仅为自评，不代表获邀。');
-  return '<div class="pc-score-card pc-nomination-score"><div>'+title+'</div><p class="pc-score-path">'+text(...path)+'</p><strong data-score="'+system+'">'+(score.total==null?'—':score.total)+'</strong><small>'+text('points','分')+'</small><p>'+explanation+'</p><button type="button" class="pc-review-nomination" data-pc-review-nomination>'+text(score.total==null?'Review missing / conflicting answers':'Review nomination assessment',score.total==null?'查看漏填／冲突项目':'查看州提名自评')+'</button></div>';
+  const maximum=rankingMaximum(assessment.program);
+  const unit=maximum==null?text('points','分'):text('/ '+maximum+' points','/ '+maximum+' 分');
+  const limitNote=system==='tas'?'<p class="pc-score-limit-note">'+text('Priority attributes are accumulated by pathway; no common maximum is published.','优先属性按路径累计；官方未列统一满分。')+'</p>':'';
+  return '<div class="pc-score-card pc-nomination-score"><div>'+title+'</div><p class="pc-score-path">'+text(...path)+'</p><strong data-score="'+system+'">'+(score.total==null?'—':score.total)+'</strong><small>'+unit+'</small>'+limitNote+'<p>'+explanation+'</p><button type="button" class="pc-review-nomination" data-pc-review-nomination>'+text(score.total==null?'Review missing / conflicting answers':'Review nomination assessment',score.total==null?'查看漏填／冲突项目':'查看州提名自评')+'</button></div>';
 }
 
 export function calculatorValues(elements) {
@@ -293,7 +307,7 @@ export function initialisePointsCalculator() {
     else {
       markup = nominationScoreCard(nomination,text);
       if(nomination)markup+='<p class="pc-dual-score-note">'+text('Independent scores — do not add them together. Choose below which assessments to attach to your enquiry.','两项分数独立，不可相加。下方可分别选择是否附上各项自评。')+'</p>';
-      markup += '<div class="pc-score-card'+(vic?' pc-vpt-score':'')+'"><div>'+text(vic?'VPT total':nomination?'Federal EOI total':'EOI total',vic?'VPT 总分':nomination?'联邦 EOI 总分':'EOI 总分')+'</div><strong data-score="'+(vic?'vpt':'federal')+'">'+(result.total == null?'—':result.total)+'</strong><small>'+text(vic?'/ 950 points':'points',vic?'/ 950 分':'分')+'</small><p>';
+      markup += '<div class="pc-score-card'+(vic?' pc-vpt-score':'')+'"><div>'+text(vic?'VPT total':nomination?'Federal EOI total':'EOI total',vic?'VPT 总分':nomination?'联邦 EOI 总分':'EOI 总分')+'</div><strong data-score="'+(vic?'vpt':'federal')+'">'+(result.total == null?'—':result.total)+'</strong><small>'+scoreMaximumLabel(input,text)+'</small><p>';
       markup += result.total == null ? (postcodeBlocked?text('Resolve the postcode / selected-state check before a 491 total can be shown.','邮编或所选州的核对未通过，暂不显示 491 总分。'):blocked ? text('A basic age or English requirement is not met.','年龄或英语基本要求未满足。') : text('Complete the required selections.','请完成必填选项。'))
         : vic ? text('No fixed pass mark. This score does not predict an invitation.','没有固定及格分，此分数不代表能够获邀。')
         : input.visa === '190' ? text('Base '+result.base+' + conditional nomination 5. Not a nomination already granted.','基础 '+result.base+' 分 + 有条件州提名 5 分；不代表已获得提名。')
