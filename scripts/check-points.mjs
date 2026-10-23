@@ -37,11 +37,11 @@ assert.equal(vpt().mode,'vpt');
 assert.equal(vpt().missing.length,0,'VPT does not require federal-only fields');
 for (const state of stateCodes) for (const visa of ['189','190','491']) {
   const result = calc({state,visa,regionalConfirmed:true,regionalPostcode:examplePostcodes[state]});
-  assert.equal(result.mode,state==='vic'&&visa==='190'?'vpt':'federal');
+  assert.equal(result.mode,state==='vic'&&['190','491'].includes(visa)?'vpt':'federal');
   if(result.mode==='federal') assert.equal(result.total,visa==='491'?90:visa==='190'?80:75);
   if(visa==='491') {
-    assert.equal(result.nomination,15,'491 never stacks 190 nomination points');
-    assert.equal(estimateLimits[state+'-491'],145);
+    assert.equal(result.nomination,state==='vic'?0:15,'491 nomination +15 belongs only to federal EOI, never VPT');
+    assert.equal(estimateLimits[state+'-491'],state==='vic'?950:145);
     assert.ok(regional491[state].url.startsWith('https://'));
     assert.equal(calc({state,visa}).total,null,'491 requires regional acknowledgement');
     assert.ok(calc({state,visa}).missing.includes('regionalConfirmed'));
@@ -49,6 +49,13 @@ for (const state of stateCodes) for (const visa of ['189','190','491']) {
   }
 }
 assert.equal(stateCodes.length,8);
+const vic491Base={...vptBase,visa:'491',regionalPostcode:'3220',regionalConfirmed:true};
+assert.equal(calculate(vic491Base).total,600,'VIC491 uses the same VPT, not EOI or VPT+15');
+assert.equal(calculate({...vic491Base,experience:'8',vptEducation:'phd',vptPartner:'yes',partnerCode:'254499',earningEligible:'yes',salary:'170000'}).total,950);
+for(const regionalPostcode of ['3000','2300','9999','2611',''])assert.equal(calculate({...vic491Base,regionalPostcode}).total,null,'VIC491 VPT must not bypass regional checks');
+assert.equal(calculate({...vic491Base,regionalConfirmed:false}).total,null);
+assert.equal(calculate({...vic491Base,age:''}).total,null);
+assert.equal(calculate({...vic491Base,overseas:'8',australian:'8',education:'phd',partner:'skilled',study:true,regional:true}).total,600,'Federal fields cannot leak into VIC491 VPT');
 for (const state of stateCodes) {
   assert(states[state].url.startsWith('https://'));
   assert.equal(calc({state,visa:'189',salary:'999999',vptEducation:'phd'}).total,75,'189 has identical federal points in '+state);

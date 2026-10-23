@@ -69,6 +69,7 @@ for(const hash of ['#enquiry?pathway=vic-190&score=951','#enquiry?pathway=nsw-18
 }
 
 const vpt = {state:'vic',visa:'190',age:'29',englishMode:'level',english:'superior',occupation:'261313',experience:'2',vptEducation:'bachelor',vptPartner:'no',earningEligible:'yes',salary:'100000'};
+const vic491={...vpt,visa:'491',regionalPostcode:'3220',regionalConfirmed:true};
 const eoi = {state:'nsw',visa:'190',age:'25',englishMode:'level',english:'proficient',overseas:'3',australian:'1',education:'bachelor',partner:'single',study:true};
 function fragment(answers) {
   return '#enquiry?'+new URLSearchParams({pathway:answers.state+'-'+answers.visa,score:String(calculate(answers).total),details:JSON.stringify(pointsEnquiry.createPointsSnapshot(answers))});
@@ -79,7 +80,7 @@ const extraEnglish = [
   {...eoi,englishMode:'oet',listening:'B',reading:'B',writing:'B',speaking:'B',testDate:'2025-08-06'},
   {...eoi,englishMode:'passport',passportCountry:'uk'},
 ];
-for(const lang of ['en','zh']) for (const answers of [vpt,{...vpt,experience:'8'},{...vpt,experience:'9'},...stateCodes.flatMap(state=>['189','190','491'].filter(visa=>state!=='vic'||visa!=='190').map(visa=>({...eoi,state,visa,...(visa==='491'?{regionalConfirmed:true,regionalPostcode:examplePostcodes[state]}:{})}))),...extraEnglish]) {
+for(const lang of ['en','zh']) for (const answers of [vpt,vic491,{...vpt,experience:'8'},{...vpt,experience:'9'},...stateCodes.flatMap(state=>['189','190','491'].filter(visa=>state!=='vic'||visa==='189').map(visa=>({...eoi,state,visa,...(visa==='491'?{regionalConfirmed:true,regionalPostcode:examplePostcodes[state]}:{})}))),...extraEnglish]) {
   const imported=await setup(fragment(answers),lang);
   assert(imported.node('[name="estimatedScore"]').readOnly);
   assert(imported.node('[name="estimatePathway"]').disabled);
@@ -173,15 +174,22 @@ assert.equal(await unreadable.submit(),null,'Invalid selected ROI cannot silentl
 unreadable.node('[name="includeNomination"]').checked=false;unreadable.node('[name="includeNomination"]').events.change();
 assert(await unreadable.submit(),'Opt-out allows ordinary consultation even if imported ROI was invalid');
 for(const state of stateCodes){
-  const answers={...eoi,state,visa:'491',regionalConfirmed:true,regionalPostcode:examplePostcodes[state]};
+  const answers=state==='vic'?vic491:{...eoi,state,visa:'491',regionalConfirmed:true,regionalPostcode:examplePostcodes[state]};
   const snapshot=pointsEnquiry.createPointsSnapshot(answers);
   const rows=pointsEnquiry.pointsEnquiryRows(snapshot);
   assert.equal(rows.filter(row=>row.additive).reduce((sum,row)=>sum+row.points,0),calculate(answers).total);
-  assert.equal(rows.find(row=>row.key==='nomination').points,15);
+  if(state==='vic')assert(!rows.some(row=>row.key==='nomination'),'VPT never includes nomination +15');
+  else assert.equal(rows.find(row=>row.key==='nomination').points,15);
   assert.equal(pointsEnquiry.createPointsSnapshot({...answers,regionalConfirmed:false}),null);
   const imported=await setup(fragment(answers));
-  assert.match(await imported.submit(),/conditional \+15 nomination points/);
+  if(state==='vic'){
+    assert.match(await imported.submit(),/VPT: 679/);
+    assert.doesNotMatch(await imported.submit(),/conditional \+15 nomination points/);
+  }else assert.match(await imported.submit(),/conditional \+15 nomination points/);
   assert.match(await imported.submit(),/491 designated regional requirements/);
 }
-assert(!(await setup('#enquiry?pathway=vic-491&score=146')).node('[name="includeEstimate"]').checked);
+assert(!(await setup('#enquiry?pathway=vic-491&score=951')).node('[name="includeEstimate"]').checked);
+assert.equal(pointsEnquiry.createPointsSnapshot(vic491).version,2);
+assert.equal(pointsEnquiry.parsePointsSnapshot(JSON.stringify({version:1,answers:vic491}),'vic-491',679),null,'Old EOI snapshot cannot become VPT');
+assert.equal(await (await setup('#enquiry?pathway=vic-491&score=100')).submit(),null,'Legacy VIC491 total without VPT detail requires recalculation or opt-out');
 console.log('PASS: 24 scoring modes and 23 nomination paths; bilingual EOI-only, ROI-only and combined drafts, independent opt-outs, incomplete/conflicting ROI labels, snapshot validation and no automatic sending.');

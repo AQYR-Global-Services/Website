@@ -411,7 +411,7 @@
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-enquiry' : '/points-calculator.mjs?v=20261023-enquiry')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-vic491' : '/points-calculator.mjs?v=20261023-vic491')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -497,8 +497,8 @@
     let pointsEnquiryModule = null;
     let detailsRequested = false;
     let detailsReady = Promise.resolve();
-    const estimateLimits = Object.fromEntries(['vic','nsw','qld','wa','sa','tas','act','nt'].flatMap(state=>[[state+'-189',130],[state+'-190',state==='vic'?950:135],[state+'-491',145]]));
-    const federalNomination = pathway => Object.hasOwn(estimateLimits,pathway) && /-(190|491)$/.test(pathway) && pathway !== 'vic-190';
+    const estimateLimits = Object.fromEntries(['vic','nsw','qld','wa','sa','tas','act','nt'].flatMap(state=>[[state+'-189',130],[state+'-190',state==='vic'?950:135],[state+'-491',state==='vic'?950:145]]));
+    const federalNomination = pathway => Object.hasOwn(estimateLimits,pathway) && /-(190|491)$/.test(pathway) && !['vic-190','vic-491'].includes(pathway);
     const updateEstimate = () => {
       const skilled = requestSelect.value === 'skilled';
       estimateSection.hidden = !skilled;
@@ -543,12 +543,13 @@
         includeEstimate.checked = true;
         estimatePathway.value = pathway;
         estimatedScore.value = score;
-        rawDetails = estimate.get('details');
+        // Legacy VIC491 EOI links must never be re-labelled as new VPT estimates.
+        rawDetails = estimate.get('details') ?? (pathway==='vic-491'?'{}':null);
         detailsRequested=rawDetails!=null;
       }
       if(rawNomination!=null){nominationRequested=true;includeNomination.checked=true;}
       if(detailsRequested||nominationRequested){
-        detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261023-enquiry' : '/points-enquiry.mjs?v=20261023-enquiry')
+        detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261023-vic491' : '/points-enquiry.mjs?v=20261023-vic491')
           .then(module=>{
             pointsEnquiryModule=module;
             if(detailsRequested)pointsSnapshot=module.parsePointsSnapshot(rawDetails,pathway,score);

@@ -21,5 +21,5 @@ export const regional491 = {
   act:{url:'https://www.act.gov.au/migration/skilled-migrants/act-government-nomination/act-nomination-pathways',area:['The ACT, including Canberra, is designated regional for this visa. ACT 491 nomination and Matrix requirements need separate checking.','首都领地（包括堪培拉）属于此签证指定偏远地区；ACT 491 提名及 Matrix 要求须另行核对。']},
   nt:{url:states.nt.url,area:['All of the Northern Territory, including Darwin, is designated regional for this visa. NT 491 nomination conditions still apply separately.','北领地全境（包括达尔文）属于此签证指定偏远地区；北领地 491 提名条件仍须另行满足。']},
 };
-export const estimateLimits = Object.fromEntries(stateCodes.flatMap(state=>[[state+'-189',130],[state+'-190',state==='vic'?950:135],[state+'-491',145]]));
-export const isFederalNomination = pathway => /-(190|491)$/.test(pathway) && pathway !== 'vic-190' && Object.hasOwn(estimateLimits,pathway);
+export const estimateLimits = Object.fromEntries(stateCodes.flatMap(state=>[[state+'-189',130],[state+'-190',state==='vic'?950:135],[state+'-491',state==='vic'?950:145]]));
+export const isFederalNomination = pathway => /-(190|491)$/.test(pathway) && !['vic-190','vic-491'].includes(pathway) && Object.hasOwn(estimateLimits,pathway);

@@ -1,11 +1,11 @@
-import {calculate, priorityCodes} from './points-rules.mjs?v=20261022-postcodes';
+import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
-import {states, stateCodes, regional491} from './state-nomination.mjs?v=20261022-491';
+import {states, stateCodes, regional491} from './state-nomination.mjs?v=20261023-vic491';
 import {initialiseRankingTool} from './nomination-ranking.mjs?v=20261023-enquiry';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
-import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261023-enquiry';
+import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261023-vic491';
 
 export function nominationScoreCard(assessment,text) {
   if(!assessment)return '';
@@ -80,7 +80,7 @@ export function initialisePointsCalculator() {
     const input = values();
     host.querySelectorAll('[data-pc-state]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.pcState===input.state)));
     const chosen = stateCodes.includes(input.state) && ['189','190','491'].includes(input.visa);
-    const vic = chosen && input.state === 'vic' && input.visa === '190';
+    const vic = chosen && usesVpt(input);
     const federal = chosen && !vic;
     show('[data-pc-state-info]', chosen && input.visa === '190');
     rankingTool.update(input.state,input.visa,input);
@@ -148,6 +148,7 @@ export function initialisePointsCalculator() {
     show('[data-pc-partner-code]', vic && input.vptPartner === 'yes');
     show('#points-sources', chosen);
     show('[data-pc-reference="vpt"]', vic);
+    show('[data-pc-vic190-reference]',vic&&input.visa==='190');
     show('[data-pc-reference="federal"]', federal);
     show('[data-pc-reference="nsw"]', federal && input.state === 'nsw' && input.visa === '190');
     const state = states[input.state];
@@ -237,12 +238,12 @@ export function initialisePointsCalculator() {
     }
     ageError.hidden=!chosen||!result.missing.includes('age');
     ageError.textContent=input.age===''?text('Age is missing. Enter your age to calculate the total.','尚未填写年龄，填好后才能计算总分。'):text('Enter a whole-number age between 18 and 100.','请输入 18 至 100 之间的周岁整数。');
-    const pathway = nomination?input.state.toUpperCase()+' 190 · '+text('Two separate scores','两项独立评分'):vic ? text('VIC 190 · Victorian Points Test','VIC 190 · 维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · EOI' : text('Select your pathway','请选择路径');
+    const pathway = nomination?input.state.toUpperCase()+' 190 · '+text('Two separate scores','两项独立评分'):vic ? 'VIC '+input.visa+' · '+text('Victorian Points Test','维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · EOI' : text('Select your pathway','请选择路径');
     host.querySelector('.pc-form-heading h2').textContent = state?input.state.toUpperCase()+' · '+text('189 / 190 / 491 calculator','189／190／491 计算器'):text('Choose a state calculator','选择州计算器');
     host.querySelector('#pc-result-title').textContent = pathway;
     host.querySelector('#pc-results').classList.toggle('pc-summary--dual',!!nomination);
     host.querySelector('#pc-mode-note').textContent = !chosen ? text('Choose a state from the index, then select a visa subclass.','请从索引选择州或领地，再选择签证类别。')
-      : vic ? text('Victorian 190: only the 2026–27 VPT is calculated here. Seven factors, one total. There is no fixed pass mark.','维州 190：此处仅计算 2026–27 新版 VPT。七项因素，一个总分，没有固定及格分。')
+      : vic ? text('Victoria '+input.visa+': estimate the 2026–27 VPT for ROI ranking. It is separate from federal EOI; nomination points are not added to VPT.','维州 '+input.visa+'：估算 2026–27 VPT，用于 ROI 排序。VPT 与联邦 EOI 独立，不叠加州提名分。')+(input.visa==='491'?text(' The regional postcode and obligations checks below still apply.','下方偏远地区邮编及义务核对仍需完成。'):'')
       : input.visa === '189' ? text('189 uses the federal points test. There are no state nomination or salary points.','189 使用联邦计分规则，不含州提名或薪资加分。')
       : input.visa === '491' ? text('491: federal EOI plus 15 conditional state nomination points, not +5 and +15 together. Check the regional requirements below before calculating.','491：联邦 EOI 加有条件州提名 15 分，不与 190 的 5 分叠加。请先核对下方偏远地区要求。')
       : text('Complete the questions below to estimate federal EOI points, including 5 conditional nomination points. State nomination guidance is optional.','填写下方问题即可估算联邦 EOI 分数，含有条件州提名 5 分；州提名条件说明可按需展开。');
@@ -286,7 +287,7 @@ export function initialisePointsCalculator() {
       notes.push(text('This screen calculates VPT only. Visa eligibility and federal EOI requirements must still be checked separately before applying.','本页当前仅计算 VPT。正式申请前仍需另行核对签证资格与联邦 EOI 要求。'));
     }
     if (federal && input.visa === '190') notes.push(text(...state.note));
-    if(input.visa==='491')notes.push(text(...regional491[input.state].area),text('The postcode check compares the regional table and geographic reference, not the actual street address or nomination eligibility. 491 state ranking and family sponsorship are not assessed. Regional study +5 is separate and is not awarded automatically for choosing 491.','邮编查询比对地区清单及地理邮编资料，不核验实际街道地址或提名资格，也不评估 491 州排序和亲属担保。偏远地区学习的 5 分需独立满足条件，不会因选择 491 自动加分。'));
+    if(input.visa==='491')notes.push(text(...regional491[input.state].area),vic?text('The official Victorian VPT applies to both 190 and 491 ROI ranking. Federal visa requirements still apply separately; 491 nomination +15 is a federal EOI item, never VPT. The postcode check is not an eligibility decision.','维州官方 VPT 同时适用于 190 与 491 的 ROI 排序。联邦签证要求仍须另行满足；491 提名的 15 分属于联邦 EOI 项目，不加入 VPT。邮编查询不构成资格结论。'):text('The postcode check compares the regional table and geographic reference, not the actual street address or nomination eligibility. 491 state ranking and family sponsorship are not assessed. Regional study +5 is separate and is not awarded automatically for choosing 491.','邮编查询比对地区清单及地理邮编资料，不核验实际街道地址或提名资格，也不评估 491 州排序和亲属担保。偏远地区学习的 5 分需独立满足条件，不会因选择 491 自动加分。'));
     notes.push(text('Answers are calculated in this page. If you include your estimate, your pathway, scoring answers and itemised points are carried into the enquiry form for review. No email is sent automatically.','填写内容在当前页面计算。勾选附上预估分数后，会将路径、计分选项与每项得分带入咨询表单供您确认；不会自动发送邮件。'));
     host.querySelector('#pc-result-notes').innerHTML = notes.map(note=>'<p>'+note+'</p>').join('');
   }

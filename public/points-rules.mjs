@@ -12,6 +12,7 @@ export const priorityCodes = new Set(('251211 251212 251213 251214 251411 251511
 const isChoice = (value, choices) => choices.includes(value);
 const integer = (value, min, max) => value !== '' && value != null && Number.isInteger(Number(value)) && Number(value) >= min && Number(value) <= max;
 export function federalAge(age) { return age < 18 || age >= 45 ? 0 : age < 25 ? 25 : age < 33 ? 30 : age < 40 ? 25 : 15; }
+export function usesVpt(input) { return input.state==='vic'&&['190','491'].includes(input.visa); }
 export function vptAge(age) { return age >= 20 && age <= 29 ? 300 : vptAges[age] ?? null; }
 export function vptEarnings(value) {
   if (!Number.isFinite(Number(value)) || Number(value) < 0 || value === '') return null;
@@ -29,7 +30,7 @@ export function calculate(input) {
   if (!integer(input.age, 18, 100)) missing.push('age');
   if (!english) missing.push('english');
   const chosen = isChoice(input.state, stateCodes) && isChoice(input.visa, ['189','190','491']);
-  const mode = !chosen ? null : input.state === 'vic' && input.visa === '190' ? 'vpt' : 'federal';
+  const mode = !chosen ? null : usesVpt(input) ? 'vpt' : 'federal';
   const age = Number(input.age);
   const issues = [];
   if(input.visa==='491'&&regionalPostcode){

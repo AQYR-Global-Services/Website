@@ -1,4 +1,4 @@
-import {calculate, ruleDate} from './points-rules.mjs?v=20261022-postcodes';
+import {calculate, ruleDate, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, passportCountries, englishRuleDate} from './english-rules.mjs?v=20261022-all-tests';
 import {getOccupation} from './occupation-search.mjs';
 import {rankingPrograms,calculateRanking,rankingEnglishSelection} from './nomination-ranking.mjs?v=20261023-enquiry';
@@ -71,7 +71,7 @@ const checkboxes = new Set(['study','specialist','regional','professional','lang
 // Carry only the completed pathway's scoring answers, never names or free-text searches.
 export function createPointsSnapshot(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
-  const vpt = input.state === 'vic' && input.visa === '190';
+  const vpt = usesVpt(input);
   const evidenceKeys = input.englishMode === 'level' ? ['english'] : input.englishMode === 'passport' ? ['passportCountry'] : ['listening','reading','writing','speaking', ...(needsEnglishDate(input.englishMode) ? ['testDate'] : [])];
   if ((input.englishMode === 'toefl' && input.testDate >= '2025-08-07') || (input.englishMode === 'cambridge' && input.testDate >= '2024-02-12' && input.testDate < '2025-08-07')) evidenceKeys.push('testEvidence');
   const keys = [...common, ...evidenceKeys, ...(vpt ? vptFields : eoiFields), ...(input.visa==='491'?['regionalConfirmed','regionalPostcode']:[])];
@@ -93,14 +93,16 @@ export function createPointsSnapshot(input) {
     answers.specialist = answers.specialist && ['master','phd'].includes(answers.education);
   }
   const result = calculate(answers);
-  return result.total == null ? null : {version:1, answers};
+  return result.total == null ? null : input.state==='vic'&&input.visa==='491'?{version:2,model:'vpt',answers}:{version:1,answers};
 }
 
 export function parsePointsSnapshot(raw, pathway, score) {
   try {
     if (typeof raw !== 'string' || raw.length > 4096) return null;
     const parsed = JSON.parse(raw);
-    if (parsed.version !== 1) return null;
+    if (![1,2].includes(parsed.version)) return null;
+    const vic491=parsed.answers?.state==='vic'&&parsed.answers?.visa==='491';
+    if(vic491?(parsed.version!==2||parsed.model!=='vpt'):parsed.version!==1)return null;
     const snapshot = createPointsSnapshot(parsed.answers);
     if (!snapshot || snapshot.answers.state+'-'+snapshot.answers.visa !== pathway || calculate(snapshot.answers).total !== Number(score)) return null;
     return snapshot;
@@ -142,8 +144,8 @@ export function pointsEnquiryRows(snapshot, lang = 'en') {
     add('partner','Partner','配偶',partners[input.partner]);
     for (const [key,en,cn] of [['study','Australian study','澳洲学习'],['specialist','Specialist education','特定研究学历'],['regional','Regional study','偏远地区学习'],['professional','Professional Year','职业年'],['language','Community language','社区语言']]) add(key,en,cn,yesNo(input[key]));
     if (result.nomination) add('nomination','Conditional state nomination','有条件州提名',t('Only if state nomination is granted','仅在获得州提名后计入'),result.nomination);
-    if (input.visa==='491') add('regionalConfirmed','491 designated regional requirements','491 指定偏远地区要求',input.regionalPostcode+' · '+t('Postcode matches the regional reference and selected state; obligation acknowledged. Actual address and nomination eligibility still need checking.','邮编匹配地区清单及所选州，并知悉地区义务；实际地址及州提名资格仍需核验。'),0,false);
   }
+  if (input.visa==='491') add('regionalConfirmed','491 designated regional requirements','491 指定偏远地区要求',input.regionalPostcode+' · '+t('Postcode matches the regional reference and selected state; obligation acknowledged. Actual address and nomination eligibility still need checking.','邮编匹配地区清单及所选州，并知悉地区义务；实际地址及州提名资格仍需核验。'),0,false);
   return rows;
 }
 
