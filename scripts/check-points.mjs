@@ -6,7 +6,7 @@ import {calculate, englishLevel, federalAge, vptAge, vptAges, vptEarnings, earni
 import {englishTests} from '../public/english-rules.mjs';
 import {states,stateCodes,estimateLimits,regional491} from '../public/state-nomination.mjs';
 import {rankingPrograms,calculateRanking} from '../public/nomination-ranking.mjs';
-import {calculatorValues} from '../public/points-calculator.mjs';
+import {calculatorValues,calculatorAttachmentOptions} from '../public/points-calculator.mjs';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed,regionalRanges,sharedPostcodes} from '../public/regional-postcodes.mjs';
 import {geographicPostcodes} from '../public/postcode-reference.mjs';
 import {rankingEnglishSelection} from '../public/nomination-ranking.mjs';
@@ -49,6 +49,20 @@ for (const state of stateCodes) for (const visa of ['189','190','491']) {
   }
 }
 assert.equal(stateCodes.length,8);
+for(const state of stateCodes)for(const visa of ['189','190','491']){
+  const vpt=state==='vic'&&['190','491'].includes(visa);
+  const empty=calculatorAttachmentOptions({state,visa},null);
+  assert.equal(empty.scoreEnabled,false,'Empty scoring form cannot attach a result');
+  assert.equal(empty.nominationEnabled,false,'Empty state assessment cannot be attached');
+  assert.equal(empty.nominationVisible,!vpt&&visa!=='189','VIC VPT has one attachment option, other nomination modes retain theirs');
+  assert.equal(calculatorAttachmentOptions({state,visa},640).scoreEnabled,true,'Completed result unlocks explicit opt-in');
+  const expected=!vpt&&visa!=='189';
+  assert.equal(calculatorAttachmentOptions({state,visa},null,{state,visa,context:{age:'29'}}).nominationEnabled,expected,'Entered background can be attached without complete EOI');
+  assert.equal(calculatorAttachmentOptions({state,visa},null,{state,visa,context:{age:'',englishMode:'ielts'}}).nominationEnabled,false,'Choosing a test type alone is not entered evidence');
+  assert.equal(calculatorAttachmentOptions({state,visa},null,{state,visa,program:state+'-path',context:{}}).nominationEnabled,expected,'Explicitly selected pathway is useful consultation information');
+  assert.equal(calculatorAttachmentOptions({state,visa},null,{state:'unknown',visa,context:{age:'29'}}).nominationEnabled,false,'Stale assessment must not unlock attachment');
+}
+assert.deepEqual(calculatorAttachmentOptions({state:'unknown',visa:'491'},640),{scoreEnabled:false,nominationVisible:false,nominationEnabled:false});
 const vic491Base={...vptBase,visa:'491',regionalPostcode:'3220',regionalConfirmed:true};
 assert.equal(calculate(vic491Base).total,600,'VIC491 uses the same VPT, not EOI or VPT+15');
 assert.equal(calculate({...vic491Base,experience:'8',vptEducation:'phd',vptPartner:'yes',partnerCode:'254499',earningEligible:'yes',salary:'170000'}).total,950);
@@ -253,8 +267,8 @@ assert.match(controller,/pc-missing-summary/,'Missing scoring fields have a prom
 assert.match(controller,/data\.pcMissingTarget|dataset\.pcMissingTarget/,'Missing-field links point back to actual controls');
 assert.match(html,/id="pc-include-nomination"/,'State ranking has an independent opt-in');
 assert.match(html,/id="points-sources"/);
-assert.match(html,/<section class="pc-breakdown" aria-labelledby="pc-breakdown-title">/,'Breakdown is permanently expanded, not a disclosure');
-assert.doesNotMatch(html,/<details class="pc-breakdown"/);
+assert.match(html,/<details class="pc-breakdown" open><summary id="pc-breakdown-title">/,'Breakdown is collapsible and expanded on initial load');
+assert.doesNotMatch(controller,/querySelector\(['"]\.pc-breakdown['"]\)\.open\s*=/,'Calculator updates must preserve the manually selected disclosure state');
 assert.match(html,/<option value="8"[^>]*data-zh="8 年及以上 · \+100"/);
 assert.doesNotMatch(html,/<option value="9"|withholds the VPT total|暂不显示 VPT 总分/);
 assert.match(html,/2026–27/);

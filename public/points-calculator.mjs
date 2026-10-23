@@ -26,6 +26,14 @@ export function calculatorValues(elements) {
     .map(el => [el.name, el.type === 'checkbox' ? el.checked : el.value]));
 }
 
+export function calculatorAttachmentOptions(input,total,nominationSnapshot=null) {
+  const chosen=stateCodes.includes(input.state)&&['189','190','491'].includes(input.visa);
+  const nominationVisible=chosen&&!usesVpt(input)&&input.visa!=='189';
+  const matching=nominationSnapshot?.state===input.state&&nominationSnapshot?.visa===input.visa;
+  const hasInformation=matching&&!!(nominationSnapshot.program||Object.entries(nominationSnapshot.context||{}).some(([key,value])=>key!=='englishMode'&&value!=='')||Object.values(nominationSnapshot.answers||{}).some(value=>value!==''));
+  return {scoreEnabled:chosen&&total!=null,nominationVisible,nominationEnabled:nominationVisible&&hasInformation};
+}
+
 export function initialisePointsCalculator() {
   const host = document.querySelector('#points-calculator');
   if (!host || host.dataset.ready) return;
@@ -205,20 +213,27 @@ export function initialisePointsCalculator() {
       if (englishOptions[option.value]) option.textContent = text(...englishOptions[option.value]) + ' · +' + englishPoints[option.value];
     });
     const result = calculate(input);
+    const nominationCandidate=createNominationSnapshot({state:input.state,visa:input.visa,context:input,...rankingTool.values()});
+    const attachmentOptions=calculatorAttachmentOptions(input,result.total,nominationCandidate);
     const includeScore = host.querySelector('#pc-include-score');
     show('[data-pc-enquiry]', chosen);
-    includeScore.disabled=result.total==null;
-    if (result.total == null) includeScore.checked = false;
+    includeScore.disabled=!attachmentOptions.scoreEnabled;
+    if (!attachmentOptions.scoreEnabled) includeScore.checked = false;
     const includeNomination=host.querySelector('#pc-include-nomination');
-    const hasNomination=chosen&&input.visa!=='189';
+    const hasNomination=attachmentOptions.nominationVisible;
     host.querySelector('[data-pc-nomination-share]').hidden=!hasNomination;
-    includeNomination.disabled=!hasNomination;
-    if(!hasNomination)includeNomination.checked=false;
-    host.querySelector('#pc-share-score-label').textContent=vic?text('Attach VPT estimate and breakdown','附上 VPT 预估分数与明细'):text('Attach EOI estimate and breakdown','附上 EOI 预估分数与明细');
-    host.querySelector('#pc-share-score-hint').textContent=result.total==null?text('Complete the required scoring questions to attach this estimate. You can still consult without it.','完成必填计分项目后即可附上；不附分数也可以咨询。'):text('Your answers and itemised points will be available to review before sending.','附上计分选项及每项得分，发送前可再次确认。');
+    includeNomination.disabled=!attachmentOptions.nominationEnabled;
+    if(!attachmentOptions.nominationEnabled)includeNomination.checked=false;
+    host.querySelector('#pc-share-nomination-hint').textContent=!attachmentOptions.nominationEnabled
+      ?text('Available after you enter age / English information or select a nomination pathway. You can also enquire without attachments.','填写年龄、英语信息或选择州提名路径后可附上；也可不附任何内容直接咨询。')
+      :nomination?.score.total!=null?text('Attach your state ranking answers and result, separately from EOI. Review before sending.','附上州排序自评选项与结果，不与 EOI 相加；发送前可确认。')
+      :nomination?text('Attach the information entered so far. Assessment incomplete or conflicting — no state ranking total is attached. EOI is not required.','仅附已填信息；自评未完成或存在冲突，不附州排序总分。无需完成 EOI。')
+      :text('Attach the selected pathway and background entered so far for the team to review. No state ranking total is calculated; EOI is not required.','附上已选路径与已填背景供团队评估；不含州排序总分，无需完成 EOI。');
+    host.querySelector('#pc-share-score-label').textContent=vic?text('Attach VPT self-assessment and breakdown','附上 VPT 自评与明细'):text('Attach EOI estimate and breakdown','附上 EOI 预估分数与明细');
+    host.querySelector('#pc-share-score-hint').textContent=!attachmentOptions.scoreEnabled?text('Available after the required questions are completed and a score is shown. You can still contact the team without attaching a score.','完成必填项目并出分后可附上；也可直接咨询，不附分数。'):text('Your answers and itemised points will be available to review before sending.','附上计分选项及每项得分，发送前可再次确认。');
     const contactBase = '/contact?service=skilled&audience=individual#enquiry';
     const snapshot = includeScore.checked ? createPointsSnapshot(input) : null;
-    const nominationSnapshot=includeNomination.checked?createNominationSnapshot({state:input.state,visa:input.visa,context:input,...rankingTool.values()}):null;
+    const nominationSnapshot=includeNomination.checked?nominationCandidate:null;
     const attachments=new URLSearchParams();
     if(snapshot){attachments.set('pathway',input.state+'-'+input.visa);attachments.set('score',String(result.total));attachments.set('details',JSON.stringify(snapshot));}
     if(nominationSnapshot)attachments.set('nomination',JSON.stringify(nominationSnapshot));

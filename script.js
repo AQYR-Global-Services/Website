@@ -411,7 +411,7 @@
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-vic491' : '/points-calculator.mjs?v=20261023-vic491')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-empty-attachments' : '/points-calculator.mjs?v=20261023-empty-attachments')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -500,6 +500,9 @@
     const estimateLimits = Object.fromEntries(['vic','nsw','qld','wa','sa','tas','act','nt'].flatMap(state=>[[state+'-189',130],[state+'-190',state==='vic'?950:135],[state+'-491',state==='vic'?950:145]]));
     const federalNomination = pathway => Object.hasOwn(estimateLimits,pathway) && /-(190|491)$/.test(pathway) && !['vic-190','vic-491'].includes(pathway);
     const updateEstimate = () => {
+      const estimateLabel=form.querySelector('#enquiry-estimate-label');
+      const vptPath=['vic-190','vic-491'].includes(estimatePathway.value);
+      estimateLabel.textContent=root.dataset.lang==='zh'?(vptPath?'附上 VPT 自评与明细（可选）':'附上 EOI／VPT 预估分数（可选）'):(vptPath?'Attach VPT self-assessment and breakdown (optional)':'Attach EOI / VPT estimate (optional)');
       const skilled = requestSelect.value === 'skilled';
       estimateSection.hidden = !skilled;
       if (!skilled) includeEstimate.checked = false;
