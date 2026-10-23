@@ -811,10 +811,14 @@ html[data-lang=en] .legal-copy .text-tail{white-space:normal}
 /* A few long English paragraphs exceed the browser's balancing line limit.
    Keep only their short closing phrase together, never the whole paragraph. */
 .text-tail{white-space:nowrap}
-/* A quiet second route for employers, separate from the main card action. */
-.service-entry .audience>a.audience-secondary-link{display:flex;align-items:flex-start;gap:8px;width:fit-content;max-width:100%;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);color:var(--brand-teal);font-size:14px;font-weight:500;line-height:1.6}
+/* Service routes share one type and icon treatment; the divider separates destinations. */
+.service-entry .audience>a.audience-secondary-link{display:flex;align-items:center;gap:8px;width:100%;max-width:100%;margin-top:20px;padding-top:14px;border-top:1px solid #1f44341a;color:#236c49;font-size:15px;font-weight:600;line-height:inherit;text-decoration:none}
+.service-entry .audience>a.audience-secondary-link:is(:hover,:focus-visible){text-decoration:underline}
 .audience-secondary-link>span{min-width:0;text-wrap:pretty}
-.audience-secondary-link>.link-icon{margin-top:2px}
+.audience-secondary-link>.link-icon{margin-top:0}
+/* Shared rows keep both service cards aligned even when either language wraps. */
+@media(min-width:601px){.service-entry .grid2{row-gap:0}.service-entry .audience{display:grid;grid-template-rows:subgrid;grid-row:span 5}.service-entry .audience>.card-link{justify-self:start;align-self:start}}
+.service-entry .audience:hover{translate:none}
 /* Four audience-led navigation entries. Native disclosure controls also work without JS. */
 .nav-group{position:relative}
 .nav-trigger{display:flex;align-items:center;gap:7px;list-style:none;cursor:pointer;font-size:13px;line-height:1.5;white-space:nowrap;color:var(--night);border-radius:8px}
