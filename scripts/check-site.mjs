@@ -322,9 +322,9 @@ for (const route of routes) {
     assert.ok(!source.includes('id="pc-491-state-link"'));
     assert.match(source, /id="pc-live-score" aria-live="polite"/);
     assert.match(source, /data-pc-vpt hidden/);
-    assert.match(source, /Base scoring: 15 October 2026; English and state nomination review: 22 October 2026/);
+    assert.match(source, /Base scoring: 15 October 2026; English rules: 22 October 2026; ACT\/TAS 491 review: 26 October 2026/);
     assert.match(source, /NSW considers occupation-group ranking/);
-    for (const modulePath of ["/points-rules.mjs", "/points-calculator.mjs", "/english-rules.mjs", "/regional-postcodes.mjs", "/postcode-reference.mjs", "/state-nomination.mjs", "/nomination-ranking.mjs", "/nomination-pathways.mjs", "/occupation-search.mjs", "/occupation-picker.mjs", "/anzsco-2013.mjs"]) {
+    for (const modulePath of ["/points-rules.mjs", "/points-calculator.mjs", "/english-rules.mjs", "/regional-postcodes.mjs", "/postcode-reference.mjs", "/state-nomination.mjs", "/nomination-ranking.mjs", "/nomination-491.mjs", "/nomination-pathways.mjs", "/occupation-search.mjs", "/occupation-picker.mjs", "/anzsco-2013.mjs"]) {
       const moduleResponse = await fetch(base + modulePath);
       assert.equal(moduleResponse.status, 200, modulePath + " must load");
       assert.match(moduleResponse.headers.get("content-type"), /javascript/);

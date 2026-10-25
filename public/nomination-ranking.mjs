@@ -1,6 +1,8 @@
 // Separate nomination self-assessment, never added to federal EOI or VPT.
-// Sources are the linked ACT calculators and Tasmania 190 priority-attribute tables.
-import {nominationPathways} from './nomination-pathways.mjs?v=20261023-guidance';
+// Sources are the linked ACT calculators and separate Tasmania 190/491 tables.
+import {nominationPathways} from './nomination-pathways.mjs?v=20261026-491';
+import {create491RankingPrograms} from './nomination-491.mjs?v=20261026-491';
+import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {states} from './state-nomination.mjs?v=20261022-all-states';
 import {englishLevel} from './english-rules.mjs?v=20261022-all-tests';
 const option = (points,en,zh,tier='') => ({points,en,zh,tier});
@@ -93,8 +95,14 @@ export const rankingPrograms = {
     binary('industry','2+ years Australian work in assessment industry; currently at priority pay','评估职业同行业至少 2 年澳洲经验，当前达优先收入',23,'orange'),tasOnly,tasResidence,binary('spouseWork','Spouse working in TAS for last 6 months at priority pay','配偶近 6 个月在塔州工作且达优先收入',4,'orange'),binary('studyHealth','AQF 5+ TAS qualification directly related to health/allied health/education','AQF 5 及以上塔州学历直接关联医疗／相关医疗／教育职业',3,'orange'),binary('businessYears','Business operated in TAS for at least the last 3 years','企业在塔州已连续经营至少 3 年',3,'orange'),binary('industryJob','Currently employed in assessment / Cert III+ TAS-study industry at least at minimum wage','当前在评估／Cert III 及以上塔州课程同行业工作且至少达最低工资',2,'orange'),spouseStudy,tasEnglish,
   ]},
 };
+Object.assign(rankingPrograms,create491RankingPrograms(rankingPrograms));
+export function nominationProgramSupports(program,state,visa){
+  const programs={...nominationPathways,...rankingPrograms};
+  const config=Object.hasOwn(programs,program||'')?programs[program]:null;
+  return !!config&&config.state===state&&(config.visa||'190')===visa;
+}
 export function rankingConflicts(program,answers={}) {
-  if(program!=='tas-tsg'||!/^\d+$/.test(String(answers.interviews))||Number(answers.interviews)!==1)return [];
+  if(!['tas-tsg','tas-tsg-491'].includes(program)||!/^\d+$/.test(String(answers.interviews))||Number(answers.interviews)!==1)return [];
   const related=rankingPrograms[program].fields.filter(f=>{
     const raw=answers[f.key];
     const selected=/^\d+$/.test(String(raw))?f.options[Number(raw)]:null;
@@ -124,17 +132,19 @@ export function calculateRanking(program,answers={},confirmed=false) {
   return {total,tier};
 }
 
-export function getRankingAssessment(program,answers,confirmed) {
+export function getRankingAssessment(program,answers,confirmed,context={}) {
   const config=Object.hasOwn(rankingPrograms,program||'')?rankingPrograms[program]:null;
   if(!config)return null;
-  return {program,state:config.state,system:config.state==='act'?'matrix':'tas',path:[config.en,config.zh],score:calculateRanking(program,answers,confirmed)};
+  let score=calculateRanking(program,answers,confirmed);
+  if(config.visa==='491'&&(!regionalPostcodeCanProceed(lookupRegionalPostcode(context.regionalPostcode,config.state))||context.regionalConfirmed!==true))score={...score,total:null,tier:null,regionalRequired:true};
+  return {program,state:config.state,visa:config.visa||'190',system:config.state==='act'?'matrix':'tas',path:[config.en,config.zh],score};
 }
 
 export function rankingEnglishSelection(program,input={}) {
   const level=englishLevel(input);
   if(!level||level==='below')return '';
-  if(program==='act-resident'||program==='act-overseas')return {superior:'1',proficient:'2',competent:'3'}[level];
-  if(['tas-tse','tas-tsg','tas-ter'].includes(program))return ['proficient','superior'].includes(level)||input.englishMode==='passport'?'1':'0';
+  if(rankingPrograms[program]?.state==='act')return {superior:'1',proficient:'2',competent:'3'}[level];
+  if(rankingPrograms[program]?.state==='tas')return ['proficient','superior'].includes(level)||input.englishMode==='passport'?'1':'0';
   return '';
 }
 
@@ -178,7 +188,7 @@ export function initialiseRankingTool(host) {
       currentState=state;currentVisa=visa;currentProgram='';path.value='';fields.replaceChildren();controls.clear();confirm.checked=false;
       details.open=state==='act'||state==='tas';
     }
-    root.hidden=visa!=='190'||!Object.hasOwn(states,state);
+    root.hidden=!Object.entries(programs).some(([key])=>nominationProgramSupports(key,state,visa));
     if(root.hidden)return;
     const hasRanking=state==='act'||state==='tas';
     toggle.textContent=hasRanking?text('State ranking calculator · optional','州提名排序计算（可选）'):text('State nomination conditions · optional reading','州提名条件说明（选读）');
@@ -187,7 +197,7 @@ export function initialiseRankingTool(host) {
     summary.textContent=hasRanking?text(states[state].en+' ranking',''+states[state].zh+'提名排序'):text(states[state].en+' nomination guide',states[state].zh+'提名说明');
     intro.textContent=hasRanking?text('Choose a pathway to estimate its separate state ranking score. It is never added to federal EOI points.','选择路径可估算独立的州排序分，不与联邦 EOI 分数相加。'):text('You can calculate points without selecting a pathway here. Select one only if you want to read its nomination conditions.','无需在此选择路径即可计算分数。如需了解提名条件，可选择相应路径查看说明。');
     label.textContent=text('Pathway','提名路径');empty.textContent=text('Select to view','选择后查看');
-    for(const opt of path.options){if(!opt.value)continue;const c=programs[opt.value];opt.hidden=c.state!==state;opt.disabled=c.state!==state;opt.textContent=text(c.en,c.zh);}
+    for(const opt of path.options){if(!opt.value)continue;const c=programs[opt.value];const available=nominationProgramSupports(opt.value,state,visa);opt.hidden=!available;opt.disabled=!available;opt.textContent=text(c.en,c.zh);}
     const config=Object.hasOwn(programs,path.value)?programs[path.value]:null;
     if(currentProgram!==path.value){
       currentProgram=path.value;fields.replaceChildren();controls.clear();confirm.checked=false;
@@ -211,6 +221,7 @@ export function initialiseRankingTool(host) {
       method.append(el('h4',text('How this pathway is selected','此路径如何筛选')));
       method.append(el('p',config.order?text(...config.order):state==='act'?text('Canberra Matrix ranks separately from EOI, using the selected resident or overseas table. The self-assessment below does not establish eligibility.','Canberra Matrix 独立于 EOI 排序，居民与境外使用不同表格；下方自评不等于满足资格。'):text('Tasmania uses pathway-specific priority attributes and pass categories, not federal EOI rankings.','塔州按路径对应的优先属性及通行类别排序，不是联邦 EOI 排名。')));
       notes.append(method);
+      if(config.eligibilityUrl){const eligibility=el('a',text('Read the separate 491 eligibility criteria','查阅 491 独立资格要求'));eligibility.href=config.eligibilityUrl;eligibility.target='_blank';eligibility.rel='noopener noreferrer';notes.append(eligibility);}
       for(const note of config.notes||[])notes.append(el('p',text(...note),'pc-hint'));
       for(const pair of config.checks||[])requirements.append(el('li',text(...pair)));
       for(const f of config.fields||[]){const c=controls.get(f.key);c.lab.textContent=text(f.en,f.zh);c.select.options[0].textContent=text('Please select','请选择');
@@ -227,7 +238,7 @@ export function initialiseRankingTool(host) {
       details.querySelector('[data-pc-edit-english]').textContent=text('Edit test type / component scores','修改考试类型／单项成绩');
     }
     const answers=Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value]));
-    const score=calculateRanking(path.value,answers,confirm.checked);
+    const score=getRankingAssessment(path.value,answers,confirm.checked,currentEnglishInput)?.score||calculateRanking(path.value,answers,confirm.checked);
     const incompleteFields=new Set([...(score.missing||[]),...(score.invalid||[])]);
     const invalidFields=new Set((score.conflicts||[]).flatMap(issue=>issue.fields));
     for(const [key,c] of controls){
@@ -240,7 +251,7 @@ export function initialiseRankingTool(host) {
     }
     conflict.hidden=!score.conflicts?.length;
     conflict.textContent=conflict.hidden?'':text('Conflicting claims: interview evidence is only available when you are not currently employed in a role related to your skills assessment or Tasmanian study. You have also claimed current related employment. Change the highlighted selections before calculating.','选项冲突：面试证据仅适用于当前未从事与职业评估或塔州课程相关工作的人。您同时申报了相关在职工作，请修改标记的冲突选项后再计算。');
-    const pendingCount=incompleteFields.size+(score.confirmationRequired?1:0);
+    const pendingCount=incompleteFields.size+(score.confirmationRequired?1:0)+(score.regionalRequired?1:0);
     pending.hidden=!config?.fields||!pendingCount;
     pendingTitle.textContent=text(pendingCount+' item(s) still need attention before a score can be shown:', '还有 '+pendingCount+' 项未完成，暂不能出分：');
     pendingHint.textContent=text('Choose an answer for each listed category. If it does not apply, select “No verified claim / not applicable” rather than leaving it blank. Select an item below to return to it.','请逐项选择；不适用的项目请选择“不申报／不适用”，不要留空。点击下列项目可跳回填写位置。');
@@ -252,6 +263,7 @@ export function initialiseRankingTool(host) {
     };
     for(const f of config?.fields||[])if(incompleteFields.has(f.key))addPending(text(f.en,f.zh)+(score.invalid?.includes(f.key)?text(' — choose a valid option','——请重新选择有效选项'):''),f.key==='english'?host.querySelector('#pc-englishMode'):controls.get(f.key).select);
     if(score.confirmationRequired)addPending(text('Confirm your answers reflect your circumstances','确认已按实际情况填写'),confirm);
+    if(score.regionalRequired)addPending(text('Check the 491 postcode and acknowledge regional obligations','核对 491 邮编并确认偏远地区义务'),host.querySelector('#pc-regional-postcode'));
     if(score.confirmationRequired)confirm.setAttribute('aria-describedby',pendingTitle.id);else confirm.removeAttribute('aria-describedby');
     result.hidden=!config?.fields;
     result.textContent=score.conflicts?.length?text('Calculation stopped — resolve conflicting selections first.','发现选项冲突，已停止计算；解决冲突后再显示分数。'):score.total==null?text('Complete the items listed above. State ranking is separate from EOI and can be attached independently for consultation.','请完成上方列出的项目。州排序分不与 EOI 相加，咨询时可选择单独附上自评。'):
@@ -259,16 +271,16 @@ export function initialiseRankingTool(host) {
     reset.textContent=text('Reset nomination assessment','重置州提名自评');
     reset.hidden=!config?.fields;
   }
-  details.addEventListener('change',()=>update(currentState,'190'));
-  reset.addEventListener('click',()=>{path.value='';currentProgram='';fields.replaceChildren();controls.clear();confirm.checked=false;update(currentState,'190');path.dispatchEvent(new Event('change',{bubbles:true}));});
+  details.addEventListener('change',()=>update(currentState,currentVisa));
+  reset.addEventListener('click',()=>{path.value='';currentProgram='';fields.replaceChildren();controls.clear();confirm.checked=false;update(currentState,currentVisa);path.dispatchEvent(new Event('change',{bubbles:true}));});
   return {update,selected(){return path.value;},
-    values(){return {program:currentVisa==='190'?path.value:'',answers:Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value])),confirmed:confirm.checked};},
-    assessment(){return currentVisa==='190'?getRankingAssessment(path.value,Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value])),confirm.checked):null;},
+    values(){return {program:nominationProgramSupports(path.value,currentState,currentVisa)?path.value:'',answers:Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value])),confirmed:confirm.checked};},
+    assessment(){return nominationProgramSupports(path.value,currentState,currentVisa)?getRankingAssessment(path.value,Object.fromEntries([...controls].map(([key,c])=>[key,c.select.value])),confirm.checked,currentEnglishInput):null;},
     review(){
       details.open=true;
       const assessment=this.assessment();
       const key=assessment?.score.conflicts?.[0]?.fields[0]||assessment?.score.missing?.[0]||assessment?.score.invalid?.[0];
-      const target=key==='english'?host.querySelector('#pc-englishMode'):key?controls.get(key)?.select:assessment?.score.confirmationRequired?confirm:path;
+      const target=assessment?.score.regionalRequired?host.querySelector('#pc-regional-postcode'):key==='english'?host.querySelector('#pc-englishMode'):key?controls.get(key)?.select:assessment?.score.confirmationRequired?confirm:path;
       target?.focus({preventScroll:true});target?.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
     },
     reset(){currentState='';currentProgram='';currentVisa='';path.value='';fields.replaceChildren();controls.clear();confirm.checked=false;}};

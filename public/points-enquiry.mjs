@@ -1,8 +1,8 @@
 import {calculate, ruleDate, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, passportCountries, englishRuleDate} from './english-rules.mjs?v=20261022-all-tests';
 import {getOccupation} from './occupation-search.mjs';
-import {rankingPrograms,calculateRanking,rankingEnglishSelection} from './nomination-ranking.mjs?v=20261023-enquiry';
-import {nominationPathways} from './nomination-pathways.mjs?v=20261023-guidance';
+import {rankingPrograms,getRankingAssessment,rankingEnglishSelection,nominationProgramSupports} from './nomination-ranking.mjs?v=20261026-491';
+import {nominationPathways} from './nomination-pathways.mjs?v=20261026-491';
 import {states} from './state-nomination.mjs?v=20261022-491';
 
 // A separate opt-in snapshot: never add nomination ranking to EOI or invent a ROI total.
@@ -11,7 +11,7 @@ export function createNominationSnapshot(input) {
   const programs={...nominationPathways,...rankingPrograms};
   const program=input.program||'';
   const config=Object.hasOwn(programs,program)?programs[program]:null;
-  if(program&&(!config||config.state!==input.state||input.visa!=='190'))return null;
+  if(program&&!nominationProgramSupports(program,input.state,input.visa))return null;
   if(typeof input.confirmed!=='boolean')return null;
   const context={};
   for(const key of ['age','englishMode','english','passportCountry','listening','reading','writing','speaking','testDate','testEvidence']){
@@ -22,6 +22,12 @@ export function createNominationSnapshot(input) {
   if(!['','level','passport',...Object.keys(englishTests)].includes(context.englishMode))return null;
   if(context.passportCountry&&!Object.hasOwn(passportCountries,context.passportCountry))return null;
   if(!['','below','competent','proficient','superior'].includes(context.english))return null;
+  if(input.visa==='491'){
+    const postcode=input.context?.regionalPostcode??'';
+    const confirmed=input.context?.regionalConfirmed??false;
+    if(typeof postcode!=='string'||!/^\d{0,4}$/.test(postcode)||typeof confirmed!=='boolean')return null;
+    context.regionalPostcode=postcode;context.regionalConfirmed=confirmed;
+  }
   const answers={};
   for(const f of config?.fields||[]){
     const value=f.key==='english'?rankingEnglishSelection(program,context):input.answers?.[f.key]??'';
@@ -43,12 +49,13 @@ export function formatNominationEnquiry(snapshot,lang='en') {
   const t=(en,zh)=>lang==='zh'?zh:en;
   const programs={...nominationPathways,...rankingPrograms};
   const config=programs[snapshot.program];
-  const result=config?.fields?calculateRanking(snapshot.program,snapshot.answers,snapshot.confirmed):null;
+  const result=config?.fields?getRankingAssessment(snapshot.program,snapshot.answers,snapshot.confirmed,snapshot.context).score:null;
   const rows=[t('State nomination / ROI consultation (self-assessed, subject to review)','州提名／ROI 咨询（客户自评，待团队核对）'),
     snapshot.state.toUpperCase()+' · '+snapshot.visa+' · '+(config?t(config.en,config.zh):t('Pathway not selected — advice requested','尚未选择提名路径，希望团队评估')),
     t('Age supplied','已填写年龄')+': '+(snapshot.context.age||t('Not supplied','未填写'))];
   const exam=englishTests[snapshot.context.englishMode];
   rows.push(t('English evidence','英语信息')+': '+(exam?exam.name+' L/R/W/S '+['listening','reading','writing','speaking'].map(k=>snapshot.context[k]||t('missing','未填')).join('/')+(snapshot.context.testDate?' · '+snapshot.context.testDate:''):snapshot.context.englishMode==='level'?(snapshot.context.english||t('Not supplied','未填写')):snapshot.context.englishMode==='passport'?t('Passport exemption','护照豁免')+' · '+(passportCountries[snapshot.context.passportCountry]||t('Country not supplied','国家未填写')):t('Not supplied','未填写')));
+  if(snapshot.visa==='491')rows.push(t('491 intended postcode','491 计划地点邮编')+': '+(snapshot.context.regionalPostcode||t('Not supplied','未填写'))+' · '+t('Regional obligations acknowledged: ','已确认偏远地区义务：')+(snapshot.context.regionalConfirmed?t('Yes','是'):t('No','否')));
   if(result){
     rows.push(t('Independent state ranking — do not add to EOI','独立州排序分，不与 EOI 相加'));
     for(const f of config.fields){
@@ -56,7 +63,7 @@ export function formatNominationEnquiry(snapshot,lang='en') {
       rows.push(t(f.en,f.zh)+': '+(selected?t(selected.en,selected.zh)+' — '+selected.points+t(' points',' 分'):t('Not answered','未填写')));
     }
     if(result.conflicts?.length)rows.push(t('Conflicting claims: related employment and interview-only evidence. No total calculated.','存在冲突：同时申报相关在职工作与仅面试证据，不计算总分。'));
-    else if(result.total==null)rows.push(t('Incomplete assessment — no total calculated. Missing: ','自评未完成，不计算总分。待完成：')+[...(result.missing||[]).map(k=>{const f=config.fields.find(f=>f.key===k);return t(f.en,f.zh);}),...(result.confirmationRequired?[t('Answer confirmation','填写确认')]:[])].join(t(', ','、')));
+    else if(result.total==null)rows.push(t('Incomplete assessment — no total calculated. Missing: ','自评未完成，不计算总分。待完成：')+[...(result.missing||[]).map(k=>{const f=config.fields.find(f=>f.key===k);return t(f.en,f.zh);}),...(result.confirmationRequired?[t('Answer confirmation','填写确认')]:[]),...(result.regionalRequired?[t('491 postcode / regional obligations','491 邮编／偏远地区义务核对')]:[])].join(t(', ','、')));
     else rows.push((snapshot.state==='act'?'Canberra Matrix':t('TAS ROI priority attributes','塔州 ROI 优先属性'))+': '+result.total+t(' points',' 分')+(snapshot.state==='tas'?' · '+result.tier:''));
   }else rows.push(t('No separate state ranking total calculated. The selected pathway and background are supplied for consultation only.','未计算独立州排序总分，仅附提名路径及背景供团队咨询评估。'));
   rows.push(t('Not an eligibility decision or invitation guarantee.','不代表资格结论或获邀保证。'));

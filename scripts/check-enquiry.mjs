@@ -129,7 +129,7 @@ assert.equal(pointsEnquiry.parsePointsSnapshot('x'.repeat(4097),'vic-190',679),n
 assert.equal(pointsEnquiry.createPointsSnapshot({...eoi,study:'true'}),null);
 assert.equal(pointsEnquiry.createPointsSnapshot({...vpt,age:'29\nInjected text'}),null);
 for(const [program,config]of Object.entries({...nominationPathways,...rankingPrograms})){
-  const source={state:config.state,visa:'190',program,answers:Object.fromEntries((config.fields||[]).map(f=>[f.key,'0'])),confirmed:true,context:{age:'',englishMode:'level',english:'superior'}};
+  const source={state:config.state,visa:config.visa||'190',program,answers:Object.fromEntries((config.fields||[]).map(f=>[f.key,'0'])),confirmed:true,context:{age:'',englishMode:'level',english:'superior',...(config.visa==='491'?{regionalPostcode:examplePostcodes[config.state],regionalConfirmed:true}:{})}};
   const snapshot=pointsEnquiry.createNominationSnapshot({...source,name:'DO NOT COPY',context:{...source.context,name:'DO NOT COPY'}});
   assert(snapshot,program);
   assert(!JSON.stringify(snapshot).includes('DO NOT COPY'));
@@ -192,4 +192,21 @@ assert(!(await setup('#enquiry?pathway=vic-491&score=951')).node('[name="include
 assert.equal(pointsEnquiry.createPointsSnapshot(vic491).version,2);
 assert.equal(pointsEnquiry.parsePointsSnapshot(JSON.stringify({version:1,answers:vic491}),'vic-491',679),null,'Old EOI snapshot cannot become VPT');
 assert.equal(await (await setup('#enquiry?pathway=vic-491&score=100')).submit(),null,'Legacy VIC491 total without VPT detail requires recalculation or opt-out');
-console.log('PASS: 24 scoring modes and 23 nomination paths; bilingual EOI-only, ROI-only and combined drafts, independent opt-outs, incomplete/conflicting ROI labels, snapshot validation and no automatic sending.');
+for(const program of ['act-resident-491','act-overseas-491','tas-tse-491','tas-tsg-491','tas-ter-491','tas-tbo-491']){
+  const config=rankingPrograms[program];
+  const input={state:config.state,visa:'491',program,answers:Object.fromEntries(config.fields.map(f=>[f.key,'0'])),confirmed:true,context:{englishMode:'level',english:'superior',regionalPostcode:examplePostcodes[config.state],regionalConfirmed:true}};
+  const snap=pointsEnquiry.createNominationSnapshot(input);
+  assert(snap&&pointsEnquiry.parseNominationSnapshot(JSON.stringify(snap)));
+  assert.equal(pointsEnquiry.createNominationSnapshot({...input,visa:'190'}),null,'491 tables cannot be relabelled190');
+  assert.equal(pointsEnquiry.createNominationSnapshot({...input,context:{...input.context,regionalConfirmed:'true'}}),null);
+  const blocked=pointsEnquiry.createNominationSnapshot({...input,context:{...input.context,regionalPostcode:'9999'}});
+  assert.match(pointsEnquiry.formatNominationEnquiry(blocked,'zh'),/自评未完成.*491 邮编/);
+  for(const lang of ['en','zh']){
+    const both=await setup(fragment({...eoi,state:config.state,visa:'491',regionalPostcode:examplePostcodes[config.state],regionalConfirmed:true})+'&'+new URLSearchParams({nomination:JSON.stringify(snap)}),lang);
+    const body=await both.submit();
+    assert(body.includes(pointsEnquiry.formatNominationEnquiry(snap,lang)));
+    assert(body.includes('491'));
+    assert.match(body,lang==='zh'?/含有条件州提名 \+15 分/:/conditional \+15 nomination points/);
+  }
+}
+console.log('PASS: 24 scoring modes and 30 nomination paths; independent EOI/ROI attachments, 491 regional validation and subclass-safe imported scores.');

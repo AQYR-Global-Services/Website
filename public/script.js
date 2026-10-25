@@ -411,7 +411,7 @@
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261023-score-maxima' : '/points-calculator.mjs?v=20261023-score-maxima')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261026-491-ranking' : '/points-calculator.mjs?v=20261026-491-ranking')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -552,7 +552,7 @@
       }
       if(rawNomination!=null){nominationRequested=true;includeNomination.checked=true;}
       if(detailsRequested||nominationRequested){
-        detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261023-vic491' : '/points-enquiry.mjs?v=20261023-vic491')
+        detailsReady = import(location.pathname.endsWith('.html') ? './public/points-enquiry.mjs?v=20261026-491' : '/points-enquiry.mjs?v=20261026-491')
           .then(module=>{
             pointsEnquiryModule=module;
             if(detailsRequested)pointsSnapshot=module.parsePointsSnapshot(rawDetails,pathway,score);

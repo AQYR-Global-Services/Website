@@ -69,6 +69,10 @@ for(const state of stateCodes)for(const visa of ['189','190','491']){
   assert.equal(calculatorAttachmentOptions({state,visa},null,{state:'unknown',visa,context:{age:'29'}}).nominationEnabled,false,'Stale assessment must not unlock attachment');
 }
 assert.deepEqual(calculatorAttachmentOptions({state:'unknown',visa:'491'},640),{scoreEnabled:false,nominationVisible:false,nominationEnabled:false});
+for(const state of ['act','tas']){
+  const empty491={state,visa:'491',program:'',answers:{},context:{age:'',englishMode:'',regionalPostcode:'',regionalConfirmed:false}};
+  assert.equal(calculatorAttachmentOptions({state,visa:'491'},null,empty491).nominationEnabled,false,'An unchecked regional acknowledgement is not entered information');
+}
 const vic491Base={...vptBase,visa:'491',regionalPostcode:'3220',regionalConfirmed:true};
 assert.equal(calculate(vic491Base).total,600,'VIC491 uses the same VPT, not EOI or VPT+15');
 assert.equal(calculate({...vic491Base,experience:'8',vptEducation:'phd',vptPartner:'yes',partnerCode:'254499',earningEligible:'yes',salary:'170000'}).total,950);
@@ -83,6 +87,12 @@ for (const state of stateCodes) {
 }
 assert.equal(calc({state:'unknown'}).total,null);
 const expectedRankPoints = {
+  'act-resident-491':[[0,25,20,15,10,5],[0,15,10,0],[0,5],[0,20],[0,20,10],[0,10,5],[0,20,15,10,5],[0,15,10,5,5],[0,20,15,10,5],[0,20,15,10,5],[0,20,10],[0,5]],
+  'act-overseas-491':[[0,20,15,10,5],[0,20],[0,15,10,0],[0,5],[0,20],[0,20,15,10],[0,15,10,5],[0,20,15,10,5],[0,20,15,10,5],[0,20,5],[0,10,10]],
+  'tas-tse-491':[[0,1000],[0,500,300,40,30,25,15],[0,40,15,10],[0,15,6],[0,6],[0,4],[0,4],[0,2],[0,2],[0,1],[0,1]],
+  'tas-tsg-491':[[0,1000],[0,500,300,95,70,45,30,17,8,6,6,4],[0,250],[0,8],[0,2],[0,40,23,18],[0,30],[0,15],[0,9],[0,4,3,2],[0,2],[0,2],[0,1],[0,1],[0,1]],
+  'tas-ter-491':[[0,1000],[0,500,300,20,18,9,8,6,4],[0,40,25,15],[0,20],[0,15],[0,4,3,2],[0,3],[0,3],[0,2],[0,1],[0,1]],
+  'tas-tbo-491':[[0,40,20,12],[0,30],[0,30],[0,20],[0,15],[0,12],[0,5],[0,4],[0,3],[0,3],[0,3,2],[0,2]],
   'act-resident':[[0,25,20,15,10,5],[0,15,10,0],[0,5],[0,20],[0,20,10],[0,10,5],[0,20,15,10,5],[0,15,10,5,5],[0,20,15,10,5],[0,20,15,10,5],[0,20,10],[0,5]],
   'act-overseas':[[0,20,15,10,5],[0,20],[0,15,10,0],[0,5],[0,20],[0,20,15,10],[0,15,10,5],[0,20,15,10,5],[0,20,15,10,5],[0,20,5],[0,10,10]],
   'tas-tse':[[0,1000],[0,500,300,40,30,25],[0,40,15,10],[0,15],[0,4],[0,2],[0,1],[0,1]],

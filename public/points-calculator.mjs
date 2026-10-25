@@ -1,11 +1,11 @@
 import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
 import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261023-sa-notice';
-import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261023-enquiry';
+import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261026-491';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
-import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261023-vic491';
+import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261026-491';
 
 export function scoreMaximumLabel(input,text) {
   const maximum=estimateLimits[input.state+'-'+input.visa];
@@ -21,10 +21,11 @@ export function rankingMaximum(program) {
 export function nominationScoreCard(assessment,text) {
   if(!assessment)return '';
   const {score,system,path}=assessment;
-  const count=(score.missing?.length||0)+(score.invalid?.length||0)+(score.confirmationRequired?1:0);
+  const count=(score.missing?.length||0)+(score.invalid?.length||0)+(score.confirmationRequired?1:0)+(score.regionalRequired?1:0);
   const title=system==='matrix'?'Canberra Matrix':text('TAS ROI priority attributes','塔州 ROI 优先属性');
   const tier={none:text('No priority claim','未申报优先属性'),orange:'Orange','orange-plus':'Orange Plus',green:'Green',gold:'Gold'}[score.tier];
   const explanation=score.conflicts?.length?text('Conflicting selections — calculation stopped.','选项冲突，已停止计算。')
+    :score.regionalRequired?text('Complete the 491 postcode and regional obligations check before a state total can be shown.','请先完成 491 邮编及偏远地区义务核对，再显示州排序总分。')
     :score.total==null?text(count+' item(s) to complete, including any evidence confirmation.','尚有 '+count+' 项待完成（包括所需材料确认）。')
     :system==='tas'?text('Priority category: ','优先类别：')+tier+text('. Self-assessed; not an invitation.','。仅为自评，不代表获邀。')
     :text('Independent ACT ranking. Self-assessed; not an invitation.','ACT 独立排序分，仅为自评，不代表获邀。');
@@ -44,7 +45,7 @@ export function calculatorAttachmentOptions(input,total,nominationSnapshot=null)
   const chosen=stateCodes.includes(input.state)&&['189','190','491'].includes(input.visa);
   const nominationVisible=chosen&&!usesVpt(input)&&input.visa!=='189';
   const matching=nominationSnapshot?.state===input.state&&nominationSnapshot?.visa===input.visa;
-  const hasInformation=matching&&!!(nominationSnapshot.program||Object.entries(nominationSnapshot.context||{}).some(([key,value])=>key!=='englishMode'&&value!=='')||Object.values(nominationSnapshot.answers||{}).some(value=>value!==''));
+  const hasInformation=matching&&!!(nominationSnapshot.program||Object.entries(nominationSnapshot.context||{}).some(([key,value])=>key!=='englishMode'&&value!==''&&value!==false)||Object.values(nominationSnapshot.answers||{}).some(value=>value!==''));
   return {scoreEnabled:chosen&&total!=null,nominationVisible,nominationEnabled:nominationVisible&&hasInformation};
 }
 
@@ -122,7 +123,7 @@ export function initialisePointsCalculator() {
     }
     const vic = chosen && usesVpt(input);
     const federal = chosen && !vic;
-    show('[data-pc-state-info]', chosen && input.visa === '190');
+    show('[data-pc-state-info]', chosen && (input.visa === '190'||input.visa==='491'&&['act','tas'].includes(input.state)));
     rankingTool.update(input.state,input.visa,input);
     const nomination=rankingTool.assessment();
     if(vic&&rankingTool.selected()==='vic-offshore'){
@@ -285,7 +286,7 @@ export function initialisePointsCalculator() {
     }
     ageError.hidden=!chosen||!result.missing.includes('age');
     ageError.textContent=input.age===''?text('Age is missing. Enter your age to calculate the total.','尚未填写年龄，填好后才能计算总分。'):text('Enter a whole-number age between 18 and 100.','请输入 18 至 100 之间的周岁整数。');
-    const pathway = nomination?input.state.toUpperCase()+' 190 · '+text('Two separate scores','两项独立评分'):vic ? 'VIC '+input.visa+' · '+text('Victorian Points Test','维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · EOI' : text('Select your pathway','请选择路径');
+    const pathway = nomination?input.state.toUpperCase()+' '+input.visa+' · '+text('Two separate scores','两项独立评分'):vic ? 'VIC '+input.visa+' · '+text('Victorian Points Test','维州 VPT') : federal ? input.state.toUpperCase()+' '+input.visa+' · EOI' : text('Select your pathway','请选择路径');
     host.querySelector('.pc-form-heading h2').textContent = state?input.state.toUpperCase()+' · '+text('189 / 190 / 491 calculator','189／190／491 计算器'):text('Choose a state calculator','选择州计算器');
     host.querySelector('#pc-result-title').textContent = pathway;
     host.querySelector('#pc-results').classList.toggle('pc-summary--dual',!!nomination);

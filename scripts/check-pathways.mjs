@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {nominationPathways} from '../public/nomination-pathways.mjs';
 import {readFileSync} from 'node:fs';
-import {rankingPrograms,calculateRanking,getRankingAssessment} from '../public/nomination-ranking.mjs';
+import {rankingPrograms,calculateRanking,getRankingAssessment,nominationProgramSupports} from '../public/nomination-ranking.mjs';
 import {nominationScoreCard,rankingMaximum} from '../public/points-calculator.mjs';
 import {stateCodes,getNominationProgramNotice} from '../public/state-nomination.mjs';
 const all={...nominationPathways,...rankingPrograms};
@@ -24,7 +24,7 @@ for(const state of stateCodes)for(const visa of ['189','190','491']){
   }
 }
 assert.equal(getNominationProgramNotice('unknown','190'),null);
-assert.equal(Object.keys(all).length,23);
+assert.equal(Object.keys(all).length,30);
 for(const state of stateCodes)assert.ok(Object.values(all).some(p=>p.state===state),state);
 for(const [id,path] of Object.entries(nominationPathways)){
   assert.ok(path.en&&path.zh&&path.order.length===2&&path.url.startsWith('https://'),id);
@@ -35,11 +35,17 @@ for(const [id,path] of Object.entries(nominationPathways)){
 assert.equal(Object.values(all).filter(p=>p.state==='qld').length,4);
 assert.equal(Object.values(all).filter(p=>p.state==='wa').length,4);
 assert.equal(Object.values(all).filter(p=>p.state==='sa').length,4);
-assert.equal(Object.values(all).filter(p=>p.state==='tas').length,4);
-assert.ok(!Object.keys(all).some(key=>key==='nt-offshore'||key.includes('491')));
+assert.equal(Object.values(all).filter(p=>p.state==='tas').length,9);
+assert.ok(!Object.keys(all).some(key=>key==='nt-offshore'));
+for(const [id,p] of Object.entries(all)){
+  const visa=p.visa||'190';
+  assert(nominationProgramSupports(id,p.state,visa));
+  for(const wrong of ['189',visa==='190'?'491':'190'])assert(!nominationProgramSupports(id,p.state,wrong),'Do not reinterpret a program under another subclass');
+}
 for(const [program,config] of Object.entries(all)){
   const zero=Object.fromEntries((config.fields||[]).map(f=>[f.key,'0']));
-  const assessment=getRankingAssessment(program,zero,true);
+  const region={regionalPostcode:config.state==='act'?'2601':'7000',regionalConfirmed:true};
+  const assessment=getRankingAssessment(program,zero,true,region);
   assert.equal(!!assessment,!!config.fields,program+' only numeric state assessments add a score card');
   for(const lang of ['en','zh']){
     const translate=(en,zh)=>lang==='zh'?zh:en;
@@ -53,12 +59,30 @@ for(const [program,config] of Object.entries(all)){
       else assert.ok(html.includes(translate('no common maximum is published','官方未列统一满分')));
       const pending=nominationScoreCard(getRankingAssessment(program,{},false),translate);
       assert.ok(pending.includes('>—</strong>'));
-      assert.ok(pending.includes(String(config.fields.length+1)));
+      assert.ok(config.visa==='491'?pending.includes(translate('Complete the 491 postcode','请先完成 491 邮编')):pending.includes(String(config.fields.length+1)));
       if(maximum!=null)assert.ok(pending.includes(translate('/ '+maximum+' points','/ '+maximum+' 分')),'Maximum remains visible before answers are complete');
     }
   }
 }
 assert.equal(getRankingAssessment('__proto__',{},true),null);
+for(const id of Object.keys(rankingPrograms).filter(id=>id.endsWith('-491'))){
+  const config=rankingPrograms[id];const answers=Object.fromEntries(config.fields.map(f=>[f.key,'0']));
+  const region={regionalPostcode:config.state==='act'?'2601':'7000',regionalConfirmed:true};
+  assert.equal(getRankingAssessment(id,answers,true,region).score.total,0);
+  for(const invalidRegion of [{},{...region,regionalConfirmed:false},{...region,regionalPostcode:'9999'},{...region,regionalPostcode:'3000'},{...region,regionalPostcode:config.state==='act'?'7000':'2601'}]){
+    const score=getRankingAssessment(id,answers,true,invalidRegion).score;
+    assert.equal(score.total,null,'491 state ranking cannot bypass regional postcode/obligation validation');
+    assert.equal(score.regionalRequired,true);
+  }
+  const englishInput={englishMode:'level',english:'superior'};
+  const optionIndex=config.fields.find(f=>f.key==='english').options.findIndex(o=>o.points===(id==='tas-tbo-491'?2:config.state==='act'?15:1));
+  const {rankingEnglishSelection}=await import('../public/nomination-ranking.mjs');
+  assert.equal(rankingEnglishSelection(id,englishInput),String(optionIndex));
+}
+const tsg491Zero=Object.fromEntries(rankingPrograms['tas-tsg-491'].fields.map(f=>[f.key,'0']));
+for(const employment of ['1','2','3','4','5','6','10','11'])assert.equal(calculateRanking('tas-tsg-491',{...tsg491Zero,employment,interviews:'1'},true).total,null);
+assert.equal(calculateRanking('tas-tsg-491',{...tsg491Zero,gold:'1',interviews:'1'},true).total,null);
+assert.equal(calculateRanking('tas-tsg-491',{...tsg491Zero,employment:'3'},true).total,95,'491 differs from190100');
 const tsgZero=Object.fromEntries(rankingPrograms['tas-tsg'].fields.map(f=>[f.key,'0']));
 const conflictHtml=nominationScoreCard(getRankingAssessment('tas-tsg',{...tsgZero,employment:'1',interviews:'1'},true),(en,zh)=>zh);
 assert.ok(conflictHtml.includes('>—</strong>')&&conflictHtml.includes('选项冲突')&&!conflictHtml.includes('501'));
@@ -70,4 +94,4 @@ assert.ok(!ui.includes('checklistProgress')&&!ui.includes('已自核')&&!ui.incl
 assert.ok(!controller.includes('hasNominationPath'),'Nomination guidance cannot gate the scoring form');
 assert.ok(controller.includes("programNotice.hidden=!notice"),'Program status clears when leaving the matching state or visa');
 assert.ok(controller.includes('federalPanel.hidden=!chosen;')&&controller.includes('federalPanel.open=true;'),'EOI/VPT inputs are directly available');
-console.log('PASS: 23 bilingual nomination paths across eight states; optional read-only guidance, direct scoring and five independent numeric ranking paths.');
+console.log('PASS: 30 bilingual paths; eleven separate numeric ranking programs, subclass-safe selections and optional guidance.');
