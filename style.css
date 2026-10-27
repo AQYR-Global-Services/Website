@@ -775,6 +775,7 @@ html{scroll-padding-top:104px}
 
 /* A shared service directory, with company information separate from contact. */
 .footer-services a,.footer-company a{line-height:1.5}
+.footer-links .footer-staff{display:inline-flex;align-items:center;gap:6px}
 .footer-contact-details>a:first-of-type{font-weight:600;color:var(--brand-teal)}
 .footer-main{grid-template-columns:minmax(180px,.65fr) minmax(0,2.65fr)}
 .footer-links{grid-template-columns:minmax(0,1.05fr) minmax(0,.8fr) minmax(290px,1.5fr)}
