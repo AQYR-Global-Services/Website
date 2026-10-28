@@ -139,6 +139,7 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 @media(hover:hover) and (pointer:fine){
   .specialism-card:hover{border-color:#236c4966;box-shadow:0 10px 30px #1f44340a}
   a:hover>.link-icon,button:hover>.link-icon{transform:translate(2px,-2px)}
+  .nav .nav-cta:hover>.link-icon{transform:translateX(2px)}
   .nav a:not(.nav-cta):hover{text-decoration:underline}
   .faq-item summary:hover{color:#236c49}
 }
