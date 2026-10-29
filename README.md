@@ -109,3 +109,8 @@ The production source repository is [AQYR-Global-Services/Website](https://githu
 Keep the existing local editing and preview workflow. Existing checkouts should point `origin` to `https://github.com/AQYR-Global-Services/Website.git`; contributors need repository write access, and organization branch rules still apply.
 
 Local edits do not update GitHub or Vercel. Pushing the production branch triggers the connected Vercel deployment. Review locally before publishing.
+
+
+### Additional registered migration agent · checked 29 October 2026
+
+The owner identified Fengxiao (Belle) Zhang, MARN 2619517. On 29 October 2026 the live OMARA register returned Registered, with HIREMII GLOBAL SERVICES PTY LTD as the business. The company introduction, bilingual footer and Person structured data link directly to that official record. At the owner’s request, the team card keeps its existing uniform layout without a MARN link or extra registration block. The prior ABN/ACN and Leon verification dates are unchanged. Official record: https://portal.mara.gov.au/search-the-register-of-migration-agents/register-of-migration-agent-details/?ContactID=810913f1-166e-f111-ab0d-00224892f740

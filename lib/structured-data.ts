@@ -4,6 +4,9 @@ import { brandName, organizationDescription, siteUrl } from "./site";
 // The MARN belongs to the individual agent, not to the company or parent brand.
 const organizationId = `${siteUrl}/#organization`;
 const agentId = `${siteUrl}/#yuan-leon-gao`;
+const belleAgentId = `${siteUrl}/#fengxiao-belle-zhang`;
+const belleRegisterUrl =
+  "https://portal.mara.gov.au/search-the-register-of-migration-agents/register-of-migration-agent-details/?ContactID=810913f1-166e-f111-ab0d-00224892f740";
 const registerUrl =
   "https://portal.mara.gov.au/search-the-register-of-migration-agents/register-of-migration-agent-details/?ContactID=78f1ef82-d715-e711-9404-005056ab0eca";
 const melbourneAddress = {
@@ -71,7 +74,7 @@ export const siteStructuredData = {
       sameAs: ["https://abr.business.gov.au/ABN/View?abn=23619566040"],
       address: melbourneAddress,
       location: offices.map((office) => ({ "@id": office["@id"] })),
-      employee: { "@id": agentId },
+      employee: [{ "@id": agentId }, { "@id": belleAgentId }],
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "Client enquiries",
@@ -94,6 +97,16 @@ export const siteStructuredData = {
       worksFor: { "@id": organizationId },
       identifier: { "@type": "PropertyValue", propertyID: "MARN", value: "1793302" },
       sameAs: [registerUrl],
+    },
+    {
+      "@type": "Person",
+      "@id": belleAgentId,
+      name: "Fengxiao Zhang",
+      alternateName: "Belle Zhang",
+      jobTitle: "Senior Migration Operations Manager / Registered Migration Agent",
+      worksFor: { "@id": organizationId },
+      identifier: { "@type": "PropertyValue", propertyID: "MARN", value: "2619517" },
+      sameAs: [belleRegisterUrl],
     },
     ...offices,
     {

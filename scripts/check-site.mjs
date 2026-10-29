@@ -54,13 +54,20 @@ for (const route of routes) {
     [["ABN", "23619566040"], ["ACN", "619566040"]]);
   assert(organization.sameAs.includes("https://abr.business.gov.au/ABN/View?abn=23619566040"));
   const graph = schema.flatMap((entry) => entry["@graph"] || [entry]);
-  const agent = graph.find((entry) => entry["@id"] === organization.employee["@id"]);
+  const agents = organization.employee.map((ref) => graph.find((entry) => entry["@id"] === ref["@id"]));
+  assert.equal(agents.length, 2);
+  const agent = agents.find((entry) => entry?.identifier?.value === "1793302");
   assert.equal(agent?.["@type"], "Person");
   assert.equal(agent.name, "Yuan Gao");
   assert.equal(agent.alternateName, "Leon Gao");
   assert.equal(agent.worksFor["@id"], organization["@id"]);
   assert.deepEqual(agent.identifier, { "@type": "PropertyValue", propertyID: "MARN", value: "1793302" });
   assert(agent.sameAs.some((url) => url.startsWith("https://portal.mara.gov.au/")));
+  const belle = agents.find((entry) => entry?.identifier?.value === "2619517");
+  assert.equal(belle?.name, "Fengxiao Zhang");
+  assert.equal(belle.alternateName, "Belle Zhang");
+  assert.equal(belle.worksFor["@id"], organization["@id"]);
+  assert(belle.sameAs.some((url) => url.includes("810913f1-166e-f111-ab0d-00224892f740")));
   const offices = organization.location.map((ref) => graph.find((entry) => entry["@id"] === ref["@id"]));
   assert.equal(offices.length, 3);
   assert.deepEqual(offices.map((office) => office?.address.addressCountry), ["AU", "AU", "CN"]);
@@ -144,6 +151,12 @@ for (const route of routes) {
   assert.match(nzAdviserLink, /NZ licensed immigration adviser: Yuan \(Leon\) Gao · /);
   assert.match(nzAdviserLink, /<span class="visa-code">IAA 202603585<\/span>/);
   assert(footer.indexOf(nzAdviserLink) > footer.indexOf("MARN 1793302"), "NZ details follow MARN registration");
+  const leonRow = footer.match(/<p class="footer-registration-row footer-registration-leon">([\s\S]*?)<\/p>/)?.[1];
+  const belleRow = footer.match(/<p class="footer-registration-row footer-registration-belle">([\s\S]*?)<\/p>/)?.[1];
+  assert.match(leonRow || "", /MARN 1793302/);
+  assert.match(leonRow || "", /IAA 202603585/);
+  assert.doesNotMatch(leonRow || "", /2619517/);
+  assert.match(belleRow || "", /MARN 2619517/);
   const footerServices = footer.match(/<div class="footer-services"[\s\S]*?<\/div>/)?.[0];
   assert(footerServices, "Grouped footer services: " + route);
   assert.deepEqual([...footerServices.matchAll(/href="([^"]+)"/g)].map(([, href]) => href),
@@ -204,6 +217,7 @@ for (const route of routes) {
   assert.match(compliance, /ABN 23 619 566 040/);
   assert.match(compliance, /ACN 619 566 040/);
   assert.match(compliance, /MARN 1793302/);
+  assert.match(compliance, /MARN 2619517/);
   assert.match(compliance, /Yuan \(Leon\) Gao/);
   assert.match(compliance, /portal\.mara\.gov\.au/);
   assert.match(compliance, /abr\.business\.gov\.au/);
@@ -263,6 +277,9 @@ for (const route of routes) {
   if (route === "team") {
     assert.match(source, /AQYR Global Services is a subsidiary of AQYR\./);
     assert.match(source, /data-en="Senior Migration Operations Manager" data-zh="高级移民运营经理"/);
+    assert.match(source, /Fengxiao \(Belle\) Zhang/);
+    const teamContent = source.split("<footer")[0];
+    assert.doesNotMatch(teamContent, /class="team-registration"|2619517/);
     assert.match(source, /data-en="Accounts &amp; Admin Officer" data-zh="账务与行政专员"/);
     assert.doesNotMatch(source, /Clients &amp; Coordination Manager|Accounts &amp; Finance/);
     assert.match(source, /As a registered migration agent/);
