@@ -312,7 +312,7 @@ for (const route of routes) {
     assert.match(trust, /<strong>300\+<\/strong>/);
     assert.match(trust, /datetime="2026-10-29"/);
     assert.match(trust, /href="\/case-studies#sponsorship-experience"/);
-    assert(source.indexOf(trust) < source.indexOf('data-en="For businesses. For individuals."'), "Evidence is immediately below the hero");
+    assert(source.indexOf(trust) < source.indexOf('data-en="For businesses. And individuals."'), "Evidence is immediately below the hero");
     const employerEntry = source.match(/<article class="audience reveal">[\s\S]*?data-en="EMPLOYER SOLUTIONS"[\s\S]*?<\/article>/)?.[0];
     assert.match(employerEntry, /class="card-link audience-secondary-link" href="\/labour-agreements"/);
     assert.match(employerEntry, /data-zh="持续存在招聘缺口？了解企业劳工协议"/);
