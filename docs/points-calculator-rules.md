@@ -1,5 +1,13 @@
 # Skilled migration calculator rule snapshot
 
+## Tasmania assessment and WA nomination process — checked 4 November 2026
+
+The [Tasmania processing and invitation source](https://www.migration.tas.gov.au/news/processing_times_and_allocation_usage), updated 29 October 2026, replaces its three-month assessment reference with a six-week rolling invitation-score average. Where claimed priority attributes are not verified, a revised score above the most recent round's lowest score may still be approved; a score below both that round's lowest score and the six-week average will be declined. A missing Gold attribute and deliberate inflation remain refusal grounds. Equality and intermediate cases are not resolved by the published wording. Do not hard-code the current round or rolling-average figures as eligibility thresholds, award extra points or change the existing priority-attribute formulas.
+
+The [WA State Nominated Migration Program](https://migration.wa.gov.au/our-services-support/state-nominated-migration-program), Steps 5 and 6, states that an approved application is eligible for nomination subject to available places in the current program year. Without places, the application carries over to the next program year. No separate publication or commencement date is stated. This is a process clarification, not a guaranteed nomination date or visa outcome.
+
+Both states display bilingual, source-linked guidance only in their 190/491 modes; 189 remains unchanged. WA shows the check date without an invented announcement date. No federal EOI, VPT, ACT Matrix, Tasmania priority-attribute, English or postcode formula changes are made by this update. South Australian occupation-specific graduate panels, the previously noted VIC exact-eight-year wording and full WA Defence conditions remain case-specific verification items; no unsupported exclusions or new eligibility gates are inferred.
+
 ## ACT and Tasmania 491 coverage — checked 26 October 2026
 
 Separate491 identifiers expose ACT resident/overseas Matrix and Tasmania TSE/TSG/TER/TBO priority attributes. Existing190 models are preserved. The six491 numeric programs never add their totals to federal EOI. The optional OSOP491 guide states that this invitation-only pathway is not issuing invitations for2026–27; the tool does not award a numerical score or Gold pass for it.
@@ -59,7 +67,7 @@ All 189 selections use the same federal table and no nomination bonus. All feder
 
 - VIC: [VPT](https://liveinmelbourne.vic.gov.au/migrate/skilled-migration-visas/vpt), preserved as the existing independent 950-point model.
 - NSW: [190 nomination](https://www.nsw.gov.au/visas-and-migration/skilled-visas/skilled-nominated-visa-subclass-190), selection from EOI; no invented state numeric weighting.
-- QLD: [skilled pathways](https://www.migration.qld.gov.au/visa-options/skilled-visas), different local/offshore/graduate/construction streams; regional small-business 491 is not treated as a 190 pathway.
+- QLD: [skilled pathways](https://www.migration.qld.gov.au/visa-options/skilled-visas), different local/offshore/graduate/construction streams; regional small-business 491 is not treated as a 190 pathway. The 2026–27 guidance and dated opening notice were rechecked 4 November 2026 (details below).
 - WA: [SNMP](https://migration.wa.gov.au/our-services-support/state-nominated-migration-program), General/Graduate streams, occupation lists and ordered invitation priorities, not an additive state points table. Browser-read current page still describes 2025–26 criteria; no 2026–27 opening claim is encoded.
 - SA: [skilled migration](https://migration.sa.gov.au/before-applying/visa-options-and-pathways/skilled-migrants), stream-specific requirements, onshore ROI/offshore EOI selection. No invented state numeric score.
 - NT: [eligibility](https://australiasnorthernterritory.com.au/move/migrate-to-work/nt-government-visa-nomination/eligibility), residence/graduate/offshore conditions and settlement commitment; no invented separate additive score or open-program claim.
@@ -75,6 +83,18 @@ Federal employment/education/partner inputs remain directly visible, with EOI in
 NSW's page describes multiple selection factors and ANZSCO-unit-group ranking but no separate numerical weights. Show federal EOI only. Do not create a NSW points test or score salary. The live page currently contains a closure/review notice; link users to its current status rather than encode an opening date or imply nomination is open. No fees, allocations or historical cutoffs are used in either calculator.
 
 ## Maintenance and testing
+
+### Queensland 2026–27 guidance (checked 4 November 2026)
+
+The [30 October announcement](https://www.migration.qld.gov.au/news/2026-27-queenslands-state-nominated-migration-program-now-published) schedules ROI opening for **6 November 2026**. A Queensland-only 190/491 notice uses the Sydney calendar: before that date it says upcoming; on/after it cites the announced date and asks users to confirm live access rather than automatically declaring the intake open. No separate commencement or old-ROI transition date was published. The notice does not gate federal scoring or promise nomination.
+
+The [onshore](https://www.migration.qld.gov.au/visa-options/skilled-visas/skilled-workers-living-in-queensland) and [graduate](https://www.migration.qld.gov.au/visa-options/skilled-visas/graduates-of-a-queensland-university) guides now distinguish **190: at least 9 of the last 12 months** and **491: at least 6 of the last 9 months in regional Queensland** immediately before ROI. Current qualifying residence/employment must continue at ROI, invitation and nomination. Graduate study must be 100% in Queensland, meet the Australian study requirement and finish **after 1 July 2022**, excluding that date. Graduate work may be in any Skill Level 1 occupation, but unrelated work is not thereby eligible for federal EOI work points. The [construction pathway](https://www.migration.qld.gov.au/visa-options/skilled-visas/building-and-construction-workers) retains its separate **3 continuous months** for both visas.
+
+The [offshore guide](https://www.migration.qld.gov.au/visa-options/skilled-visas/skilled-workers-living-offshore) now states **at least 1 year of qualifying work in the last 3 years at ROI**, with no current nominated-occupation employment requirement at ROI, invitation or nomination. Work still needs the relevant post-qualification, 20-hour/week, nominated/first-three-digit-related ANZSCO and EOI declaration conditions. Onshore 2025–26 tax return/ATO NOA guidance preserves the [documentation-checklist exception](https://www.migration.qld.gov.au/visa-options/skilled-visas/documentation-checklist) for people not required to lodge that year's return.
+
+The calculator does not host a Queensland occupation-eligibility dataset or infer eligibility from the general ANZSCO picker. The notice links the live official [onshore list](https://www.migration.qld.gov.au/occupation-lists/queensland-onshore-skilled-occupation-list) and [offshore list](https://www.migration.qld.gov.au/occupation-lists/offshore-queensland-skilled-occupation-lists-(qsol)); monitoring verified 209 and 97 records respectively on 4 November. These counts are monitoring evidence, not a fixed eligibility threshold or a public points factor. No federal points, English thresholds, postcode ranges or state ranking weights changed.
+
+`scripts/check-pathways.mjs` covers state/visa notice scope, the Sydney 5/6 November date boundary, no inferred live opening, separate 190/491 windows, strict graduation wording, current-job exemption, NOA exception, construction continuity and qualitative guides never producing an invented numerical score. Existing points tests retain the 24 state/visa scoring regressions. Since these pathways remain editorial guidance, no new automated Queensland eligibility verdict is introduced.
 
 ### Score ceiling display (checked 23 October 2026)
 

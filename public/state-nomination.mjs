@@ -23,8 +23,54 @@ const saProgramNotice={
   ],
   note:['This is a program-status notice, not an eligibility decision or invitation guarantee. It does not change federal EOI points. Check the latest announcement and stream requirements before applying.','此为项目状态提示，不代表符合提名资格或保证获邀，也不改变联邦 EOI 计分。申请前请核对最新公告及具体路径条件。'],
 };
-export function getNominationProgramNotice(state,visa){
-  return state==='sa'&&['190','491'].includes(visa)?saProgramNotice:null;
+const qldProgramNotice={
+  published:'2026-10-30',checked:'2026-11-04',
+  url:'https://www.migration.qld.gov.au/news/2026-27-queenslands-state-nominated-migration-program-now-published',
+  title:['Queensland · 2026–27 program requirements','昆州 · 2026–27 项目条件'],
+  items:[
+    {label:['Onshore / graduates','境内／毕业生'],body:['190: at least 9 of the last 12 months living and working in Queensland before ROI. 491: at least 6 of the last 9 months in regional Queensland. Qualifying residence and current work must continue at ROI, invitation and nomination. Construction has its separate 3-continuous-month pathway.','190：ROI 前最近 12 个月中在昆州居住、工作至少 9 个月；491：最近 9 个月中在昆州偏远地区至少 6 个月。递交 ROI、获邀及获提名时继续满足居住、在职要求；建筑行业另有连续 3 个月路径。']},
+    {label:['Offshore','境外'],body:['At ROI, at least 1 year of qualifying skilled work within the last 3 years is required; current employment in the nominated occupation is not required at ROI, invitation or nomination.','ROI 时，近 3 年内须有至少 1 年合资格技能工作；递交 ROI、获邀及获提名时，均不要求仍在提名职业就业。']},
+    {label:['Graduates / tax evidence','毕业日期／报税证明'],body:['The Queensland graduate pathway requires graduation after 1 July 2022. Onshore applicants need their 2025–26 tax return and ATO Notice of Assessment before ROI, except where no return was required for that year.','昆州毕业生路径要求于 2022 年 7 月 1 日之后毕业。境内申请人须在 ROI 前完成 2025–26 报税并取得 ATO NOA；该财年依法无须报税者除外。']},
+  ],
+  sources:[
+    {url:'https://www.migration.qld.gov.au/occupation-lists/queensland-onshore-skilled-occupation-list',label:['Current onshore occupation list ↗','当前境内职业清单 ↗']},
+    {url:'https://www.migration.qld.gov.au/occupation-lists/offshore-queensland-skilled-occupation-lists-(qsol)',label:['Current offshore occupation list ↗','当前境外职业清单 ↗']},
+    {url:'https://www.migration.qld.gov.au/visa-options/skilled-visas/documentation-checklist',label:['Evidence checklist and NOA exception ↗','材料清单及 NOA 例外 ↗']},
+  ],
+  note:['These are the published 2026–27 requirements, not an eligibility decision, invitation promise or change to federal points. The announcement does not specify a separate commencement or old-ROI transition date. Confirm the current intake, occupation and full pathway requirements before applying.','以上为已公布的 2026–27 条件，不代表资格判断、保证获邀或联邦加分变化。公告未另列生效或旧 ROI 过渡日期；申请前请核对当前轮次、职业及完整路径条件。'],
+};
+const tasAssessmentNotice={
+  published:'2026-10-29',checked:'2026-11-04',
+  url:'https://www.migration.tas.gov.au/news/processing_times_and_allocation_usage',
+  title:['Tasmania · Nomination assessment','塔州 · 提名评审说明'],
+  items:[
+    {label:['Six-week reference','六周参考'],body:['Migration Tasmania now uses a six-week rolling invitation-score average instead of three months. The latest round and rolling average are changing assessment references, not extra points or fixed invitation cutoffs.','塔州现采用六周滚动邀请分数均值，取代原三个月均值。最近轮分数与滚动均值是动态评审参考，不是额外加分或固定邀请线。']},
+    {label:['Unverified attributes','未获核实的属性'],body:['If claimed attributes are not verified, a revised score above the most recent round’s lowest score may still be approved. A revised score below both that round’s lowest score and the six-week average will be declined.','若申报属性未获核实，修正分高于最近邀请轮最低分，仍可能获批；若同时低于最近轮最低分及六周均值，则会被拒。']},
+    {label:['Gold and evidence','Gold 与证据'],body:['A Gold holder who does not meet the Gold attribute will be declined regardless of total points. Deliberately inflated attribute claims will also be declined.','Gold 持有人若不满足对应 Gold 属性，无论总分多少均会被拒；故意虚报属性抬高分数亦会被拒。']},
+  ],
+  note:['This does not change the priority-attribute calculator. The source does not resolve equality or intermediate revised-score cases; no automatic approval or refusal is inferred here. Check the live figures and evidence before applying.','此说明不改变优先属性计分。官方未明确等于阈值或介于两项参考值之间的处理，工具不据此自动判定获批或拒绝；申请前须核对最新数据及证据。'],
+};
+const waProcessNotice={
+  published:null,checked:'2026-11-04',
+  url:'https://migration.wa.gov.au/our-services-support/state-nominated-migration-program',
+  title:['Western Australia · Nomination places','西澳 · 提名名额与顺延'],
+  items:[
+    {label:['Approval and nomination','审批与正式提名'],body:['An approved WA state-nomination application is eligible for nomination subject to places in the current program year. If no places are available, the application is carried over to the next program year.','西澳州提名申请获批后，仍须视当前项目年度名额情况安排正式提名；如无可用名额，申请将顺延至下一项目年度。']},
+  ],
+  note:['This process guidance does not change federal EOI points, guarantee nomination timing or guarantee a visa. The source does not state a separate commencement date. Check official Steps 5 and 6 for the current process.','此为流程说明，不改变联邦 EOI 计分，不保证提名时间或签证结果。官方未注明单独生效日期，当前流程请核对官方第 5、6 步。'],
+};
+export function getNominationProgramNotice(state,visa,now=new Date()){
+  if(['190','491'].includes(visa)&&state==='tas')return tasAssessmentNotice;
+  if(['190','491'].includes(visa)&&state==='wa')return waProcessNotice;
+  if(!['190','491'].includes(visa))return null;
+  if(state==='sa')return saProgramNotice;
+  if(state!=='qld')return null;
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Australia/Sydney',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now).map(part=>[part.type,part.value]));
+  const beforeOpening=`${parts.year}-${parts.month}-${parts.day}`<'2026-11-06';
+  const opening={label:['ROI opening','ROI 开放日期'],body:beforeOpening?
+    ['ROIs are scheduled to open on 6 November 2026. This intake is upcoming; do not treat the publication of requirements as confirmation that ROIs are already open.','ROI 计划于 2026 年 11 月 6 日开放，目前尚未到公告开放日期；条件公布不代表 ROI 已开放。']:
+    ['The announced ROI opening date is 6 November 2026. Confirm current access and any later notice on the official site; this calculator does not verify live program availability.','公告 ROI 开放日期为 2026 年 11 月 6 日；请到官网确认当前入口及后续公告，本工具不实时确认项目是否开放。']};
+  return {...qldProgramNotice,items:[opening,...qldProgramNotice.items]};
 }
 export const regional491 = {
   vic:{url:'https://liveinmelbourne.vic.gov.au/migrate/skilled-migration-visas/skilled-visa-faqs',area:['Only designated regional Victorian postcodes qualify; metropolitan Melbourne is excluded. Check the actual postcode, not just the state.','仅指定偏远地区的维州邮编适用，墨尔本都会区不包括在内；须核对实际邮编，不能仅凭所在州判断。']},

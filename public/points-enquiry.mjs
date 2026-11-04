@@ -1,9 +1,9 @@
 import {calculate, ruleDate, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, passportCountries, englishRuleDate} from './english-rules.mjs?v=20261022-all-tests';
 import {getOccupation} from './occupation-search.mjs';
-import {rankingPrograms,getRankingAssessment,rankingEnglishSelection,nominationProgramSupports} from './nomination-ranking.mjs?v=20261026-491';
-import {nominationPathways} from './nomination-pathways.mjs?v=20261026-491';
-import {states} from './state-nomination.mjs?v=20261022-491';
+import {rankingPrograms,getRankingAssessment,rankingEnglishSelection,nominationProgramSupports} from './nomination-ranking.mjs?v=20261104-policy-guidance';
+import {nominationPathways} from './nomination-pathways.mjs?v=20261104-policy-guidance';
+import {states} from './state-nomination.mjs?v=20261104-policy-guidance';
 
 // A separate opt-in snapshot: never add nomination ranking to EOI or invent a ROI total.
 export function createNominationSnapshot(input) {

@@ -10,8 +10,8 @@ assert.equal(rankingMaximum('act-overseas'),185);
 for(const id of ['tas-tse','tas-tsg','tas-ter','unknown','__proto__'])assert.equal(rankingMaximum(id),null);
 for(const state of stateCodes)for(const visa of ['189','190','491']){
   const notice=getNominationProgramNotice(state,visa);
-  assert.equal(!!notice,state==='sa'&&visa!=='189','SA program status appears only for its190/491 scenarios');
-  if(notice){
+  assert.equal(!!notice,['sa','qld','tas','wa'].includes(state)&&visa!=='189','Dated guidance appears only for its matching190/491 scenarios');
+  if(state==='sa'&&notice){
     assert.equal(notice.published,'2026-10-22');assert.equal(notice.checked,'2026-10-23');
     assert.equal(notice.url,'https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update');
     assert.equal(notice.items.length,3);
@@ -24,6 +24,52 @@ for(const state of stateCodes)for(const visa of ['189','190','491']){
   }
 }
 assert.equal(getNominationProgramNotice('unknown','190'),null);
+for(const visa of ['190','491']){
+  const tas=getNominationProgramNotice('tas',visa),wa=getNominationProgramNotice('wa',visa);
+  assert.equal(tas.published,'2026-10-29');assert.equal(tas.checked,'2026-11-04');
+  assert.match(tas.items[0].body[0],/six-week rolling/);
+  assert.match(tas.items[0].body[1],/不是额外加分或固定邀请线/);
+  assert.match(tas.items[1].body[0],/above.*may still be approved/);
+  assert.match(tas.items[1].body[0],/below both.*will be declined/);
+  assert.match(tas.items[2].body[0],/Gold.*regardless of total points/);
+  assert.match(tas.note[0],/does not resolve equality or intermediate/);
+  assert.doesNotMatch(JSON.stringify(tas),/326|316|78 points|75 points/,'Live round values must not become fixed cutoffs');
+  assert.equal(wa.published,null,'Do not invent a WA publication or commencement date');
+  assert.equal(wa.checked,'2026-11-04');
+  assert.match(wa.items[0].body[0],/subject to places/);
+  assert.match(wa.items[0].body[0],/carried over to the next program year/);
+  assert.match(wa.note[0],/does not change federal EOI points/);
+  assert.match(wa.note[1],/不保证提名时间或签证结果/);
+}
+for(const visa of ['190','491']){
+  const before=getNominationProgramNotice('qld',visa,new Date('2026-11-05T12:59:59Z'));
+  const announcedDate=getNominationProgramNotice('qld',visa,new Date('2026-11-05T13:00:00Z'));
+  const later=getNominationProgramNotice('qld',visa,new Date('2026-11-07T00:00:00Z'));
+  assert.equal(before.published,'2026-10-30');assert.equal(before.checked,'2026-11-04');
+  assert.match(before.items[0].body[0],/upcoming/);assert.match(before.items[0].body[1],/尚未到公告开放日期/);
+  for(const notice of [announcedDate,later]){
+    assert.match(notice.items[0].body[0],/Confirm current access/);
+    assert.doesNotMatch(notice.items[0].body[0],/are open|now open|is upcoming/);
+    assert.match(notice.items[0].body[1],/不实时确认项目是否开放/);
+  }
+  assert.match(before.items[1].body[0],/9 of the last 12 months/);assert.match(before.items[1].body[0],/6 of the last 9 months/);
+  assert.match(before.items[2].body[0],/at least 1 year.*last 3 years/);
+  assert.match(before.items[2].body[0],/current employment.*not required at ROI, invitation or nomination/);
+  assert.match(before.items[3].body[0],/after 1 July 2022/);
+  assert.match(before.items[3].body[0],/except where no return was required/);
+  assert.match(before.items[3].body[1],/依法无须报税者除外/);
+  assert.equal(before.sources.length,3);for(const source of before.sources)assert.ok(source.url.startsWith('https://www.migration.qld.gov.au/'));
+}
+assert.equal(getNominationProgramNotice('qld','189',new Date('2026-11-06T00:00:00Z')),null);
+const qldChecks=id=>nominationPathways[id].checks.map(pair=>pair.join(' ')).join(' ');
+assert.match(qldChecks('qld-graduate'),/after 1 July 2022 \(not on that date\)/);
+assert.match(qldChecks('qld-graduate'),/any ANZSCO Skill Level 1 occupation/);
+assert.match(qldChecks('qld-graduate'),/does not make unrelated work eligible for federal EOI employment points/);
+for(const id of ['qld-local','qld-graduate']){assert.match(qldChecks(id),/9 of the last 12 months/);assert.match(qldChecks(id),/6 of the last 9 months/);}
+assert.match(qldChecks('qld-construction'),/Both 190 and 491 require at least 3 continuous months/);
+assert.match(qldChecks('qld-offshore'),/Current employment.*not required at ROI, invitation or nomination/);
+assert.doesNotMatch(qldChecks('qld-offshore'),/must be currently.*employment|当前仍从事相关工作/);
+assert.doesNotMatch(nominationPathways['qld-local'].order.join(' '),/2025–26/);
 assert.equal(Object.keys(all).length,30);
 for(const state of stateCodes)assert.ok(Object.values(all).some(p=>p.state===state),state);
 for(const [id,path] of Object.entries(nominationPathways)){

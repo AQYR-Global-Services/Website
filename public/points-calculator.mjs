@@ -1,11 +1,11 @@
 import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
-import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261023-sa-notice';
-import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261026-491';
+import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261104-policy-guidance';
+import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261104-policy-guidance';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
-import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261026-491';
+import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261104-policy-guidance';
 
 export function scoreMaximumLabel(input,text) {
   const maximum=estimateLimits[input.state+'-'+input.visa];
@@ -111,15 +111,18 @@ export function initialisePointsCalculator() {
     if(notice){
       const title=document.createElement('h3');title.id='pc-program-notice-title';title.textContent=text(...notice.title);
       const dates=document.createElement('p');dates.className='pc-program-notice-meta';
-      dates.textContent=text('Official announcement: ','官方公告：')+notice.published+text(' · Checked: ',' · 核对：')+notice.checked;
+      dates.textContent=(notice.published?text('Official announcement: ','官方公告：')+notice.published+' · ':'')+text('Checked: ','核对：')+notice.checked;
       programNotice.append(title,dates);
       for(const item of notice.items){
         const paragraph=document.createElement('p'),label=document.createElement('strong');label.textContent=text(...item.label)+text(': ','：');
         paragraph.append(label,document.createTextNode(text(...item.body)));programNotice.append(paragraph);
       }
       const note=document.createElement('p');note.className='pc-hint';note.textContent=text(...notice.note);
-      const source=document.createElement('a');source.href=notice.url;source.target='_blank';source.rel='noopener noreferrer';source.textContent=text('Read the official South Australian announcement ↗','查阅南澳官方公告 ↗');
+      const source=document.createElement('a');source.href=notice.url;source.target='_blank';source.rel='noopener noreferrer';source.textContent=text('Read the official source ↗','查阅官方原文 ↗');
       programNotice.append(note,source);
+      for(const item of notice.sources||[]){
+        const paragraph=document.createElement('p'),link=document.createElement('a');link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=text(...item.label);paragraph.append(link);programNotice.append(paragraph);
+      }
     }
     const vic = chosen && usesVpt(input);
     const federal = chosen && !vic;
