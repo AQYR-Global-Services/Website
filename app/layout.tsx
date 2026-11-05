@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "AQYR Global Services — %s",
   },
   description:
-    "Australian visa, employer sponsorship and workforce support from AQYR Global Services, a subsidiary of AQYR.",
+    "Australian visa, employer sponsorship and workforce support from AQYR Global Services, a subsidiary of AQYR Ltd (ASX:AQ1).",
   openGraph: { type: "website", siteName: brandName, title: brandName,
     url: siteUrl, locale: "en_AU", images: [shareImage] },
   twitter: { card: "summary_large_image", title: brandName,

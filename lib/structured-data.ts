@@ -82,9 +82,11 @@ export const siteStructuredData = {
         telephone: "+61 430 907 019",
       },
       parentOrganization: {
-        "@type": "Organization",
+        "@type": "Corporation",
         "@id": "https://aqyr.ai/#organization",
-        name: "AQYR",
+        name: "AQYR Ltd",
+        alternateName: "AQYR",
+        tickerSymbol: "XASX AQ1",
         url: "https://aqyr.ai",
       },
     },

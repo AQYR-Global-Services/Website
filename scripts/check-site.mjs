@@ -45,7 +45,9 @@ for (const route of routes) {
   const organization = schema.flatMap((entry) => entry["@graph"] || [entry])
     .find((entry) => entry["@type"] === "Organization" && entry.name === "AQYR Global Services");
   assert(organization, "Company schema: " + route);
-  assert.equal(organization.parentOrganization?.name, "AQYR");
+  assert.equal(organization.parentOrganization?.["@type"], "Corporation");
+  assert.equal(organization.parentOrganization?.name, "AQYR Ltd");
+  assert.equal(organization.parentOrganization?.tickerSymbol, "XASX AQ1");
   assert.equal(organization.parentOrganization?.url, "https://aqyr.ai");
   assert.match(organization.description, /subsidiary of AQYR/);
   assert.equal(organization.legalName, "HIREMII GLOBAL SERVICES PTY LTD");
@@ -225,7 +227,8 @@ for (const route of routes) {
     assert.match(source, /Prince Migration/);
     assert.match(source, /2017/);
     assert.match(source, /Hiremii Global Services/);
-    assert.match(source, /Hiremii Limited \(ASX:HMI\)/);
+    assert.match(source, /AQYR Ltd \(ASX:AQ1\)/);
+    assert.doesNotMatch(source, /ASX:HMI|Hiremii Limited/);
     assert.match(source, /not a separately listed company/);
     assert.match(source, /HIREMII GLOBAL SERVICES PTY LTD/);
     assert.match(source, /class="section legal-section company-profile"/);
