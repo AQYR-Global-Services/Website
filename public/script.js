@@ -485,6 +485,8 @@
     const sendButton = form.querySelector('#enquiry-send');
     let sending = false;
     let lastSentPayload = '';
+    let verificationToken = '', verificationWidget;
+    const verificationBox = form.querySelector('#enquiry-verification');
     const requestedService = new URLSearchParams(location.search).get('service');
     const requestSelect = form.querySelector('[name="requestType"]');
     if (requestedService && [...requestSelect.options].some(option => option.value === requestedService)) {
@@ -683,6 +685,10 @@
             '这份咨询已经提交。若有新内容，请修改后再提交。');
           return;
         }
+        if (!verificationToken) {
+          setEnquiryStatus('Please complete the security check before submitting.', '请先完成安全验证，再提交咨询。');
+          return;
+        }
         sending = true;
         const controls = [...form.querySelectorAll('input,select,textarea,button')].map(node => ({ node, disabled: node.disabled }));
         controls.forEach(({ node }) => { node.disabled = true; });
@@ -691,7 +697,7 @@
         try {
           const response = await fetch('/api/enquiries', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: encoded, signal: AbortSignal.timeout(20000),
+            body: JSON.stringify({ ...payload, verificationToken }), signal: AbortSignal.timeout(20000),
           });
           const result = await response.json().catch(() => null);
           if (!response.ok || result?.ok !== true) {
@@ -714,6 +720,9 @@
           controls.forEach(({ node, disabled }) => { node.disabled = disabled; });
           form.removeAttribute('aria-busy');
           sending = false;
+          verificationToken = '';
+          sendButton.disabled = true;
+          if (verificationWidget !== undefined) window.turnstile?.reset(verificationWidget);
         }
         return;
       }
@@ -731,7 +740,31 @@
       window.location.href = 'mailto:info@hiremiiglobal.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });
     form.querySelector('#enquiry-preview').disabled = false;
-    if (sendButton) sendButton.disabled = !root.dataset.routeLanguage;
+    if (sendButton) sendButton.disabled = true;
+    if (sendButton && verificationBox && root.dataset.routeLanguage && root.dataset.enquirySitekey) {
+      verificationBox.hidden = false;
+      window.aqyrEnquiryVerificationReady = () => {
+        verificationWidget = window.turnstile.render(verificationBox, {
+          sitekey: root.dataset.enquirySitekey, action: 'website_enquiry', size: 'flexible',
+          language: root.dataset.lang === 'zh' ? 'zh-CN' : 'en',
+          callback: token => { verificationToken = token; if (!sending) sendButton.disabled = false; },
+          'expired-callback': () => { verificationToken = ''; sendButton.disabled = true; },
+          'error-callback': () => {
+            verificationToken = ''; sendButton.disabled = true;
+            setEnquiryStatus('The security check could not load. Please try again or use the email option.', '安全验证暂时无法加载，请重试或通过邮件应用联系团队。');
+            return true;
+          },
+        });
+      };
+      if (window.turnstile) window.aqyrEnquiryVerificationReady();
+      else {
+        const securityScript = document.createElement('script');
+        securityScript.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=aqyrEnquiryVerificationReady&render=explicit';
+        securityScript.async = true; securityScript.defer = true;
+        securityScript.onerror = () => setEnquiryStatus('The security check could not load. Please use the email option or try again later.', '安全验证暂时无法加载，请通过邮件应用联系团队或稍后重试。');
+        document.head.appendChild(securityScript);
+      }
+    }
   }
 
   // Do not re-hide a page someone has already read while slow scripts were loading.

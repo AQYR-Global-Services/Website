@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { handleEnquiry, prepareEnquiry, enquiryRecipient, enquirySender } from '../lib/enquiry-service.mjs';
+import { handleEnquiry, prepareEnquiry, enquiryRecipient, enquirySender, verifyTurnstile } from '../lib/enquiry-service.mjs';
 import { createPointsSnapshot, createNominationSnapshot } from '../public/points-enquiry.mjs';
 import { rankingPrograms } from '../public/nomination-ranking.mjs';
 import { calculate } from '../public/points-rules.mjs';
 
-const sample = { language: 'en', enquiryType: 'Employer', requestType: 'sponsorship', name: 'Website test', email: 'test@example.test', companyOccupation: 'Example business', phone: '', message: 'Test enquiry only.', website: '' };
+const sample = { language: 'en', enquiryType: 'Employer', requestType: 'sponsorship', name: 'Website test', email: 'test@example.test', companyOccupation: 'Example business', phone: '', message: 'Test enquiry only.', website: '', verificationToken: 'unit-token' };
 const secret = 'unit-test-only';
 const calls = [];
 const dependencies = { secret, production: true, verifyBot: async () => ({ isBot: false }), send: async (mail, options) => { calls.push({ mail, options }); return { data: { id: 'unit-test-message' }, error: null }; } };
@@ -46,6 +46,20 @@ for (const options of [{ secret: undefined }, { enabled: false }, { verifyBot: a
   assert([403, 503].includes(response.status));
 }
 assert.equal(calls.length, 2, 'Verification and configuration failures fail closed');
+for (const verificationToken of ['', undefined, 'x'.repeat(2049), 'invalid token']) {
+  assert.equal((await handleEnquiry(request({ ...sample, verificationToken }), dependencies)).status, 403);
+}
+assert.equal(prepareEnquiry({ ...sample, verificationToken: 'new-token' }, secret).idempotencyKey, calls[0].options.idempotencyKey, 'Fresh single-use challenge tokens must not defeat email deduplication');
+for (const result of [{ success: false }, { success: true, hostname: 'other.test', action: 'website_enquiry' }, { success: true, hostname: 'www.hiremiiglobal.com', action: 'wrong_action' }, { success: true, hostname: 'www.hiremiiglobal.com', action: 'website_enquiry' }]) {
+  const actual = await verifyTurnstile('unit-token', { secret, fetchImpl: async (url, init) => {
+    assert.equal(url, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
+    assert.equal(JSON.parse(init.body).response, 'unit-token');
+    return Response.json(result);
+  } });
+  assert.equal(actual.isBot, !(result.success === true && result.hostname === 'www.hiremiiglobal.com' && result.action === 'website_enquiry'));
+}
+await assert.rejects(() => verifyTurnstile('unit-token', { secret: undefined }));
+await assert.rejects(() => verifyTurnstile('unit-token', { secret, fetchImpl: async () => new Response('', { status: 503 }) }));
 for (const send of [async () => ({ error: { name: 'daily_quota_exceeded' } }), async () => ({ error: { name: 'validation_error', message: 'PRIVATE DATA' } }), async () => { throw Error('SECRET'); }, async () => ({ data: {} })]) {
   const response = await handleEnquiry(request(), { ...dependencies, send });
   assert([429, 503].includes(response.status));

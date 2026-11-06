@@ -13,7 +13,6 @@
     "test:locales": "node scripts/check-locales.mjs"
   },
   "dependencies": {
-    "botid": "1.5.12",
     "next": "^16.1.0",
     "parse5": "8.0.0",
     "react": "^19.0.0",

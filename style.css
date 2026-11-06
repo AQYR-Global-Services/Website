@@ -1006,3 +1006,4 @@ body:has(.top.is-compact) .sponsorship-guide>.page-jump,body:has(.top.is-compact
 .enquiry-honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
 .enquiry-send-notice{margin-top:20px}
 .enquiry-form[aria-busy="true"]{cursor:progress}
+.enquiry-verification{margin:18px 0;min-width:0;max-width:100%}

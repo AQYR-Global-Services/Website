@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      botid:
-        specifier: 1.5.12
-        version: 1.5.12(next@16.3.6(@types/node@24.19.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       next:
         specifier: ^16.1.0
         version: 16.3.6(@types/node@24.19.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -283,17 +280,6 @@ packages:
     resolution: {integrity: sha512-GLQdD3y6UF8iVuMJl5fHgE4jdn/ua7n+toKfLgNlg3BqQtOZjpy68T8Tup8/wGWZCDlm7KMg7tPb4MPn7oN0TQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
-
-  botid@1.5.12:
-    resolution: {integrity: sha512-bUYGLDLbNOQJyTVfuBGzm1ADztJ/euV6XH9JgXZ9MG2CZvElgOycybVOsgHBjVwB4tFl77g7zs31kEvjYm2gAw==}
-    peerDependencies:
-      next: '*'
-      react: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      next:
-        optional: true
-      react:
-        optional: true
 
   caniuse-lite@1.0.30001813:
     resolution: {integrity: sha512-zfjJo4rM0+fUomGDBW/xcDjhIwz/210DGvip2MAMDZ8KHcRPnOHmEgHPZP0UHlZoxr8fYKVJOqcORhYQcG4FKQ==}
@@ -579,11 +565,6 @@ snapshots:
       csstype: 3.2.3
 
   baseline-browser-mapping@2.11.26: {}
-
-  botid@1.5.12(next@16.3.6(@types/node@24.19.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
-    optionalDependencies:
-      next: 16.3.6(@types/node@24.19.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react: 19.3.0
 
   caniuse-lite@1.0.30001813: {}
 

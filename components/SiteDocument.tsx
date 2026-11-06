@@ -38,7 +38,7 @@ export function SiteDocument({
   language: "en" | "zh";
 }>) {
   return (
-    <html lang={language === "zh" ? "zh-Hans" : "en"} data-lang={language} data-route-language={language} suppressHydrationWarning>
+    <html lang={language === "zh" ? "zh-Hans" : "en"} data-lang={language} data-route-language={language} data-enquiry-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} suppressHydrationWarning>
       <body>
         {children}
         <script type="application/ld+json" dangerouslySetInnerHTML={{

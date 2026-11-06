@@ -37,7 +37,9 @@ async function setup(hash='',lang='en',options={}) {
   const clipboard={writes:[],async writeText(text){if(options.clipboardDenied)throw Error('Denied');this.writes.push(text);}};
   const submissions=[];
   const fetch=async(_url,init)=>{submissions.push(JSON.parse(init.body));return options.sendResponse || {ok:true,status:200,json:async()=>({ok:true})};};
-  const context = {form,root:{dataset:{lang,routeLanguage:lang}},location,window:{location},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,fetch,AbortSignal,Object,JSON,MutationObserver:class{observe(){}},
+  let verificationCallback;
+  const turnstile={render(_node,config){verificationCallback=config.callback;config.callback('unit-token');return 'unit-widget';},reset(){verificationCallback('unit-token');}};
+  const context = {form,root:{dataset:{lang,routeLanguage:lang,enquirySitekey:'unit-site'}},location,window:{location,turnstile},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,fetch,AbortSignal,Object,JSON,MutationObserver:class{observe(){}},
     history:{state:null,replaceState(_state,_title,url){location.hash=new URL(url,'https://example.test').hash;}},
     document:{querySelector(){return {scrollIntoView(){}};}},requestAnimationFrame(fn){fn();}};
   vm.runInNewContext(handler,context);
@@ -62,6 +64,11 @@ for(const language of ['en','zh']){
   assert(!failed.node('#enquiry-send').disabled);
   assert.match(failed.node('#enquiry-status').textContent,language==='zh'?/暂时无法确认/:/could not confirm/);
   await failed.submit('send');assert.equal(failed.submissions.length,2,'Failed or uncertain requests remain retryable');
+  const limited=await setup('',language,{sendResponse:{ok:false,status:429,json:async()=>{throw new SyntaxError('HTML firewall response');}}});
+  await limited.submit('send');
+  assert.match(limited.node('#enquiry-status').textContent,language==='zh'?/提交过于频繁/:/Too many submissions/);
+  assert.equal(limited.node('[name="message"]').value,'Please review my estimate.');
+  assert(!limited.node('#enquiry-send').disabled);
 }
 for(const lang of ['en','zh']) {
   const preview=await setup('',lang);
