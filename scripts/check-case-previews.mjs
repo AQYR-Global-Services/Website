@@ -88,7 +88,9 @@ assert.equal((page.match(/<dialog /g) || []).length, 1);
 assert.doesNotMatch(page, /Applicant_|Mr_W|\.pdf["']|case_data|without a further information request|未收到进一步补充材料要求/);
 assert.doesNotMatch(page, /case-filters|outcome-library|outcome-featured/);
 assert.match(page, /Past results do not guarantee approval or processing time/);
-assert.equal((page.match(/data-en="Case focus" data-zh="案件关注点"/g) || []).length, 9);
+assert.equal((page.match(/data-en="Preparation considerations for this occupation" data-zh="此类职业的准备要点"/g) || []).length, 7);
+assert.equal((page.match(/data-en="Preparation considerations for research applicants" data-zh="科研人才申请的准备要点"/g) || []).length, 1);
+assert.equal((page.match(/data-en="Case focus" data-zh="案件关注点"/g) || []).length, 1);
 assert.equal((page.match(/class="section project-cases"/g) || []).length, 1);
 for (const c of verifiedCases) {
   assert(page.includes(`id="${c.id}"`));
