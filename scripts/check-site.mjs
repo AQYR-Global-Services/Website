@@ -589,7 +589,26 @@ assert(!sitemap.includes(".html"));
 for (const route of routes) {
   assert([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].some(([, url]) => new URL(url).pathname === "/" + route), "Sitemap includes the new public route: " + route);
 }
-assert.match(await (await fetch(base + "/robots.txt")).text(), /Sitemap:/);
+const robotsResponse = await fetch(base + "/robots.txt");
+assert.equal(robotsResponse.status, 200, "robots.txt is available to crawlers");
+assert.match(robotsResponse.headers.get("content-type"), /text\/plain/);
+const robotsText = await robotsResponse.text();
+assert.match(robotsText, /Sitemap:/);
+assert.doesNotMatch(robotsText, /Cloudflare Managed/i, "Check the edge-served policy too: managed directives must not be prepended");
+const robotsGroups = robotsText.trim().split(/\r?\n\s*\r?\n/).map((group) => ({
+  agents: [...group.matchAll(/^User-Agent:\s*(.+)$/gim)].map(([, value]) => value.trim().toLowerCase()),
+  allow: [...group.matchAll(/^Allow:\s*(.+)$/gim)].map(([, value]) => value.trim()),
+  disallow: [...group.matchAll(/^Disallow:\s*(.+)$/gim)].map(([, value]) => value.trim()),
+}));
+for (const crawler of ["Googlebot", "Bingbot", "Baiduspider", "Applebot", "OAI-SearchBot", "ChatGPT-User", "Claude-SearchBot", "PerplexityBot", "Perplexity-User"]) {
+  const matching = robotsGroups.filter(({ agents }) => agents.includes(crawler.toLowerCase()));
+  const effective = matching.length ? matching : robotsGroups.filter(({ agents }) => agents.includes("*"));
+  assert(effective.some(({ allow }) => allow.includes("/")), "Public search access: " + crawler);
+  assert(!effective.some(({ disallow }) => disallow.includes("/")), "No contradictory search exclusion: " + crawler);
+}
+for (const crawler of ["GPTBot", "ClaudeBot", "CCBot", "Applebot-Extended", "Google-Extended", "Bytespider", "meta-externalagent"]) {
+  assert(robotsGroups.some(({ agents, disallow }) => agents.includes(crawler.toLowerCase()) && disallow.includes("/")), "Retain existing crawler restriction: " + crawler);
+}
 const script = await readFile(resolve(root, "public", "script.js"), "utf8");
 assert.doesNotMatch(script, /你/, "Runtime Chinese copy uses polite address");
 assert.equal(script, await readFile(resolve(root, "script.js"), "utf8"), "Preview script must match deployed script");
