@@ -385,6 +385,8 @@ html[data-lang=zh] .faq-item summary{font-family:'Rethink Sans','PingFang SC','M
 .page-team .team-portrait-romeo img{transform:scaleX(-1) scale(1.43);transform-origin:50% 0%}
 .page-team #ferris-jin .team-portrait img{transform:scaleX(-1)}
 .page-team .person>.person-info{display:block;min-width:0;padding:22px 0 0}
+.page-team .person-registration{margin:10px 0 0;font-size:13px;line-height:1.65;color:var(--muted);overflow-wrap:anywhere}
+.page-team .person-registration a{text-decoration:underline;text-underline-offset:3px}
 .page-team .person h3{font-size:25px;margin:0 0 8px}
 .page-team .person .role{font-size:11px;line-height:1.6;letter-spacing:.035em;margin:0}
 .page-team .person>.bio{font-size:15px;line-height:1.75;margin:18px 0 0;max-width:none;text-wrap:pretty}

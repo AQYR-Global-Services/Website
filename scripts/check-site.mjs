@@ -145,7 +145,7 @@ for (const route of routes) {
   const processingTimesUrl = "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-processing-times/global-visa-processing-times";
   const footer = source.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
   footerTemplates.add(footer);
-  const nzAdviserLink = footer.match(/<a class="footer-licence" href="https:\/\/immigrationadviser\.co\.nz\/adviser\/yuan-gao"[^>]*>[\s\S]*?<\/a>/)?.[0];
+  const nzAdviserLink = footer.match(/<a class="footer-licence" href="https:\/\/app\.mbieregisters\.govt\.nz\/iaa\/ui\/start\/searchForAnOccupationalRegistration"[^>]*>[\s\S]*?<\/a>/)?.[0];
   assert(nzAdviserLink, "New Zealand adviser details appear in every footer: " + route);
   assert.match(nzAdviserLink, /target="_blank" rel="noopener noreferrer"/);
   assert.match(nzAdviserLink, /data-aria-label-zh="[^"]*新标签页/);
