@@ -441,7 +441,9 @@ for (const route of routes) {
     assert(source.indexOf('id="enquiry-privacy-hint"') < source.indexOf('class="button enquiry-submit"'),
       "Sensitive-information advice precedes the email action");
     assert.match(source, /Please do not include passport numbers, bank details or full visa documents/);
-    assert.match(source, /网站不会自动发送邮件/);
+    assert.match(source, /id="enquiry-send" value="send" disabled/);
+    assert.match(source, /name="website" type="text" tabindex="-1"/);
+    assert.match(source, /通过网站及邮件服务商处理本次咨询与联系方式/);
   }
   if (route === "about") {
     assert.match(source, /access to its wider resources/);

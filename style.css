@@ -1003,3 +1003,6 @@ body:has(.top.is-compact) .sponsorship-guide>.page-jump,body:has(.top.is-compact
 .page-breadcrumbs a:hover{color:white;text-decoration-color:currentColor}
 .page-breadcrumbs a:focus-visible{outline:2px solid var(--mint);outline-offset:5px;border-radius:2px}
 .page-breadcrumbs [aria-current]{color:#f0f6f1}
+.enquiry-honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.enquiry-send-notice{margin-top:20px}
+.enquiry-form[aria-busy="true"]{cursor:progress}

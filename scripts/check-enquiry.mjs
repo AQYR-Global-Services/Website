@@ -25,7 +25,7 @@ async function setup(hash='',lang='en',options={}) {
     field.options = [...match[2].matchAll(/<option value="([^"]*)" data-en="([^"]*)" data-zh="([^"]*)"/g)].map(([,value,en,zh])=>({value,dataset:{en,zh}}));
     Object.defineProperty(field,'selectedOptions',{get(){return this.options.filter(option=>option.value===this.value);}});
   }
-  const form = {querySelector:node,events:{},addEventListener(event,fn){this.events[event]=fn;},reportValidity(){return options.valid !== false;}};
+  const form = {querySelector:node,querySelectorAll(){return [...nodes.values()];},setAttribute(){},removeAttribute(){},events:{},addEventListener(event,fn){this.events[event]=fn;},reportValidity(){return options.valid !== false;}};
   const location = {search:options.search ?? '?service=skilled&audience=individual',hash,pathname:'/contact',href:''};
   class FormData {
     get(name) {
@@ -35,13 +35,33 @@ async function setup(hash='',lang='en',options={}) {
     }
   }
   const clipboard={writes:[],async writeText(text){if(options.clipboardDenied)throw Error('Denied');this.writes.push(text);}};
-  const context = {form,root:{dataset:{lang}},location,window:{location},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,MutationObserver:class{observe(){}},
+  const submissions=[];
+  const fetch=async(_url,init)=>{submissions.push(JSON.parse(init.body));return options.sendResponse || {ok:true,status:200,json:async()=>({ok:true})};};
+  const context = {form,root:{dataset:{lang,routeLanguage:lang}},location,window:{location},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,fetch,AbortSignal,Object,JSON,MutationObserver:class{observe(){}},
     history:{state:null,replaceState(_state,_title,url){location.hash=new URL(url,'https://example.test').hash;}},
     document:{querySelector(){return {scrollIntoView(){}};}},requestAnimationFrame(fn){fn();}};
   vm.runInNewContext(handler,context);
   await new Promise(resolve=>setImmediate(resolve));
   for(const [name,value] of Object.entries({name:'Test visitor',email:'test@example.test',message:'Please review my estimate.'})) node('[name="'+name+'"]').value=value;
-  return {node,location,form,clipboard,async submit(action='email'){location.href='';await form.events.submit({preventDefault(){},submitter:{value:action}});return location.href ? new URL(location.href).searchParams.get('body') : null;}};
+  return {node,location,form,clipboard,submissions,async submit(action='email'){location.href='';await form.events.submit({preventDefault(){},submitter:{value:action}});return location.href ? new URL(location.href).searchParams.get('body') : null;}};
+}
+for(const language of ['en','zh']){
+  const direct=await setup('',language);
+  await direct.submit('send');
+  assert.equal(direct.submissions.length,1);
+  assert.equal(direct.submissions[0].language,language);
+  assert.equal(direct.submissions[0].email,'test@example.test');
+  assert(!('to' in direct.submissions[0]));
+  assert.match(direct.node('#enquiry-status').textContent,language==='zh'?/咨询已提交/:/has been submitted/);
+  await direct.submit('send');assert.equal(direct.submissions.length,1,'Repeated clicks after acceptance do not submit again');
+  direct.node('[name="message"]').value='New enquiry';direct.form.events.input();await direct.submit('send');
+  assert.equal(direct.submissions.length,2);
+  const failed=await setup('',language,{sendResponse:{ok:false,status:503,json:async()=>({code:'unavailable'})}});
+  await failed.submit('send');
+  assert.equal(failed.node('[name="message"]').value,'Please review my estimate.');
+  assert(!failed.node('#enquiry-send').disabled);
+  assert.match(failed.node('#enquiry-status').textContent,language==='zh'?/暂时无法确认/:/could not confirm/);
+  await failed.submit('send');assert.equal(failed.submissions.length,2,'Failed or uncertain requests remain retryable');
 }
 for(const lang of ['en','zh']) {
   const preview=await setup('',lang);

@@ -482,6 +482,9 @@
   });
 
   if (form) {
+    const sendButton = form.querySelector('#enquiry-send');
+    let sending = false;
+    let lastSentPayload = '';
     const requestedService = new URLSearchParams(location.search).get('service');
     const requestSelect = form.querySelector('[name="requestType"]');
     if (requestedService && [...requestSelect.options].some(option => option.value === requestedService)) {
@@ -599,8 +602,8 @@
       draftPanel.hidden = true;
       draftText.value = '';
       copyDraft.disabled = true;
-      setEnquiryStatus('Review a draft or open your email app. You must send the email yourself; this website does not send it.',
-        '可先预览草稿，或打开邮件应用。请自行发送邮件；网站不会自动发送邮件。');
+      setEnquiryStatus('Submit your enquiry directly, or preview a draft and use your email app.',
+        '可直接提交咨询，也可先预览草稿并通过邮件应用自行发送。');
     };
     form.addEventListener('input',clearDraft);
     form.addEventListener('change',clearDraft);
@@ -622,6 +625,7 @@
     });
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      if (sending) return;
       clearDraft();
       const revision = draftRevision;
       if (!form.reportValidity()) return;
@@ -662,6 +666,57 @@
       }
       const subject = zh ? 'AQYR 网站咨询' : 'AQYR website enquiry';
       const body = labels.map((label, index) => label + ': ' + values[index]).join('\n\n');
+      if (event.submitter?.value === 'send') {
+        if (sending) return;
+        const payload = {
+          language: zh ? 'zh' : 'en',
+          ...Object.fromEntries(['enquiryType','requestType','name','companyOccupation','email','phone','message','website'].map(name => [name, data.get(name) || ''])),
+          ...(includeEstimate.checked ? {
+            estimatePathway: estimatePathway.value, estimatedScore: Number(estimatedScore.value),
+            ...(pointsSnapshot ? { pointsSnapshot } : {}),
+          } : {}),
+          ...(includeNomination.checked && nominationSnapshot ? { nominationSnapshot } : {}),
+        };
+        const encoded = JSON.stringify(payload);
+        if (encoded === lastSentPayload) {
+          setEnquiryStatus('This enquiry has already been submitted. Edit the form to send a different enquiry.',
+            '这份咨询已经提交。若有新内容，请修改后再提交。');
+          return;
+        }
+        sending = true;
+        const controls = [...form.querySelectorAll('input,select,textarea,button')].map(node => ({ node, disabled: node.disabled }));
+        controls.forEach(({ node }) => { node.disabled = true; });
+        form.setAttribute('aria-busy', 'true');
+        setEnquiryStatus('Submitting your enquiry…', '正在提交咨询……');
+        try {
+          const response = await fetch('/api/enquiries', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: encoded, signal: AbortSignal.timeout(20000),
+          });
+          const result = await response.json().catch(() => null);
+          if (!response.ok || result?.ok !== true) {
+            if (response.status === 429) setEnquiryStatus('Too many submissions or the sending service is busy. Please wait a minute and try again, or use your email app.',
+              '提交过于频繁或发信服务繁忙。请稍等一分钟重试，或通过邮件应用联系团队。');
+            else if (result?.code === 'verification' || response.status === 403) setEnquiryStatus('We could not verify this submission. Try again or use your email app. Your entries are still here.',
+              '暂时未能验证本次提交。请重试，或通过邮件应用联系团队；本次填写内容仍保留在页面中。');
+            else if (response.status === 400 || response.status === 413) setEnquiryStatus('Please check your entries and any attached estimate, then try again.',
+              '请检查填写内容及附上的自评信息，然后重试。');
+            else throw Error('unavailable');
+            return;
+          }
+          lastSentPayload = encoded;
+          setEnquiryStatus('Your enquiry has been submitted. Our team will reply using the contact details you provided.',
+            '咨询已提交。团队将通过您填写的联系方式回复。');
+        } catch {
+          setEnquiryStatus('We could not confirm submission. Your entries are still here. Retry, or use the email option below; identical retries will not send duplicate emails within 24 hours.',
+            '暂时无法确认提交结果，填写内容仍保留在页面中。可重试或通过邮件方式发送；24 小时内相同内容重试不会重复发信。');
+        } finally {
+          controls.forEach(({ node, disabled }) => { node.disabled = disabled; });
+          form.removeAttribute('aria-busy');
+          sending = false;
+        }
+        return;
+      }
       draftText.value = (zh ? '收件人' : 'To') + ': info@hiremiiglobal.com\n' + (zh ? '主题' : 'Subject') + ': ' + subject + '\n\n' + body;
       draftPanel.hidden = false;
       copyDraft.disabled = false;
@@ -676,6 +731,7 @@
       window.location.href = 'mailto:info@hiremiiglobal.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });
     form.querySelector('#enquiry-preview').disabled = false;
+    if (sendButton) sendButton.disabled = !root.dataset.routeLanguage;
   }
 
   // Do not re-hide a page someone has already read while slow scripts were loading.
