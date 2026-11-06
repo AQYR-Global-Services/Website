@@ -456,13 +456,15 @@ for (const route of routes) {
     assert.doesNotMatch(html, /<!-- include:/, "Shared facts are rendered on the server");
     const pageMain = rawPage.match(/<main[\s\S]*?<\/main>/)?.[0];
     if (route === "employer-sponsorship") {
-      assert.match(pageMain, /data-zh="企业雇主担保"/);
+      assert.match(pageMain, /<!-- include:breadcrumbs -->/);
+      assert.match(html, /aria-current="page" data-en="482 &amp; 186 sponsorship" data-zh="482／186 企业雇主担保"/);
       assert.match(pageMain, /id="business-readiness"/);
       assert.match(pageMain, /id="nomination-preparation"/);
       assert.match(pageMain, /audience=employer/);
       assert.match(pageMain, /href="\/case-studies#case-186"/);
     } else {
-      assert.match(pageMain, /data-zh="个人雇主担保"/);
+      assert.match(pageMain, /<!-- include:breadcrumbs -->/);
+      assert.match(html, /aria-current="page" data-en="482 &amp; 186 visas" data-zh="482／186 个人雇主担保"/);
       assert.match(pageMain, /id="starting-point"/);
       assert.match(pageMain, /I have an employer/);
       assert.match(pageMain, /I am looking for an employer/);

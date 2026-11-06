@@ -6,6 +6,10 @@ export const siteUrl = new URL(
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.hiremiiglobal.com",
 ).origin;
 export const brandName = "AQYR Global Services";
+export const homePages = {
+  en: { title: "Australian Visa & Workforce Services", description: "Australian visa and workforce support for businesses and individuals, including 482 and 186 Direct Entry sponsorship, recruitment and other visa services." },
+  zh: { title: "澳洲签证与企业用工服务", description: "AQYR Global Services 为企业和个人提供澳洲签证、482 与 186 雇主担保、招聘及用工相关支持。" },
+};
 export const organizationDescription =
   "AQYR Global Services is a subsidiary of AQYR Ltd (ASX:AQ1), providing Australian visa, employer sponsorship and workforce support for businesses and individuals.";
 export const shareImage = {

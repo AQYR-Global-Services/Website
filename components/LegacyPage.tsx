@@ -1,5 +1,7 @@
 import { loadPageSource } from "@/lib/content-source.mjs";
 import { localizeMarkup } from "@/lib/localized-content.mjs";
+import { pageStructuredData } from "@/lib/structured-data";
+import type { PageSlug } from "@/lib/site";
 
 type LegacyPageName =
   | "index.html"
@@ -31,5 +33,11 @@ export function LegacyPage({ fileName, language = "en" }: { fileName: LegacyPage
   );
 
   const pathname = fileName === "index.html" ? "/" : "/" + fileName.replace(/\.html$/, "");
-  return <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: localizeMarkup(markup, language, pathname) }} />;
+  const slug = fileName.replace(/\.html$/, '') as PageSlug | 'index';
+  return <>
+    <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: localizeMarkup(markup, language, pathname) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{
+      __html: JSON.stringify(pageStructuredData(slug, language)).replace(/</g, "\\u003c"),
+    }} />
+  </>;
 }

@@ -1,4 +1,32 @@
-import { brandName, organizationDescription, siteUrl } from "./site";
+import { brandName, organizationDescription, siteUrl, pages, chinesePages, homePages, type PageSlug } from "./site";
+import { pageBreadcrumbs } from "./page-hierarchy.mjs";
+import { localizedPath } from "../public/site-language.mjs";
+
+export function pageStructuredData(slug: PageSlug | 'index', language: 'en' | 'zh') {
+  const details = slug === 'index' ? homePages[language] : language === 'zh' ? chinesePages[slug] : pages[slug];
+  const url = siteUrl + localizedPath(slug === 'index' ? '/' : '/' + slug, language);
+  const trail = pageBreadcrumbs(slug);
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage', '@id': url + '#webpage', url,
+        name: `${brandName} — ${details.title}`, description: details.description,
+        inLanguage: language === 'zh' ? 'zh-Hans' : 'en',
+        isPartOf: { '@id': siteUrl + '/#website' },
+        publisher: { '@id': siteUrl + '/#organization' },
+        ...(trail.length ? { breadcrumb: { '@id': url + '#breadcrumb' } } : {}),
+      },
+      ...(trail.length ? [{
+        '@type': 'BreadcrumbList', '@id': url + '#breadcrumb',
+        itemListElement: trail.map((item, index) => ({
+          '@type': 'ListItem', position: index + 1, name: item[language],
+          item: siteUrl + localizedPath(item.path, language),
+        })),
+      }] : []),
+    ],
+  };
+}
 
 // These identifiers and office details mirror the public company/contact pages.
 // The MARN belongs to the individual agent, not to the company or parent brand.
