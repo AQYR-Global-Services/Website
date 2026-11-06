@@ -52,6 +52,22 @@ Public crawling preferences are maintained in `app/robots.ts`. Keep Cloudflare *
 
 The shared link preview uses `public/share-cover.png`, the original AQYR logo and the name AQYR Global Services. Open Graph and Twitter image settings are in `lib/site.ts`.
 
+Core service pages have separate audiences and topics. Keep their bilingual search
+titles, descriptions, H1s and opening paragraphs aligned with the actual page:
+
+| Route | Audience and focus |
+| --- | --- |
+| `/employers` | Employers: overseas hiring, staff transfers and Australian workforce planning |
+| `/employer-sponsorship` | Employers: 482/186 business and role evidence, nomination and sponsor responsibilities |
+| `/sponsored-visas` | Individuals: 482/186 pathways, work history and personal application preparation |
+| `/labour-agreements` | Employers: company-specific, industry and DAMA agreement options |
+| `/visa-services` | Individuals: visitor, student, skilled and partner visas, plus career/assessment support |
+
+The same focus applies to each `/zh` counterpart. Preserve the common visa-facts
+partials and established anchors; make headings descriptive without multiplying
+near-identical service pages. These are editorial topic choices, not measured
+keyword-volume or ranking claims. Reference: [Google title-link guidance](https://developers.google.com/search/docs/appearance/title-link).
+
 The site-wide JSON-LD graph is maintained in `lib/structured-data.ts` and rendered by `components/SiteDocument.tsx`. It links the public brand to its legal entity, ABN/ACN, three offices, parent organization and Yuan (Leon) Gao. MARN 1793302 is an identifier of the person, not a company licence. Keep this data consistent with the visible company, contact and footer disclosures whenever registration or contact details change.
 
 ## Visa guidance maintenance

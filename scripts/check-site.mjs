@@ -404,7 +404,7 @@ for (const route of routes) {
     for (const topic of ["01 / OVERSEAS HIRES", "02 / SPONSOR RESPONSIBILITIES", "03 / CHANGING RULES"]) {
       assert(source.includes('data-en="' + topic + '"'), "Employer advisory topic: " + topic);
     }
-    assert.match(source, /data-zh="全球人才流动，/);
+    assert.match(source, /data-zh="海外招聘与人才流动，/);
     assert.match(source, /Australian migration requirements/);
     assert.match(source, /employment advisers/);
     assert.match(source, /when it takes effect/);
