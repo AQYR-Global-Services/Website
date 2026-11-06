@@ -170,7 +170,9 @@
     language = language === 'zh' ? 'zh' : 'en';
     root.dataset.lang = language;
     root.lang = language === 'zh' ? 'zh-Hans' : 'en';
-    document.querySelectorAll('[data-en][data-zh]').forEach(node => {
+    // Routed pages are already translated on the server, including internal links.
+    // Offline HTML previews retain their in-place language switch.
+    if (!root.dataset.routeLanguage) document.querySelectorAll('[data-en][data-zh]').forEach(node => {
       node.innerHTML = language === 'zh' ? node.dataset.zh : node.dataset.en;
     });
     document.querySelectorAll('[data-aria-label-en][data-aria-label-zh]').forEach(node => {
@@ -192,7 +194,9 @@
     backToTop.setAttribute('aria-label', language === 'en' ? 'Back to top' : '返回顶部');
     backToTop.title = language === 'en' ? 'Back to top' : '返回顶部';
     scheduleScrollUpdate();
-    try { localStorage.setItem('aqyr-demo-language', language); } catch {}
+    if (!root.dataset.routeLanguage) {
+      try { localStorage.setItem('aqyr-demo-language', language); } catch {}
+    }
   }
 
   function updateEnglishGuide(state) {
@@ -390,8 +394,10 @@
     window.scrollTo({ top: 0, behavior: motionPreference.matches ? 'instant' : 'smooth' });
   });
 
-  let language = 'en';
-  try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
+  let language = root.dataset.routeLanguage || 'en';
+  if (!root.dataset.routeLanguage) {
+    try { language = localStorage.getItem('aqyr-demo-language') || 'en'; } catch {}
+  }
   setLanguage(language);
 
   if (document.querySelector('[data-case-preview]')) {
@@ -407,11 +413,11 @@
   }
 
   // Local previews show the preference UI without sending production analytics.
-  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261020-focus' : '/analytics.mjs?v=20261020-focus')
+  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261106-locales' : '/analytics.mjs?v=20261106-locales')
     .then(module => module.initAnalytics())
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261104-policy-guidance' : '/points-calculator.mjs?v=20261104-policy-guidance')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261106-locales' : '/points-calculator.mjs?v=20261106-locales')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');
@@ -435,7 +441,19 @@
       }
     }));
   }
-  languageButton?.addEventListener('click', () => setLanguage(root.dataset.lang === 'en' ? 'zh' : 'en'));
+  if (languageButton?.tagName === 'A') {
+    const counterpart = new URL(languageButton.href);
+    const updateLanguageLink = () => {
+      counterpart.search = location.search;
+      counterpart.hash = location.hash;
+      languageButton.href = counterpart.href;
+    };
+    updateLanguageLink();
+    languageButton.addEventListener('click', updateLanguageLink);
+    window.addEventListener('hashchange', updateLanguageLink);
+  } else {
+    languageButton?.addEventListener('click', () => setLanguage(root.dataset.lang === 'en' ? 'zh' : 'en'));
+  }
   menuButton?.addEventListener('click', () => {
     const open = navigation?.classList.toggle('open') || false;
     menuButton.setAttribute('aria-expanded', String(open));

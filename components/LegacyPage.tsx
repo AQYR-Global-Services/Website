@@ -1,4 +1,5 @@
 import { loadPageSource } from "@/lib/content-source.mjs";
+import { localizeMarkup } from "@/lib/localized-content.mjs";
 
 type LegacyPageName =
   | "index.html"
@@ -16,7 +17,7 @@ type LegacyPageName =
   | "privacy.html"
   | "terms.html";
 
-export function LegacyPage({ fileName }: { fileName: LegacyPageName }) {
+export function LegacyPage({ fileName, language = "en" }: { fileName: LegacyPageName; language?: "en" | "zh" }) {
   const source = loadPageSource(fileName);
   const body = source.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1];
 
@@ -29,5 +30,6 @@ export function LegacyPage({ fileName }: { fileName: LegacyPageName }) {
     "",
   );
 
-  return <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: markup }} />;
+  const pathname = fileName === "index.html" ? "/" : "/" + fileName.replace(/\.html$/, "");
+  return <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: localizeMarkup(markup, language, pathname) }} />;
 }

@@ -13,6 +13,8 @@ for (const value of [null, 'bad json', saved('other'), saved('accepted', now + 1
 assert.equal(readPreference({getItem() { throw Error('blocked'); }}), null);
 assert.equal(safePageLocation(new URL('https://www.hiremiiglobal.com/contact?email=private#enquiry?details=secret')), 'https://www.hiremiiglobal.com/contact');
 assert.equal(safePageLocation(new URL('https://www.hiremiiglobal.com/unknown-private-name')), 'https://www.hiremiiglobal.com/');
+assert.equal(safePageLocation(new URL('https://www.hiremiiglobal.com/zh/contact?email=private#secret')), 'https://www.hiremiiglobal.com/zh/contact');
+assert.equal(safePageLocation(new URL('https://www.hiremiiglobal.com/zh/private-name')), 'https://www.hiremiiglobal.com/');
 assert.equal(safeReferrer('https://example.com/private?email=private#secret'), 'https://example.com/');
 assert.equal(safeReferrer('file:///private'), '');
 

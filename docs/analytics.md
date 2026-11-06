@@ -27,10 +27,15 @@ page_view event tag, or an extra Google tag for the same measurement ID.
 - Footer Analytics preferences allows withdrawal; it disables collection,
   removes first-party GA cookies and reloads to unload the tag.
 - Page location is an allowlisted route, with no query string or fragment.
+  This includes the corresponding `/zh` public routes, so Chinese visits keep
+  their language path. Unknown paths are still replaced with `/`.
   Referrer is origin-only. No enquiry fields, score, salary, occupation or breakdown
   is included. This intentionally sacrifices campaign/query-level attribution.
 - This is basic traffic measurement, not a successful enquiry/conversion tracker.
-- Consent preference storage and language preference storage are independent.
+- Consent preference storage is independent of the URL-selected language.
+  Offline HTML previews alone remember a language preference. Calculator language
+  navigation uses a single-use, five-minute tab-storage handoff for scoring
+  controls only; it never enters page-view payloads or contains free-text searches.
 - Before container bootstrap, the site queues consent defaults (all denied),
   analytics-only acceptance, and global Google tag settings for sanitised
   page_location, origin-only page_referrer, static page_title and disabled

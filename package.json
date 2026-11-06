@@ -9,10 +9,12 @@
     "sync:preview": "node scripts/sync-static.mjs",
     "prepare:media": "node scripts/prepare-media.mjs",
     "test:site": "node scripts/check-site.mjs",
-    "test:points": "node scripts/check-points.mjs"
+    "test:points": "node scripts/check-points.mjs",
+    "test:locales": "node scripts/check-locales.mjs"
   },
   "dependencies": {
     "next": "^16.1.0",
+    "parse5": "8.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

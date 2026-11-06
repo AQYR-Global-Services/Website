@@ -1,16 +1,14 @@
 // Keep Enhanced Measurement OFF in this GA4 stream: no automatic form,
 // outbound-link or history tracking. Only consented, sanitised page views.
+import { isPublicPagePath, localizedHref, publicRouteLanguage } from './site-language.mjs';
 export const measurementId = 'G-DNQXKBP0ZC';
 export const containerId = 'GTM-WZ9XZFHL';
 const preferenceKey = 'aqyr-analytics-consent-v1';
 const lifetime = 180 * 24 * 60 * 60 * 1000;
-const routes = new Set(['/', '/about', '/employers', '/visa-services', '/employer-sponsorship',
-  '/sponsored-visas', '/labour-agreements', '/approach', '/case-studies', '/team',
-  '/contact', '/privacy', '/terms', '/points-calculator']);
 
 export function safePageLocation(location) {
   const path = location.pathname.replace(/\/$/, '') || '/';
-  return location.origin + (routes.has(path) ? path : '/');
+  return location.origin + (isPublicPagePath(path) ? path : '/');
 }
 export function safeReferrer(referrer) {
   try { const url = new URL(referrer); return /^https?:$/.test(url.protocol) ? url.origin + '/' : ''; }
@@ -87,7 +85,7 @@ export function initAnalytics(win = window, doc = document) {
       : 'With your permission, we use Google Analytics to understand visits and improve this website. We do not send enquiry details or calculator answers to analytics. You can decline and use the site as usual.';
     const policy = panel.querySelector('a');
     policy.textContent = zh ? '隐私政策' : 'Privacy policy';
-    policy.href = win.location.pathname.endsWith('.html') ? 'privacy.html' : '/privacy';
+    policy.href = win.location.pathname.endsWith('.html') ? 'privacy.html' : localizedHref('/privacy', publicRouteLanguage(win.location.pathname));
     panel.querySelector('[data-analytics="rejected"]').textContent = zh ? '拒绝统计' : 'Decline analytics';
     panel.querySelector('[data-analytics="accepted"]').textContent = zh ? '接受统计' : 'Accept analytics';
     settings.textContent = zh ? '统计偏好' : 'Analytics preferences';

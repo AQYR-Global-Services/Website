@@ -5,6 +5,8 @@ import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
+import {localizedHref,publicRouteLanguage} from './site-language.mjs';
+import {saveCalculatorHandoff,takeCalculatorHandoff,restoreCalculatorControls} from './calculator-language-state.mjs';
 import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261104-policy-guidance';
 
 export function scoreMaximumLabel(input,text) {
@@ -267,7 +269,7 @@ export function initialisePointsCalculator() {
       :text('Attach the selected pathway and background entered so far for the team to review. No state ranking total is calculated; EOI is not required.','附上已选路径与已填背景供团队评估；不含州排序总分，无需完成 EOI。');
     host.querySelector('#pc-share-score-label').textContent=vic?text('Attach VPT self-assessment and breakdown','附上 VPT 自评与明细'):text('Attach EOI estimate and breakdown','附上 EOI 预估分数与明细');
     host.querySelector('#pc-share-score-hint').textContent=!attachmentOptions.scoreEnabled?text('Available after the required questions are completed and a score is shown. You can still contact the team without attaching a score.','完成必填项目并出分后可附上；也可直接咨询，不附分数。'):text('Your answers and itemised points will be available to review before sending.','附上计分选项及每项得分，发送前可再次确认。');
-    const contactBase = '/contact?service=skilled&audience=individual#enquiry';
+    const contactBase = localizedHref('/contact?service=skilled&audience=individual#enquiry', publicRouteLanguage(location.pathname));
     const snapshot = includeScore.checked ? createPointsSnapshot(input) : null;
     const nominationSnapshot=includeNomination.checked?nominationCandidate:null;
     const attachments=new URLSearchParams();
@@ -398,4 +400,19 @@ export function initialisePointsCalculator() {
   host.dataset.ready = 'true';
   const rankingTool = initialiseRankingTool(host);
   update();
+  if (root.dataset.routeLanguage) {
+    let saved = [];
+    try { saved = takeCalculatorHandoff(sessionStorage, location.pathname); } catch {}
+    // State/visa generate pathways; the chosen pathway generates its own fields.
+    for (let pass = 0; saved.length && pass < 3; pass++) {
+      restoreCalculatorControls(host.querySelectorAll('input, select'), saved);
+      update();
+    }
+    scoreFormat = legacyOet(values()) ? 'letters' : 'numbers';
+    document.querySelector('[data-language-toggle]')?.addEventListener('click', event => {
+      if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const target = new URL(event.currentTarget.href).pathname;
+      try { saveCalculatorHandoff(sessionStorage, host.querySelectorAll('input, select'), target); } catch {}
+    });
+  }
 }

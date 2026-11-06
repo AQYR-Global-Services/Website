@@ -31,13 +31,14 @@ export const metadata: Metadata = {
     images: [{ url: shareImage.url, alt: shareImage.alt }] },
 };
 
-export default function RootLayout({
-  children,
+export function SiteDocument({
+  children, language,
 }: Readonly<{
   children: React.ReactNode;
+  language: "en" | "zh";
 }>) {
   return (
-    <html lang="en" data-lang="en" suppressHydrationWarning>
+    <html lang={language === "zh" ? "zh-Hans" : "en"} data-lang={language} data-route-language={language} suppressHydrationWarning>
       <body>
         {children}
         <script type="application/ld+json" dangerouslySetInnerHTML={{

@@ -81,7 +81,7 @@ for (const route of routes) {
   assert.equal(offices.find((office) => office.name.endsWith("Shanghai office"))?.telephone, undefined);
   assert.doesNotMatch(html, /137\s*6139\s*5387/);
   assert.deepEqual(offices[0].address, organization.address);
-  assert.match(html, /property="og:title" content="AQYR Global Services"/);
+  assert.match(html, /property="og:title" content="AQYR Global Services — [^"]+"/);
   assert.match(html, /property="og:image" content="https?:[^\"]*\/share-cover\.png"/);
   assert.match(html, /property="og:image:width" content="1200"/);
   assert.match(html, /property="og:image:height" content="630"/);
@@ -584,7 +584,7 @@ for (const src of assets) {
   assert.equal((await fetch(base + src)).status, 200, "Asset: " + src);
 }
 const sitemap = await (await fetch(base + "/sitemap.xml")).text();
-assert.equal((sitemap.match(/<loc>/g) || []).length, routes.length);
+assert.equal((sitemap.match(/<loc>/g) || []).length, routes.length * 2);
 assert(!sitemap.includes(".html"));
 for (const route of routes) {
   assert([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].some(([, url]) => new URL(url).pathname === "/" + route), "Sitemap includes the new public route: " + route);
