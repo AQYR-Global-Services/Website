@@ -3,13 +3,14 @@
   "notes": "Brand assets are kept locally at source resolution. Do not regenerate the low-resolution 280x170 partner thumbnails. Brand names and artwork belong to their respective owners.",
   "logos": [
     {
-      "file": "mastlink.png",
+      "file": "mastlink-lossless.webp",
       "source": "https://www.mastlink.com.au/wp-content/uploads/2024/10/mastlink蓝色-无底.png",
       "dimensions": [
         666,
         375
       ],
-      "notes": "Official transparent PNG, same mark as the user-provided JPEG."
+      "notes": "Official transparent PNG, same mark as the user-provided JPEG.",
+      "originalFile": "mastlink.png"
     },
     {
       "file": "sequoia.webp",
@@ -26,13 +27,14 @@
       "notes": "Official inline header vector. Standalone SVG preserves path data; resolves currentColor to charcoal and the official #f9a600 icon colour, and restores XML clipPath casing."
     },
     {
-      "file": "sitrak-lk-auto.png",
+      "file": "sitrak-lk-auto-lossless.webp",
       "source": "User-supplied original PNG",
       "dimensions": [
         738,
         225
       ],
-      "notes": "Replaces ADLV at the user's request; copied without resizing or recompression."
+      "notes": "Replaces ADLV at the user's request; copied without resizing or recompression.",
+      "originalFile": "sitrak-lk-auto.png"
     },
     {
       "file": "pullman.svg",
@@ -41,13 +43,14 @@
       "notes": "Matching existing brand mark in vector form; source credits AccorHotels Deutschland. Trademark rights remain with the owner."
     },
     {
-      "file": "mintskin.png",
+      "file": "mintskin-lossless.webp",
       "source": "https://www.mintskinclinic.com.au/cdn/shop/files/MINTSKIN_Clinci_logo.png?v=1706879768&width=600",
       "website": "https://www.mintskinclinic.com.au/",
       "dimensions": [
         270,
         81
-      ]
+      ],
+      "originalFile": "mintskin.png"
     },
     {
       "file": "audd-transparent.webp",
@@ -69,32 +72,35 @@
       ]
     },
     {
-      "file": "inverse-group.png",
+      "file": "inverse-group-lossless.webp",
       "source": "https://inverse-group.com/wp-content/uploads/2024/07/Combined_wStrapline-OnLight@2x.png",
       "website": "https://inverse-group.com/",
       "dimensions": [
         1449,
         598
-      ]
+      ],
+      "originalFile": "inverse-group.png"
     },
     {
-      "file": "crosstec.png",
+      "file": "crosstec-lossless.webp",
       "source": "https://crosstec.com.hk/api/images/0000022_Frame3.png",
       "website": "https://www.crosstec.com.hk/",
       "dimensions": [
         720,
         78
-      ]
+      ],
+      "originalFile": "crosstec.png"
     },
     {
-      "file": "waverley-advisory.png",
+      "file": "waverley-advisory-lossless.webp",
       "source": "https://waverleyadvisory.com.au/wp-content/uploads/2025/07/Waverley-Advisory-logo-pdf-08-1-2048x612.png",
       "website": "https://waverleyadvisory.com.au/",
       "dimensions": [
         2048,
         612
       ],
-      "notes": "Official flat logo matches the user's reference photo; acquired from the rendered official page."
+      "notes": "Official flat logo matches the user's reference photo; acquired from the rendered official page.",
+      "originalFile": "waverley-advisory.png"
     },
     {
       "file": "healthlink.svg",
@@ -106,32 +112,35 @@
       ]
     },
     {
-      "file": "sage-house.png",
+      "file": "sage-house-lossless.webp",
       "source": "https://static.wixstatic.com/media/dd8d8e_a9bdf2ca8baa40d4a8baaa237c2b83ff~mv2.png",
       "website": "https://www.sage-house.com/",
       "dimensions": [
         3000,
         3000
-      ]
+      ],
+      "originalFile": "sage-house.png"
     },
     {
-      "file": "kmg.png",
+      "file": "kmg-lossless.webp",
       "source": "https://kmetgroup.com/wp-content/uploads/2023/12/kmglogo-e1734338412867.png",
       "website": "https://kmetgroup.com/",
       "dimensions": [
         600,
         235
-      ]
+      ],
+      "originalFile": "kmg.png"
     },
     {
-      "file": "jt-lawyers.png",
+      "file": "jt-lawyers-lossless.webp",
       "source": "https://images.squarespace-cdn.com/content/v1/631bf8669d20a75426a2eff6/44b59cc5-51c1-4c42-b9ee-66db75bca442/New+JTL+Logo.png?format=1500w",
       "website": "https://www.jtlawyers.com.au/",
       "dimensions": [
         1227,
         1295
       ],
-      "notes": "Official header logo, downloaded unchanged."
+      "notes": "Official header logo, downloaded unchanged.",
+      "originalFile": "jt-lawyers.png"
     },
     {
       "file": "brightstone-legal.svg",
