@@ -589,51 +589,30 @@
     }
     updateEstimate();
     new MutationObserver(updateEstimate).observe(root,{attributes:true,attributeFilter:['data-lang']});
-    const draftPanel = form.querySelector('#enquiry-draft');
-    const draftText = form.querySelector('#enquiry-draft-text');
-    const copyDraft = form.querySelector('#enquiry-copy');
-    let draftRevision = 0;
-    const setEnquiryStatus = (en,zh) => {
+    const fallbackContact = form.querySelector('#enquiry-fallback');
+    let formRevision = 0;
+    const setEnquiryStatus = (en,zh,fallback = false) => {
       const status = form.querySelector('#enquiry-status');
       status.dataset.en = en;
       status.dataset.zh = zh;
       status.textContent = root.dataset.lang === 'zh' ? zh : en;
+      fallbackContact.hidden = !fallback;
     };
-    const clearDraft = () => {
-      draftRevision += 1;
-      draftPanel.hidden = true;
-      draftText.value = '';
-      copyDraft.disabled = true;
-      setEnquiryStatus('Submit your enquiry directly, or preview a draft and use your email app.',
-        '可直接提交咨询，也可先预览草稿并通过邮件应用自行发送。');
+    const clearStatus = () => {
+      formRevision += 1;
+      setEnquiryStatus('', '');
     };
-    form.addEventListener('input',clearDraft);
-    form.addEventListener('change',clearDraft);
-    copyDraft.addEventListener('click', async () => {
-      if (copyDraft.disabled || !draftText.value) return;
-      const text = draftText.value;
-      try {
-        await navigator.clipboard.writeText(text);
-        if (draftText.value !== text || draftPanel.hidden) return;
-        setEnquiryStatus('Draft copied. Paste it into your email service and send it to info@hiremiiglobal.com. No email has been sent by this website.',
-          '草稿已复制。请粘贴到您的邮箱，发送至 info@hiremiiglobal.com；网站尚未发送任何邮件。');
-      } catch {
-        if (draftText.value !== text || draftPanel.hidden) return;
-        draftText.focus();
-        draftText.select();
-        setEnquiryStatus('Automatic copying is unavailable. Copy the selected draft manually, then send it from your own email service.',
-          '暂时无法自动复制。请手动复制已选中的草稿，再通过自己的邮箱发送。');
-      }
-    });
+    form.addEventListener('input',clearStatus);
+    form.addEventListener('change',clearStatus);
     form.addEventListener('submit', async event => {
       event.preventDefault();
       if (sending) return;
-      clearDraft();
-      const revision = draftRevision;
+      clearStatus();
+      const revision = formRevision;
       if (!form.reportValidity()) return;
       if (includeEstimate.checked && detailsRequested) {
         await detailsReady;
-        if (revision !== draftRevision) return;
+        if (revision !== formRevision) return;
         if (!pointsSnapshot) {
           detailStatus.hidden = false;
           detailStatus.textContent = root.dataset.lang === 'zh' ? '未能读取完整明细。请返回打分工具重新计算，再附上分数。' : 'The complete breakdown could not be loaded. Please recalculate and include your estimate again.';
@@ -642,104 +621,66 @@
       }
       if(includeNomination.checked&&nominationRequested){
         await detailsReady;
-        if (revision !== draftRevision) return;
+        if (revision !== formRevision) return;
         if(!nominationSnapshot){nominationStatus.hidden=false;return;}
       }
       const zh = root.dataset.lang === 'zh';
       const data = new FormData(form);
-      const labels = zh ? ['咨询身份', '咨询需求', '姓名', '公司 / 职业', '邮箱', '电话', '需求说明']
-        : ['Enquiry type', 'What you need', 'Name', 'Company / occupation', 'Email', 'Phone', 'Enquiry details'];
-      const optionText = name => {
-        const selected = form.querySelector('[name="' + name + '"]').selectedOptions[0];
-        return zh ? selected.dataset.zh : selected.dataset.en;
+      const payload = {
+        language: zh ? 'zh' : 'en',
+        ...Object.fromEntries(['enquiryType','requestType','name','companyOccupation','email','phone','message','website'].map(name => [name, data.get(name) || ''])),
+        ...(includeEstimate.checked ? {
+          estimatePathway: estimatePathway.value, estimatedScore: Number(estimatedScore.value),
+          ...(pointsSnapshot ? { pointsSnapshot } : {}),
+        } : {}),
+        ...(includeNomination.checked && nominationSnapshot ? { nominationSnapshot } : {}),
       };
-      const values = [optionText('enquiryType'), optionText('requestType'), data.get('name'),
-        data.get('companyOccupation') || '—', data.get('email'), data.get('phone') || '—', data.get('message')];
-      if (data.get('includeEstimate')) {
-        labels.push(zh ? '预估分数（客户自评，待团队核对）' : 'Estimated points (self-assessed, subject to review)');
-        const nominationNote = federalNomination(estimatePathway.value)
-          ? (zh ? '（含有条件州提名 +'+(estimatePathway.value.endsWith('-491')?15:5)+' 分）' : ' (includes conditional +'+(estimatePathway.value.endsWith('-491')?15:5)+' nomination points)') : '';
-        values.push(optionText('estimatePathway') + nominationNote + ': ' + data.get('estimatedScore') + (zh ? ' 分' : ' points')
-          + (pointsSnapshot ? '\n\n'+pointsEnquiryModule.formatPointsEnquiry(pointsSnapshot,root.dataset.lang) : ''));
-      }
-      if(includeNomination.checked&&nominationSnapshot){
-        labels.push(zh?'州提名／ROI 自评附件':'State nomination / ROI assessment');
-        values.push(pointsEnquiryModule.formatNominationEnquiry(nominationSnapshot,root.dataset.lang));
-      }
-      const subject = zh ? 'AQYR 网站咨询' : 'AQYR website enquiry';
-      const body = labels.map((label, index) => label + ': ' + values[index]).join('\n\n');
-      if (event.submitter?.value === 'send') {
-        if (sending) return;
-        const payload = {
-          language: zh ? 'zh' : 'en',
-          ...Object.fromEntries(['enquiryType','requestType','name','companyOccupation','email','phone','message','website'].map(name => [name, data.get(name) || ''])),
-          ...(includeEstimate.checked ? {
-            estimatePathway: estimatePathway.value, estimatedScore: Number(estimatedScore.value),
-            ...(pointsSnapshot ? { pointsSnapshot } : {}),
-          } : {}),
-          ...(includeNomination.checked && nominationSnapshot ? { nominationSnapshot } : {}),
-        };
-        const encoded = JSON.stringify(payload);
-        if (encoded === lastSentPayload) {
-          setEnquiryStatus('This enquiry has already been submitted. Edit the form to send a different enquiry.',
-            '这份咨询已经提交。若有新内容，请修改后再提交。');
-          return;
-        }
-        if (!verificationToken) {
-          setEnquiryStatus('Please complete the security check before submitting.', '请先完成安全验证，再提交咨询。');
-          return;
-        }
-        sending = true;
-        const controls = [...form.querySelectorAll('input,select,textarea,button')].map(node => ({ node, disabled: node.disabled }));
-        controls.forEach(({ node }) => { node.disabled = true; });
-        form.setAttribute('aria-busy', 'true');
-        setEnquiryStatus('Submitting your enquiry…', '正在提交咨询……');
-        try {
-          const response = await fetch('/api/enquiries', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...payload, verificationToken }), signal: AbortSignal.timeout(20000),
-          });
-          const result = await response.json().catch(() => null);
-          if (!response.ok || result?.ok !== true) {
-            if (response.status === 429) setEnquiryStatus('Too many submissions or the sending service is busy. Please wait a minute and try again, or use your email app.',
-              '提交过于频繁或发信服务繁忙。请稍等一分钟重试，或通过邮件应用联系团队。');
-            else if (result?.code === 'verification' || response.status === 403) setEnquiryStatus('We could not verify this submission. Try again or use your email app. Your entries are still here.',
-              '暂时未能验证本次提交。请重试，或通过邮件应用联系团队；本次填写内容仍保留在页面中。');
-            else if (response.status === 400 || response.status === 413) setEnquiryStatus('Please check your entries and any attached estimate, then try again.',
-              '请检查填写内容及附上的自评信息，然后重试。');
-            else throw Error('unavailable');
-            return;
-          }
-          lastSentPayload = encoded;
-          setEnquiryStatus('Your enquiry has been submitted. Our team will reply using the contact details you provided.',
-            '咨询已提交。团队将通过您填写的联系方式回复。');
-        } catch {
-          setEnquiryStatus('We could not confirm submission. Your entries are still here. Retry, or use the email option below; identical retries will not send duplicate emails within 24 hours.',
-            '暂时无法确认提交结果，填写内容仍保留在页面中。可重试或通过邮件方式发送；24 小时内相同内容重试不会重复发信。');
-        } finally {
-          controls.forEach(({ node, disabled }) => { node.disabled = disabled; });
-          form.removeAttribute('aria-busy');
-          sending = false;
-          verificationToken = '';
-          sendButton.disabled = true;
-          if (verificationWidget !== undefined) window.turnstile?.reset(verificationWidget);
-        }
+      const encoded = JSON.stringify(payload);
+      if (encoded === lastSentPayload) {
+        setEnquiryStatus('This enquiry has already been submitted. Edit the form to send a different enquiry.',
+          '这份咨询已经提交。若有新内容，请修改后再提交。');
         return;
       }
-      draftText.value = (zh ? '收件人' : 'To') + ': info@hiremiiglobal.com\n' + (zh ? '主题' : 'Subject') + ': ' + subject + '\n\n' + body;
-      draftPanel.hidden = false;
-      copyDraft.disabled = false;
-      if (event.submitter?.value === 'preview') {
-        setEnquiryStatus('Your draft is ready below. Review and copy it into your email service. This website has not sent an email.',
-          '草稿已在下方生成。请检查后复制到自己的邮箱发送；网站尚未发送邮件。');
-        draftText.focus();
+      if (!verificationToken) {
+        setEnquiryStatus('Please complete the security check before submitting.', '请先完成安全验证，再提交咨询。');
         return;
       }
-      setEnquiryStatus('Please send the draft from your email app. If it does not open, use the draft below. This website has not sent an email.',
-        '请在邮件应用中自行发送草稿。如未打开，可复制下方草稿；网站尚未发送邮件。');
-      window.location.href = 'mailto:info@hiremiiglobal.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+      sending = true;
+      const controls = [...form.querySelectorAll('input,select,textarea,button')].map(node => ({ node, disabled: node.disabled }));
+      controls.forEach(({ node }) => { node.disabled = true; });
+      form.setAttribute('aria-busy', 'true');
+      setEnquiryStatus('Submitting your enquiry…', '正在提交咨询……');
+      try {
+        const response = await fetch('/api/enquiries', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, verificationToken }), signal: AbortSignal.timeout(20000),
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok || result?.ok !== true) {
+          if (response.status === 429) setEnquiryStatus('Too many submissions or the sending service is busy. Please wait a minute and try again, or email our team.',
+            '提交过于频繁或发信服务繁忙。请稍等一分钟重试，或直接发邮件联系团队。', true);
+          else if (result?.code === 'verification' || response.status === 403) setEnquiryStatus('We could not verify this submission. Try again or email our team. Your entries are still here.',
+            '暂时未能验证本次提交。请重试，或直接发邮件联系团队；本次填写内容仍保留在页面中。', true);
+          else if (response.status === 400 || response.status === 413) setEnquiryStatus('Please check your entries and any attached estimate, then try again.',
+            '请检查填写内容及附上的自评信息，然后重试。');
+          else throw Error('unavailable');
+          return;
+        }
+        lastSentPayload = encoded;
+        setEnquiryStatus('Your enquiry has been submitted. Our team will reply using the contact details you provided.',
+          '咨询已提交。团队将通过您填写的联系方式回复。');
+      } catch {
+        setEnquiryStatus('We could not confirm submission. Your entries are still here. Retry or email our team using the address below.',
+          '暂时无法确认提交结果，填写内容仍保留在页面中。可重试或通过下方邮箱联系团队。', true);
+      } finally {
+        controls.forEach(({ node, disabled }) => { node.disabled = disabled; });
+        form.removeAttribute('aria-busy');
+        sending = false;
+        verificationToken = '';
+        sendButton.disabled = true;
+        if (verificationWidget !== undefined) window.turnstile?.reset(verificationWidget);
+      }
     });
-    form.querySelector('#enquiry-preview').disabled = false;
     if (sendButton) sendButton.disabled = true;
     if (sendButton && verificationBox && root.dataset.routeLanguage && root.dataset.enquirySitekey) {
       verificationBox.hidden = false;
@@ -751,7 +692,7 @@
           'expired-callback': () => { verificationToken = ''; sendButton.disabled = true; },
           'error-callback': () => {
             verificationToken = ''; sendButton.disabled = true;
-            setEnquiryStatus('The security check could not load. Please try again or use the email option.', '安全验证暂时无法加载，请重试或通过邮件应用联系团队。');
+            setEnquiryStatus('The security check could not load. Please try again or email our team.', '安全验证暂时无法加载，请重试或直接发邮件联系团队。', true);
             return true;
           },
         });
@@ -761,9 +702,11 @@
         const securityScript = document.createElement('script');
         securityScript.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=aqyrEnquiryVerificationReady&render=explicit';
         securityScript.async = true; securityScript.defer = true;
-        securityScript.onerror = () => setEnquiryStatus('The security check could not load. Please use the email option or try again later.', '安全验证暂时无法加载，请通过邮件应用联系团队或稍后重试。');
+        securityScript.onerror = () => setEnquiryStatus('The security check could not load. Please email our team or try again later.', '安全验证暂时无法加载，请直接发邮件联系团队或稍后重试。', true);
         document.head.appendChild(securityScript);
       }
+    } else {
+      setEnquiryStatus('The form is temporarily unavailable. Please email our team.', '表单暂时不可用，请直接发邮件联系团队。', true);
     }
   }
 

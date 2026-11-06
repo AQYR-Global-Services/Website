@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {parse} from 'parse5';
+import {prepareEnquiry} from '../lib/enquiry-service.mjs';
 import * as pointsEnquiry from '../public/points-enquiry.mjs';
 import {calculate} from '../public/points-rules.mjs';
 import {stateCodes} from '../public/state-nomination.mjs';
@@ -36,7 +37,8 @@ async function setup(hash='',lang='en',options={}) {
   }
   const clipboard={writes:[],async writeText(text){if(options.clipboardDenied)throw Error('Denied');this.writes.push(text);}};
   const submissions=[];
-  const fetch=async(_url,init)=>{submissions.push(JSON.parse(init.body));return options.sendResponse || {ok:true,status:200,json:async()=>({ok:true})};};
+  let lastMail=null;
+  const fetch=async(_url,init)=>{submissions.push(JSON.parse(init.body));lastMail=prepareEnquiry(submissions.at(-1),'unit-only-secret').mail.text;return options.sendResponse || {ok:true,status:200,json:async()=>({ok:true})};};
   let verificationCallback;
   const turnstile={render(_node,config){verificationCallback=config.callback;config.callback('unit-token');return 'unit-widget';},reset(){verificationCallback('unit-token');}};
   const context = {form,root:{dataset:{lang,routeLanguage:lang,enquirySitekey:'unit-site'}},location,window:{location,turnstile},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,fetch,AbortSignal,Object,JSON,MutationObserver:class{observe(){}},
@@ -45,7 +47,7 @@ async function setup(hash='',lang='en',options={}) {
   vm.runInNewContext(handler,context);
   await new Promise(resolve=>setImmediate(resolve));
   for(const [name,value] of Object.entries({name:'Test visitor',email:'test@example.test',message:'Please review my estimate.'})) node('[name="'+name+'"]').value=value;
-  return {node,location,form,clipboard,submissions,async submit(action='email'){location.href='';await form.events.submit({preventDefault(){},submitter:{value:action}});return location.href ? new URL(location.href).searchParams.get('body') : null;}};
+  return {node,location,form,clipboard,submissions,async submit(action='send'){location.href='';await form.events.submit({preventDefault(){},submitter:action===null?null:{value:action}});assert.equal(location.href,'','Submitting never opens a mail application');return lastMail;}};
 }
 for(const language of ['en','zh']){
   const direct=await setup('',language);
@@ -62,6 +64,7 @@ for(const language of ['en','zh']){
   await failed.submit('send');
   assert.equal(failed.node('[name="message"]').value,'Please review my estimate.');
   assert(!failed.node('#enquiry-send').disabled);
+  assert(!failed.node('#enquiry-fallback').hidden);
   assert.match(failed.node('#enquiry-status').textContent,language==='zh'?/暂时无法确认/:/could not confirm/);
   await failed.submit('send');assert.equal(failed.submissions.length,2,'Failed or uncertain requests remain retryable');
   const limited=await setup('',language,{sendResponse:{ok:false,status:429,json:async()=>{throw new SyntaxError('HTML firewall response');}}});
@@ -70,25 +73,20 @@ for(const language of ['en','zh']){
   assert.equal(limited.node('[name="message"]').value,'Please review my estimate.');
   assert(!limited.node('#enquiry-send').disabled);
 }
-for(const lang of ['en','zh']) {
-  const preview=await setup('',lang);
-  assert.equal(await preview.submit('preview'),null,'Preview must not open an email app');
-  assert(!preview.node('#enquiry-draft').hidden);
-  assert.match(preview.node('#enquiry-draft-text').value,/info@hiremiiglobal.com/);
-  assert.match(preview.node('#enquiry-draft-text').value,/Test visitor/);
-  await preview.node('#enquiry-copy').events.click();
-  assert.equal(preview.clipboard.writes[0],preview.node('#enquiry-draft-text').value);
-  preview.form.events.input();
-  assert(preview.node('#enquiry-draft').hidden);
-  assert(preview.node('#enquiry-copy').disabled);
-  assert.equal(preview.node('#enquiry-draft-text').value,'','Edited form must not leave a stale copyable draft');
+const formTree=parse(html);
+const submitButtons=[];
+function findSubmitButtons(n){
+  if(n.tagName==='button' && n.attrs.some(a=>a.name==='type'&&a.value==='submit')) submitButtons.push(n);
+  for(const child of n.childNodes||[])findSubmitButtons(child);
 }
-const deniedCopy=await setup('','en',{clipboardDenied:true});
-await deniedCopy.submit('preview');await deniedCopy.node('#enquiry-copy').events.click();
-assert(deniedCopy.node('#enquiry-draft-text').selected,'Clipboard denial must leave a manually copyable draft');
+findSubmitButtons(formTree);
+assert.equal(submitButtons.length,1,'The form has one unambiguous submit action');
+assert.doesNotMatch(html,/id="enquiry-(preview|draft|copy)"|value="email"/);
 const invalidForm=await setup('','en',{valid:false});
-assert.equal(await invalidForm.submit('preview'),null);
-assert(invalidForm.node('#enquiry-draft').hidden,'Invalid form must not generate a draft');
+assert.equal(await invalidForm.submit(),null);
+assert.equal(invalidForm.submissions.length,0,'Invalid form must not submit');
+const keyboardSubmit=await setup();await keyboardSubmit.submit(null);
+assert.equal(keyboardSubmit.submissions.length,1,'Enter-key submission uses the same server flow');
 for(const [search,expected] of [['?service=visitor-student&audience=individual','Individual visa enquiry'],['?service=partner-family&audience=individual','Individual visa enquiry'],['?service=sponsorship&audience=employer','Employer'],['?service=sponsorship&audience=individual','Skilled professional']]) {
   assert.equal((await setup('','en',{search})).node('[name="enquiryType"]').value,expected);
 }
@@ -112,17 +110,17 @@ for(const lang of ['en','zh']) {
   assert.equal(chosen.node('[name="estimatedScore"]').value,'679');
   assert.equal(chosen.location.hash,'#enquiry');
   const body=await chosen.submit();
-  assert.match(body,/VPT: 679/);
+  assert.match(body,/VIC-190 · 679/);
   assert.match(body,lang==='zh'?/客户自评/:/self-assessed/);
   assert.doesNotMatch(body,/salary|occupationQuery|listening/);
   chosen.node('[name="estimatedScore"]').value='650';
-  assert.match(await chosen.submit(),/VPT: 650/);
+  assert.match(await chosen.submit(),/VIC-190 · 650/);
   chosen.node('[name="includeEstimate"]').checked=false;
   chosen.node('[name="includeEstimate"]').events.change();
   assert.doesNotMatch(await chosen.submit(),/679|650|Estimated points|客户自评/);
 }
 const nsw=await setup('#enquiry?pathway=nsw-190&score=80');
-assert.match(await nsw.submit(),/conditional \+5 nomination points.*80/);
+assert.match(await nsw.submit(),/NSW-190 · 80.*conditional nomination points/);
 nsw.node('[name="requestType"]').value='hiring';
 nsw.node('[name="requestType"]').events.change();
 assert.doesNotMatch(await nsw.submit(),/Estimated points/);
@@ -137,8 +135,8 @@ function fragment(answers) {
   return '#enquiry?'+new URLSearchParams({pathway:answers.state+'-'+answers.visa,score:String(calculate(answers).total),details:JSON.stringify(pointsEnquiry.createPointsSnapshot(answers))});
 }
 const editedImport=await setup(fragment(vpt));
-const pendingPreview=editedImport.submit('preview');editedImport.form.events.input();await pendingPreview;
-assert(editedImport.node('#enquiry-draft').hidden,'Editing during an awaited score import must cancel the pending draft');
+const pendingSubmit=editedImport.submit();editedImport.form.events.input();await pendingSubmit;
+assert.equal(editedImport.submissions.length,0,'Editing during an awaited score import must cancel the pending submission');
 const extraEnglish = [
   {...eoi,englishMode:'cambridge',listening:'175',reading:'179',writing:'193',speaking:'194',testDate:'2026-10-01'},
   {...eoi,englishMode:'toefl',listening:'22',reading:'22',writing:'26',speaking:'24',testDate:'2026-10-01',testEvidence:'yes'},
@@ -248,9 +246,9 @@ for(const state of stateCodes){
   assert.equal(pointsEnquiry.createPointsSnapshot({...answers,regionalConfirmed:false}),null);
   const imported=await setup(fragment(answers));
   if(state==='vic'){
-    assert.match(await imported.submit(),/VPT: 679/);
-    assert.doesNotMatch(await imported.submit(),/conditional \+15 nomination points/);
-  }else assert.match(await imported.submit(),/conditional \+15 nomination points/);
+    assert.match(await imported.submit(),/Total: 679 points/);
+    assert.doesNotMatch(await imported.submit(),/Conditional state nomination: Only if state nomination is granted — 15 points/);
+  }else assert.match(await imported.submit(),/Conditional state nomination: Only if state nomination is granted — 15 points/);
   assert.match(await imported.submit(),/491 designated regional requirements/);
 }
 assert(!(await setup('#enquiry?pathway=vic-491&score=951')).node('[name="includeEstimate"]').checked);
@@ -271,7 +269,7 @@ for(const program of ['act-resident-491','act-overseas-491','tas-tse-491','tas-t
     const body=await both.submit();
     assert(body.includes(pointsEnquiry.formatNominationEnquiry(snap,lang)));
     assert(body.includes('491'));
-    assert.match(body,lang==='zh'?/含有条件州提名 \+15 分/:/conditional \+15 nomination points/);
+    assert.match(body,lang==='zh'?/有条件州提名: 仅在获得州提名后计入 — 15 分/:/Conditional state nomination: Only if state nomination is granted — 15 points/);
   }
 }
 console.log('PASS: 24 scoring modes and 30 nomination paths; independent EOI/ROI attachments, 491 regional validation and subclass-safe imported scores.');

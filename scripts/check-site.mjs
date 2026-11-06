@@ -438,8 +438,8 @@ for (const route of routes) {
     assert.doesNotMatch(source, /L1\/251 St Georges Tce|Box Hill, Victoria 3128/);
     assert.match(source, /<textarea[^>]*aria-describedby="enquiry-privacy-hint"/);
     assert.equal((source.match(/id="enquiry-privacy-hint"/g) || []).length, 1);
-    assert(source.indexOf('id="enquiry-privacy-hint"') < source.indexOf('class="button enquiry-submit"'),
-      "Sensitive-information advice precedes the email action");
+    assert(source.indexOf('id="enquiry-privacy-hint"') < source.indexOf('id="enquiry-send"'),
+      "Sensitive-information advice precedes the submit action");
     assert.match(source, /Please do not include passport numbers, bank details or full visa documents/);
     assert.match(source, /id="enquiry-send" value="send" disabled/);
     assert.match(source, /name="website" type="text" tabindex="-1"/);
@@ -616,7 +616,8 @@ for (const crawler of ["GPTBot", "ClaudeBot", "CCBot", "Applebot-Extended", "Goo
 const script = await readFile(resolve(root, "public", "script.js"), "utf8");
 assert.doesNotMatch(script, /你/, "Runtime Chinese copy uses polite address");
 assert.equal(script, await readFile(resolve(root, "script.js"), "utf8"), "Preview script must match deployed script");
-assert.match(script, /mailto:info@hiremiiglobal.com/);
+assert.match(script, /fetch\('\/api\/enquiries'/);
+assert.doesNotMatch(script, /enquiry-preview|enquiry-draft|window\.location\.href = 'mailto:/);
 assert.match(script, /requestedService === 'labour-agreement'/);
 assert.match(script, /requestSelect\.addEventListener\('change', updateLabourHint\)/);
 assert.match(script, /caseMapStages\.forEach/);
