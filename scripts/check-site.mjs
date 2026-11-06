@@ -50,7 +50,7 @@ for (const route of routes) {
   assert.equal(organization.parentOrganization?.tickerSymbol, "XASX AQ1");
   assert.equal(organization.parentOrganization?.url, "https://aqyr.ai");
   assert.match(organization.description, /subsidiary of AQYR/);
-  assert.equal(organization.legalName, "HIREMII GLOBAL SERVICES PTY LTD");
+  assert.equal(organization.legalName, "AQYR GLOBAL SERVICES PTY LTD");
   assert.equal(organization.taxID, "23619566040");
   assert.deepEqual(organization.identifier.map(({ propertyID, value }) => [propertyID, value]),
     [["ABN", "23619566040"], ["ACN", "619566040"]]);
@@ -230,7 +230,7 @@ for (const route of routes) {
     assert.match(source, /AQYR Ltd \(ASX:AQ1\)/);
     assert.doesNotMatch(source, /ASX:HMI|Hiremii Limited/);
     assert.match(source, /not a separately listed company/);
-    assert.match(source, /HIREMII GLOBAL SERVICES PTY LTD/);
+    assert.match(source, /AQYR GLOBAL SERVICES PTY LTD/);
     assert.match(source, /class="section legal-section company-profile"/);
     assert.match(source, /id="company-registration"/);
     assert(!/knowledge graph|AI-powered recruitment platform/i.test(source));

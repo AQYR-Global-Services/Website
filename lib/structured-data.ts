@@ -60,7 +60,7 @@ export const siteStructuredData = {
       "@type": "Organization",
       "@id": organizationId,
       name: brandName,
-      legalName: "HIREMII GLOBAL SERVICES PTY LTD",
+      legalName: "AQYR GLOBAL SERVICES PTY LTD",
       url: siteUrl,
       description: organizationDescription,
       logo: `${siteUrl}/aqyr-logo.svg`,
