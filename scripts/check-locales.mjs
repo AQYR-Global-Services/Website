@@ -6,7 +6,16 @@ import { captureCalculatorControls, restoreCalculatorControls, saveCalculatorHan
 const base = process.argv[2] || 'http://127.0.0.1:3217';
 const attr = (node, name) => node.attrs?.find(row => row.name === name)?.value;
 const all = node => [node, ...(node.childNodes || []).flatMap(all)];
-const text = node => node.nodeName === '#text' ? node.value : (node.childNodes || []).map(text).join('');
+const text = node => {
+  // Cloudflare's existing email protection rewrites text at the production edge.
+  // Compare its encoded email with the source, rather than ignoring email text.
+  const encoded = attr(node, 'data-cfemail');
+  if (attr(node, 'class')?.split(' ').includes('__cf_email__') && /^(?:[\da-f]{2})+$/i.test(encoded || '')) {
+    const bytes = Buffer.from(encoded, 'hex');
+    return Buffer.from(bytes.subarray(1).map(value => value ^ bytes[0])).toString('utf8');
+  }
+  return node.nodeName === '#text' ? node.value : (node.childNodes || []).map(text).join('');
+};
 const normalized = value => value.replace(/\s+/g, ' ').trim();
 const fixture = localizeMarkup('<p data-en="Hi &lt;strong&gt;there&lt;/strong&gt;" data-zh="您好 &lt;strong&gt;世界&lt;/strong&gt;">old</p><a href="/contact?service=skilled#enquiry">Go</a><button type="button" data-language-toggle>中文</button>', 'zh', '/about');
 assert.match(fixture, /您好 <strong>世界<\/strong>/);
