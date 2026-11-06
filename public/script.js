@@ -489,7 +489,8 @@
     }
     if (requestedService === 'labour-agreement') form.querySelector('[name="enquiryType"]').value = 'Employer';
     const audience = new URLSearchParams(location.search).get('audience');
-    const enquiryAudience = { employer: 'Employer', individual: 'Skilled professional' }[audience];
+    const enquiryAudience = audience === 'employer' ? 'Employer' : audience === 'individual'
+      ? (['skilled','sponsorship','employer-connection'].includes(requestedService) ? 'Skilled professional' : 'Individual visa enquiry') : '';
     if (enquiryAudience) form.querySelector('[name="enquiryType"]').value = enquiryAudience;
     const labourHint = form.querySelector('#labour-enquiry-hint');
     const updateLabourHint = () => {
@@ -583,11 +584,50 @@
     }
     updateEstimate();
     new MutationObserver(updateEstimate).observe(root,{attributes:true,attributeFilter:['data-lang']});
+    const draftPanel = form.querySelector('#enquiry-draft');
+    const draftText = form.querySelector('#enquiry-draft-text');
+    const copyDraft = form.querySelector('#enquiry-copy');
+    let draftRevision = 0;
+    const setEnquiryStatus = (en,zh) => {
+      const status = form.querySelector('#enquiry-status');
+      status.dataset.en = en;
+      status.dataset.zh = zh;
+      status.textContent = root.dataset.lang === 'zh' ? zh : en;
+    };
+    const clearDraft = () => {
+      draftRevision += 1;
+      draftPanel.hidden = true;
+      draftText.value = '';
+      copyDraft.disabled = true;
+      setEnquiryStatus('Review a draft or open your email app. You must send the email yourself; this website does not send it.',
+        '可先预览草稿，或打开邮件应用。请自行发送邮件；网站不会自动发送邮件。');
+    };
+    form.addEventListener('input',clearDraft);
+    form.addEventListener('change',clearDraft);
+    copyDraft.addEventListener('click', async () => {
+      if (copyDraft.disabled || !draftText.value) return;
+      const text = draftText.value;
+      try {
+        await navigator.clipboard.writeText(text);
+        if (draftText.value !== text || draftPanel.hidden) return;
+        setEnquiryStatus('Draft copied. Paste it into your email service and send it to info@hiremiiglobal.com. No email has been sent by this website.',
+          '草稿已复制。请粘贴到您的邮箱，发送至 info@hiremiiglobal.com；网站尚未发送任何邮件。');
+      } catch {
+        if (draftText.value !== text || draftPanel.hidden) return;
+        draftText.focus();
+        draftText.select();
+        setEnquiryStatus('Automatic copying is unavailable. Copy the selected draft manually, then send it from your own email service.',
+          '暂时无法自动复制。请手动复制已选中的草稿，再通过自己的邮箱发送。');
+      }
+    });
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      clearDraft();
+      const revision = draftRevision;
       if (!form.reportValidity()) return;
       if (includeEstimate.checked && detailsRequested) {
         await detailsReady;
+        if (revision !== draftRevision) return;
         if (!pointsSnapshot) {
           detailStatus.hidden = false;
           detailStatus.textContent = root.dataset.lang === 'zh' ? '未能读取完整明细。请返回打分工具重新计算，再附上分数。' : 'The complete breakdown could not be loaded. Please recalculate and include your estimate again.';
@@ -596,6 +636,7 @@
       }
       if(includeNomination.checked&&nominationRequested){
         await detailsReady;
+        if (revision !== draftRevision) return;
         if(!nominationSnapshot){nominationStatus.hidden=false;return;}
       }
       const zh = root.dataset.lang === 'zh';
@@ -621,14 +662,20 @@
       }
       const subject = zh ? 'AQYR 网站咨询' : 'AQYR website enquiry';
       const body = labels.map((label, index) => label + ': ' + values[index]).join('\n\n');
-      const status = form.querySelector('#enquiry-status');
-      if (status) {
-        status.dataset.en = 'Please send the draft from your email app. If it does not open, email info@hiremiiglobal.com directly.';
-        status.dataset.zh = '请在邮件应用中自行发送草稿。如未打开，请直接发送邮件至 info@hiremiiglobal.com。';
-        status.textContent = zh ? status.dataset.zh : status.dataset.en;
+      draftText.value = (zh ? '收件人' : 'To') + ': info@hiremiiglobal.com\n' + (zh ? '主题' : 'Subject') + ': ' + subject + '\n\n' + body;
+      draftPanel.hidden = false;
+      copyDraft.disabled = false;
+      if (event.submitter?.value === 'preview') {
+        setEnquiryStatus('Your draft is ready below. Review and copy it into your email service. This website has not sent an email.',
+          '草稿已在下方生成。请检查后复制到自己的邮箱发送；网站尚未发送邮件。');
+        draftText.focus();
+        return;
       }
+      setEnquiryStatus('Please send the draft from your email app. If it does not open, use the draft below. This website has not sent an email.',
+        '请在邮件应用中自行发送草稿。如未打开，可复制下方草稿；网站尚未发送邮件。');
       window.location.href = 'mailto:info@hiremiiglobal.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });
+    form.querySelector('#enquiry-preview').disabled = false;
   }
 
   // Do not re-hide a page someone has already read while slow scripts were loading.

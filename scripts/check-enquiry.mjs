@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {parse} from 'parse5';
 import * as pointsEnquiry from '../public/points-enquiry.mjs';
 import {calculate} from '../public/points-rules.mjs';
 import {stateCodes} from '../public/state-nomination.mjs';
@@ -13,10 +14,10 @@ const script = await readFile(new URL('../public/script.js',import.meta.url),'ut
 const html = await readFile(new URL('../content/contact.html',import.meta.url),'utf8');
 const handler = script.slice(script.indexOf('  if (form) {'),script.indexOf('  // Do not re-hide'))
   .replace(/import\(location\.pathname\.endsWith\('\.html'\) \? '\.\/public\/points-enquiry\.mjs\?v=[^']+' : '\/points-enquiry\.mjs\?v=[^']+'\)/,'Promise.resolve(pointsEnquiry)');
-async function setup(hash='',lang='en') {
+async function setup(hash='',lang='en',options={}) {
   const nodes = new Map();
   const node = key => {
-    if (!nodes.has(key)) nodes.set(key,{value:'',checked:false,disabled:false,hidden:false,textContent:'',dataset:{},events:{},addEventListener(event,fn){this.events[event]=fn;}});
+    if (!nodes.has(key)) nodes.set(key,{value:'',checked:false,disabled:false,hidden:false,textContent:'',dataset:{},events:{},focus(){this.focused=true;},select(){this.selected=true;},addEventListener(event,fn){this.events[event]=fn;}});
     return nodes.get(key);
   };
   for (const match of html.matchAll(/<select\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)) {
@@ -24,8 +25,8 @@ async function setup(hash='',lang='en') {
     field.options = [...match[2].matchAll(/<option value="([^"]*)" data-en="([^"]*)" data-zh="([^"]*)"/g)].map(([,value,en,zh])=>({value,dataset:{en,zh}}));
     Object.defineProperty(field,'selectedOptions',{get(){return this.options.filter(option=>option.value===this.value);}});
   }
-  const form = {querySelector:node,events:{},addEventListener(event,fn){this.events[event]=fn;},reportValidity(){return true;}};
-  const location = {search:'?service=skilled&audience=individual',hash,pathname:'/contact',href:''};
+  const form = {querySelector:node,events:{},addEventListener(event,fn){this.events[event]=fn;},reportValidity(){return options.valid !== false;}};
+  const location = {search:options.search ?? '?service=skilled&audience=individual',hash,pathname:'/contact',href:''};
   class FormData {
     get(name) {
       const field=node('[name="'+name+'"]');
@@ -33,13 +34,47 @@ async function setup(hash='',lang='en') {
       return name==='includeEstimate'?'yes':field.value;
     }
   }
-  const context = {form,root:{dataset:{lang}},location,window:{location},URLSearchParams,FormData,pointsEnquiry,Promise,MutationObserver:class{observe(){}},
+  const clipboard={writes:[],async writeText(text){if(options.clipboardDenied)throw Error('Denied');this.writes.push(text);}};
+  const context = {form,root:{dataset:{lang}},location,window:{location},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,MutationObserver:class{observe(){}},
     history:{state:null,replaceState(_state,_title,url){location.hash=new URL(url,'https://example.test').hash;}},
     document:{querySelector(){return {scrollIntoView(){}};}},requestAnimationFrame(fn){fn();}};
   vm.runInNewContext(handler,context);
   await new Promise(resolve=>setImmediate(resolve));
   for(const [name,value] of Object.entries({name:'Test visitor',email:'test@example.test',message:'Please review my estimate.'})) node('[name="'+name+'"]').value=value;
-  return {node,location,async submit(){location.href='';await form.events.submit({preventDefault(){}});return location.href ? new URL(location.href).searchParams.get('body') : null;}};
+  return {node,location,form,clipboard,async submit(action='email'){location.href='';await form.events.submit({preventDefault(){},submitter:{value:action}});return location.href ? new URL(location.href).searchParams.get('body') : null;}};
+}
+for(const lang of ['en','zh']) {
+  const preview=await setup('',lang);
+  assert.equal(await preview.submit('preview'),null,'Preview must not open an email app');
+  assert(!preview.node('#enquiry-draft').hidden);
+  assert.match(preview.node('#enquiry-draft-text').value,/info@hiremiiglobal.com/);
+  assert.match(preview.node('#enquiry-draft-text').value,/Test visitor/);
+  await preview.node('#enquiry-copy').events.click();
+  assert.equal(preview.clipboard.writes[0],preview.node('#enquiry-draft-text').value);
+  preview.form.events.input();
+  assert(preview.node('#enquiry-draft').hidden);
+  assert(preview.node('#enquiry-copy').disabled);
+  assert.equal(preview.node('#enquiry-draft-text').value,'','Edited form must not leave a stale copyable draft');
+}
+const deniedCopy=await setup('','en',{clipboardDenied:true});
+await deniedCopy.submit('preview');await deniedCopy.node('#enquiry-copy').events.click();
+assert(deniedCopy.node('#enquiry-draft-text').selected,'Clipboard denial must leave a manually copyable draft');
+const invalidForm=await setup('','en',{valid:false});
+assert.equal(await invalidForm.submit('preview'),null);
+assert(invalidForm.node('#enquiry-draft').hidden,'Invalid form must not generate a draft');
+for(const [search,expected] of [['?service=visitor-student&audience=individual','Individual visa enquiry'],['?service=partner-family&audience=individual','Individual visa enquiry'],['?service=sponsorship&audience=employer','Employer'],['?service=sponsorship&audience=individual','Skilled professional']]) {
+  assert.equal((await setup('','en',{search})).node('[name="enquiryType"]').value,expected);
+}
+// Use the actual HTML links, including entity decoding, rather than testing only hand-built query strings.
+for(const [page,expected] of [['employer-sponsorship','Employer'],['sponsored-visas','Skilled professional'],['labour-agreements','Employer']]) {
+  const source=await readFile(new URL('../content/'+page+'.html',import.meta.url),'utf8');
+  const links=[];
+  function walk(n){if(n.tagName==='a'){const href=n.attrs.find(a=>a.name==='href')?.value;if(href?.startsWith('/contact?'))links.push(new URL(href,'https://example.test'));}for(const child of n.childNodes||[])walk(child);}
+  walk(parse(source));assert(links.length,page);
+  for(const link of links){
+    assert([...link.searchParams.keys()].every(key=>['service','audience'].includes(key)),'HTML-encoded parameters must not become query keys');
+    assert.equal((await setup('','en',{search:link.search})).node('[name="enquiryType"]').value,expected,page);
+  }
 }
 const plain=await setup();
 assert(!plain.node('[name="includeEstimate"]').checked);
@@ -74,6 +109,9 @@ const eoi = {state:'nsw',visa:'190',age:'25',englishMode:'level',english:'profic
 function fragment(answers) {
   return '#enquiry?'+new URLSearchParams({pathway:answers.state+'-'+answers.visa,score:String(calculate(answers).total),details:JSON.stringify(pointsEnquiry.createPointsSnapshot(answers))});
 }
+const editedImport=await setup(fragment(vpt));
+const pendingPreview=editedImport.submit('preview');editedImport.form.events.input();await pendingPreview;
+assert(editedImport.node('#enquiry-draft').hidden,'Editing during an awaited score import must cancel the pending draft');
 const extraEnglish = [
   {...eoi,englishMode:'cambridge',listening:'175',reading:'179',writing:'193',speaking:'194',testDate:'2026-10-01'},
   {...eoi,englishMode:'toefl',listening:'22',reading:'22',writing:'26',speaking:'24',testDate:'2026-10-01',testEvidence:'yes'},

@@ -385,7 +385,7 @@ for (const route of routes) {
     assert.match(source, /For employers across industries/);
     assert.doesNotMatch(source.match(/<main[\s\S]*?<\/main>/)?.[0] || "", /construction|renewable energy|meat processing|建筑|新能源|肉类加工/i);
     assert.doesNotMatch(source.match(/<main[\s\S]*?<\/main>/)?.[0] || "", /200\+|success rate|market leader|successful labour agreement|老板|Leon|Romeo/);
-    assert.match(source, /href="\/contact\?service=labour-agreement#enquiry"/);
+    assert.match(source, /href="\/contact\?service=labour-agreement&amp;audience=employer#enquiry"/);
     assert.match(source, /Concessions|concessions/);
   }
   if (route === "contact") {

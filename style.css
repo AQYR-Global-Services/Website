@@ -23,6 +23,14 @@ html[data-lang=zh] body{font-family:'Albert Sans','PingFang SC','Microsoft YaHei
 .step small{height:30px;display:flex;align-items:center;padding-top:0;font-size:13px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
 @media(max-width:600px){.step small{height:26.25px}}
 .enquiry-form>.enquiry-submit{margin-top:20px}.enquiry-form>.enquiry-status{margin-top:14px}
+.enquiry-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.enquiry-actions .enquiry-submit{margin:0}
+.enquiry-draft{margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}
+.enquiry-draft[hidden]{display:none}
+.enquiry-draft h3{font-size:22px;margin:0 0 12px}
+.enquiry-draft>p{font-size:14px;color:var(--muted);margin:0 0 16px}
+.enquiry-draft textarea{min-height:250px;white-space:pre-wrap}
+.enquiry-draft>.button{margin-top:14px}
 @media(max-width:1280px){.top{gap:14px;padding:12px 18px}.nav{gap:13px}.nav a{font-size:12px}.brand img{width:130px}.brand small{font-size:8px;letter-spacing:.1em;padding-left:10px}.brand{gap:10px}.hero-layout{gap:44px}.footer-links{gap:32px}}
 @media(max-width:1100px){.top{gap:12px}.brand img{width:140px}.brand small{font-size:9px}.language{margin-left:auto}.menu{display:block}.nav{display:none;position:absolute;top:calc(100% + 10px);left:0;right:0;background:var(--white);border:1px solid var(--line);padding:20px;box-shadow:0 14px 40px #061e1220;border-radius:24px;max-height:calc(100svh - 130px);overflow:auto}.nav.open{display:flex;flex-direction:column;align-items:stretch;gap:3px}.nav a,html[data-lang=zh] .nav a{padding:12px 16px;font-size:16px;border-radius:12px}.nav a:hover{background:var(--mist)}.nav .nav-cta{align-self:flex-start;margin:8px 0 0 10px}}
 @media(max-width:1100px){.hero-layout{gap:32px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}.hero h1{font-size:48px}.hero-visual{padding:20px}.visual-node{font-size:9px}.visual-flow{gap:5px}.intro{gap:40px}.footer-main{gap:40px}.footer-links{gap:24px}.footer-links a{font-size:13px}}
