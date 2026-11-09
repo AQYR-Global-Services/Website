@@ -1,4 +1,4 @@
-import { brandName, organizationDescription, siteUrl, pages, chinesePages, homePages, type PageSlug } from "./site";
+import { brandName, organizationDescription, siteUrl, pages, chinesePages, homePages, pageTitle, type PageSlug } from "./site";
 import { pageBreadcrumbs } from "./page-hierarchy.mjs";
 import { localizedPath } from "../public/site-language.mjs";
 
@@ -11,7 +11,7 @@ export function pageStructuredData(slug: PageSlug | 'index', language: 'en' | 'z
     '@graph': [
       {
         '@type': 'WebPage', '@id': url + '#webpage', url,
-        name: `${brandName} — ${details.title}`, description: details.description,
+        name: pageTitle(details.title, slug === "index" ? "/" : "/" + slug), description: details.description,
         inLanguage: language === 'zh' ? 'zh-Hans' : 'en',
         isPartOf: { '@id': siteUrl + '/#website' },
         publisher: { '@id': siteUrl + '/#organization' },
@@ -92,6 +92,7 @@ export const siteStructuredData = {
       "@id": organizationId,
       name: brandName,
       legalName: "AQYR GLOBAL SERVICES PTY LTD",
+      alternateName: "Hiremii Global Services",
       url: siteUrl,
       description: organizationDescription,
       logo: `${siteUrl}/aqyr-logo.svg`,
@@ -102,7 +103,11 @@ export const siteStructuredData = {
         { "@type": "PropertyValue", propertyID: "ABN", value: "23619566040" },
         { "@type": "PropertyValue", propertyID: "ACN", value: "619566040" },
       ],
-      sameAs: ["https://abr.business.gov.au/ABN/View?abn=23619566040"],
+      sameAs: [
+        "https://abr.business.gov.au/ABN/View?abn=23619566040",
+        "https://au.linkedin.com/company/aqyr-global-services",
+        "https://www.facebook.com/profile.php?id=61595664925410",
+      ],
       address: melbourneAddress,
       location: offices.map((office) => ({ "@id": office["@id"] })),
       employee: [{ "@id": agentId }, { "@id": belleAgentId }],

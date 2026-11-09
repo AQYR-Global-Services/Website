@@ -26,7 +26,7 @@ for (const route of routes) {
   assert.doesNotMatch(html, /\bAQYR Global Service\b/, "Company name must be plural: " + route);
   assert.match(html, /name="description"/);
   const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
-  assert.match(title, /^AQYR Global Services — .+/, "Browser title leads with the company name: " + route);
+  assert.match(title, route ? /^.+ \| AQYR Global Services$/ : /^AQYR Global Services — .+/, "Descriptive title and company identity: " + route);
   assert.match(html, /<link[^>]+rel="icon"[^>]+href="\/aqyr-favicon\.png"[^>]+type="image\/png"[^>]+sizes="192x192"/);
   assert.match(html, /<link[^>]+rel="shortcut icon"[^>]+href="\/favicon\.ico"/);
   assert.doesNotMatch(html, /rel="icon"[^>]+href="[^"]*\.webp"/, 'Google Search favicon uses a supported format');
@@ -51,10 +51,14 @@ for (const route of routes) {
   assert.equal(organization.parentOrganization?.url, "https://aqyr.ai");
   assert.match(organization.description, /subsidiary of AQYR/);
   assert.equal(organization.legalName, "AQYR GLOBAL SERVICES PTY LTD");
+  assert.equal(organization.alternateName, "Hiremii Global Services");
   assert.equal(organization.taxID, "23619566040");
   assert.deepEqual(organization.identifier.map(({ propertyID, value }) => [propertyID, value]),
     [["ABN", "23619566040"], ["ACN", "619566040"]]);
   assert(organization.sameAs.includes("https://abr.business.gov.au/ABN/View?abn=23619566040"));
+  assert(organization.sameAs.includes("https://au.linkedin.com/company/aqyr-global-services"));
+  assert(organization.sameAs.includes("https://www.facebook.com/profile.php?id=61595664925410"));
+  assert(!organization.sameAs.some((url) => new URL(url).hostname === "aqyr.ai"), "Parent and subsidiary remain distinct entities");
   const graph = schema.flatMap((entry) => entry["@graph"] || [entry]);
   const agents = organization.employee.map((ref) => graph.find((entry) => entry["@id"] === ref["@id"]));
   assert.equal(agents.length, 2);
@@ -81,7 +85,7 @@ for (const route of routes) {
   assert.equal(offices.find((office) => office.name.endsWith("Shanghai office"))?.telephone, undefined);
   assert.doesNotMatch(html, /137\s*6139\s*5387/);
   assert.deepEqual(offices[0].address, organization.address);
-  assert.match(html, /property="og:title" content="AQYR Global Services — [^"]+"/);
+  assert.equal(html.match(/property="og:title" content="([^"]+)"/)?.[1], title, "Share title follows the browser title");
   assert.match(html, /property="og:image" content="https?:[^\"]*\/share-cover\.png"/);
   assert.match(html, /property="og:image:width" content="1200"/);
   assert.match(html, /property="og:image:height" content="630"/);
@@ -90,7 +94,7 @@ for (const route of routes) {
   assert.match(html, /id="main-content"/);
   assert.equal((html.match(/<h1\b/g) || []).length, 1, "One main heading: " + route);
   const source = loadPageSource((route || "index") + ".html", root);
-  assert.match(source, /<title>AQYR Global Services — [^<]+<\/title>/);
+  assert.equal(source.match(/<title>([^<]+)<\/title>/)?.[1], title, "Static preview and deployed title agree");
   assert.match(source, /rel="icon"[^>]+href="\/aqyr-favicon\.png"/);
   assert.match(source, /rel="shortcut icon"[^>]+href="\/favicon\.ico"/);
   if (route === "") {
