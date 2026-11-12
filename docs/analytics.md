@@ -92,5 +92,26 @@ business enquiries and avoid collecting personal enquiry contents. An unavailabl
 report is pending, never zero. Historical successful-enquiry figures are unavailable
 before this release; begin the conversion baseline at verified live activation.
 
-12 November 2026: implementation checks passed locally. Production receipt,
-GA4 key-event configuration and dated real GSC/GA4 baseline remain unverified.
+12 November 2026: implementation checks and production build passed locally
+(commit `25ad310`); the code has not been synchronized to production. The company
+browser verified GA4 property `559511648` (AQYR Global Services Website), stream
+`16155238102` (AQYR Website), the expected measurement ID and Melbourne reporting
+time. Enhanced measurement was already off. `generate_lead` was created as a
+code-sent key event, once per event, with no default monetary value. Its listing
+still reports no stream data; configuration alone is not receipt verification.
+
+A real baseline was read from the authenticated GSC domain property
+`sc-domain:hiremiiglobal.com` and the above GA4 property on 12 November. The common
+completed calendar-date window is 13 October–9 November 2026, compared with
+15 September–12 October. Aggregate values and extraction evidence are recorded
+on [WEB-2](https://aqyrai.atlassian.net/browse/WEB-2); private evidence remains
+outside the repository. GA4 uses Melbourne time; GSC daily data uses Pacific
+time, so matching date labels do not produce identical hourly boundaries.
+GSC covers the domain property, whereas GA4 covers the configured website stream.
+Prior-period zeros describe returned records, not proof of zero real visits or
+growth. Historical successful-enquiry conversions were not instrumented, and
+internal testing has not been excluded from this baseline. Live production
+receipt and retry verification remain required before WEB-2 can be completed.
+
+Google's [Search Console data guidance](https://support.google.com/webmasters/answer/96568?hl=en)
+explains the reporting timezone difference and usual reporting delay.

@@ -24,19 +24,35 @@ An API success or Resend delivery event means acceptance, not Inbox placement.
   its initial placement: a user or rule may have moved it.
 - The connected Outlook shared-message tools did not return authentication/spam
   headers, including when explicitly selecting `internet_message_headers`.
-- Browser inspection was stopped because the runtime could not reliably identify
-  the current URL. No DNS, sender, mailbox rule or filtering changes were made.
+- After the owner resumed browser access, Outlook's original message-details
+  dialog was inspected for the 6 November 15:46 Melbourne internal test. It
+  confirms SPF, both DKIM signatures, DMARC and composite authentication all
+  passed. The aligned From/DKIM domain is `auth.hiremiiglobal.com`; that historical
+  message's envelope domain is `rsend.auth.hiremiiglobal.com`. Reply-To correctly
+  points to the internal tester's supplied address.
+- That message was classified `SCL:5`, `SFV:SPM`, `CAT:SPM`, `BCL:0`, with mailbox
+  delivery `dest:J` / `RF:JunkEmail`. This establishes a Microsoft spam-filter
+  verdict despite successful authentication. The headers do not identify the
+  exact reputation/content feature responsible; do not present either as the
+  confirmed cause. It is not evidence of DMARC rejection or a bulk-mail verdict.
+- Full internal-test headers are retained privately outside the repository.
+  The current DNS check and this older message refer to different return-path
+  labels; do not replace working DNS on that basis. No DNS, sender, mailbox rule
+  or filtering changes have been made.
+- The signed-in Microsoft Defender account can open the false-positive
+  submission form. A report for this exact internal test is prepared in scope,
+  but sending its contents to Microsoft requires the owner's action-time
+  confirmation. No report or allow entry has yet been submitted.
 
 ## Next diagnostic steps
 
-1. In the exact team mailbox, inspect the original internal website-test message
-   details. Compare `Authentication-Results` (SPF, DKIM, DMARC, compauth), envelope
-   return path, DKIM signing domain and From alignment. Inspect available spam
-   classification/SCL and delivery trace. Keep full headers private; only put
+1. Report the verified internal-test false positive to Microsoft after the
+   owner's confirmation. Use only the exact message and affected team recipient;
+   do not submit customer mail. Record Microsoft's result and any recommended
+   action. A submission request alone does not prove the verdict is corrected.
+2. If needed, compare the corresponding Resend Deliverability Insights and fresh
+   message authentication. Keep full headers and identifiers private; only put
    non-sensitive conclusions in Jira.
-2. Check the corresponding Resend email's Deliverability Insights and domain
-   verification. Distinguish an authentication failure from reputation/content
-   classification or a local mailbox rule; do not infer the cause from DNS alone.
 3. Make only the narrow change justified by the evidence and authorised scope.
    Do not weaken DMARC, disable filtering, trust a whole domain or replace the
    sender merely to make an old test appear in Inbox.
@@ -52,3 +68,5 @@ An API success or Resend delivery event means acceptance, not Inbox placement.
 - [Resend: why emails go to spam](https://resend.com/guides/email/deliverability/why-emails-go-to-spam)
 - [Resend: deliverability insights](https://resend.com/blog/deliverability-insights)
 - [Microsoft: DMARC](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-dmarc-configure)
+- [Microsoft: diagnose spam verdicts](https://learn.microsoft.com/en-us/defender-office-365/anti-spam-policies-troubleshooting)
+- [Microsoft: resolve false positives](https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/step-by-step-guides/how-to-handle-false-positives-in-microsoft-defender-for-office-365?view=o365-worldwide)
