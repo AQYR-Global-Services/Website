@@ -39,6 +39,11 @@ An API success or Resend delivery event means acceptance, not Inbox placement.
   The current DNS check and this older message refer to different return-path
   labels; do not replace working DNS on that basis. No DNS, sender, mailbox rule
   or filtering changes have been made.
+- Resend's dashboard independently confirms the same internal test was sent and
+  delivered at 15:46 on 6 November, with the expected sender, team recipient and
+  Reply-To. Its Insights view lists all checks under Doing Great, without a
+  corrective item. The sending domain is currently Verified. These provider-side
+  checks do not overturn Microsoft's recipient-side Junk verdict.
 - The signed-in Microsoft Defender account can open the false-positive
   submission form. A report for this exact internal test is prepared in scope,
   but sending its contents to Microsoft requires the owner's action-time
