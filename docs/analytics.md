@@ -93,12 +93,13 @@ report is pending, never zero. Historical successful-enquiry figures are unavail
 before this release; begin the conversion baseline at verified live activation.
 
 12 November 2026: implementation checks and production build passed locally
-(commit `25ad310`); the code has not been synchronized to production. The company
+(commit `25ad310`); production synchronization was explicitly approved and
+released in `ab5f69a`. The company
 browser verified GA4 property `559511648` (AQYR Global Services Website), stream
 `16155238102` (AQYR Website), the expected measurement ID and Melbourne reporting
 time. Enhanced measurement was already off. `generate_lead` was created as a
-code-sent key event, once per event, with no default monetary value. Its listing
-still reports no stream data; configuration alone is not receipt verification.
+code-sent key event, once per event, with no default monetary value. Configuration
+was then verified against real production receipt, as described below.
 
 A real baseline was read from the authenticated GSC domain property
 `sc-domain:hiremiiglobal.com` and the above GA4 property on 12 November. The common
@@ -110,8 +111,24 @@ time, so matching date labels do not produce identical hourly boundaries.
 GSC covers the domain property, whereas GA4 covers the configured website stream.
 Prior-period zeros describe returned records, not proof of zero real visits or
 growth. Historical successful-enquiry conversions were not instrumented, and
-internal testing has not been excluded from this baseline. Live production
-receipt and retry verification remain required before WEB-2 can be completed.
+internal testing has not been excluded from this baseline.
+
+Production acceptance on 12 November (Melbourne): the approved 12:32 internal
+test with analytics consent produced one `generate_lead` in the correct GA4
+Realtime property, also counted once as a key event. The static `form_id` was
+verified as `website_enquiry`. Repeating the Submit click returned the already-
+submitted message without another email/event. After declining analytics and
+the automatic withdrawal reload, a distinct approved internal test at 12:35
+was delivered successfully, while the observed success/key-event count remained
+one. Both emails reached the team Inbox. Provider-retry and same-tab reload
+receipt deduplication are covered by the local automated checks; no lost network
+response was deliberately induced on production. These two messages are internal
+tests and must not be counted as genuine business leads when reviewing launch-day
+results. No test-specific name, contact detail or receipt is sent to GA4.
+
+Production site/localization checks passed for all 28 routes. Served analytics
+and shared-script content match the committed implementation (normalizing line
+endings). Screenshots and internal message evidence are retained privately.
 
 Google's [Search Console data guidance](https://support.google.com/webmasters/answer/96568?hl=en)
 explains the reporting timezone difference and usual reporting delay.

@@ -45,13 +45,30 @@ An API success or Resend delivery event means acceptance, not Inbox placement.
   corrective item. The sending domain is currently Verified. These provider-side
   checks do not overturn Microsoft's recipient-side Junk verdict.
 - The signed-in Microsoft Defender account can open the false-positive
-  submission form. A report for this exact internal test is prepared in scope,
-  but sending its contents to Microsoft requires the owner's action-time
-  confirmation. No report or allow entry has yet been submitted.
+  submission form. Following the owner's explicit action-time confirmation,
+  this exact internal test was reported as confirmed clean at 12:29 Melbourne
+  on 12 November. The report completed with **No threats found**. Defender
+  describes the old detection as Spam / Normal, Advanced filter, first contact;
+  the historical message remains in Junk. A clean analysis does not retroactively
+  move that old message or prove all future filtering is corrected.
+- No Tenant Allow/Block entry was requested: **Allow this message** stayed
+  unchecked. No DNS, sender, mailbox rule or filtering configuration was changed
+  in this task.
+- Two explicitly approved fresh website tests were sent on 12 November at
+  12:32:49 and 12:35:31 Melbourne time, with Turnstile enabled. Both reached
+  `info@hiremiiglobal.com` Inbox. Their original Outlook message details confirm
+  SPF, DKIM, DMARC and composite authentication all passed, SCL 1 and `dest:I`.
+  Thus this is original Inbox delivery, not merely a later manual move.
+- Fresh delivery headers also contain `wl:1;pcwl:1` allow-related indicators.
+  No such receiver-side entries were created by this task, and their origin
+  was not audited. Do not attribute Inbox placement solely to the Microsoft
+  submission, assert a reputation change, or promise Inbox delivery for every
+  recipient. The verified result is the current, exact team-mailbox workflow.
+  Submission ID, full headers and message IDs remain in private evidence only.
 
-## Next diagnostic steps
+## Procedure for a future recurrence
 
-1. Report the verified internal-test false positive to Microsoft after the
+1. Inspect the new original headers and report a verified false positive after the
    owner's confirmation. Use only the exact message and affected team recipient;
    do not submit customer mail. Record Microsoft's result and any recommended
    action. A submission request alone does not prove the verdict is corrected.
@@ -65,8 +82,9 @@ An API success or Resend delivery event means acceptance, not Inbox placement.
    the real website with Turnstile enabled. Use no client data. Record the actual
    send time, provider result, original final delivery folder and authentication
    summary. A manually moved old message is not a successful placement test.
-5. Keep WEB-3 open until the post-change evidence is verified. Even a successful
-   test is evidence of that test, not a guarantee about all future spam filtering.
+5. Reopen WEB-3 if new evidence shows the team enquiry workflow is going to Junk
+   again. Successful tests are evidence of those tests, not a guarantee about all
+   future spam filtering.
 
 ## Official references
 
