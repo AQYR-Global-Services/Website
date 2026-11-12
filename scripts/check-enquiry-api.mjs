@@ -12,7 +12,11 @@ const request = (body = sample, overrides = {}) => new Request('https://www.hire
   method: 'POST', headers: { origin: 'https://www.hiremiiglobal.com', 'content-type': 'application/json', ...overrides.headers },
   body: typeof body === 'string' ? body : JSON.stringify(body),
 });
-assert.equal((await handleEnquiry(request(), dependencies)).status, 200);
+const firstResponse=await handleEnquiry(request(), dependencies);
+assert.equal(firstResponse.status, 200);
+const accepted=await firstResponse.json();
+assert.match(accepted.receipt,/^[a-f0-9]{64}$/);
+assert.doesNotMatch(JSON.stringify(accepted),/unit-test-message|test@example/);
 assert.equal(calls.length, 1);
 assert.equal(calls[0].mail.from, enquirySender);
 assert.deepEqual(calls[0].mail.to, [enquiryRecipient]);
@@ -20,7 +24,7 @@ assert.equal(calls[0].mail.replyTo, sample.email);
 assert(!calls[0].mail.html, 'User input is plain text, never executable email markup');
 assert(calls[0].options.signal instanceof AbortSignal);
 assert.match(calls[0].options.idempotencyKey, /^website-enquiry\/[a-f0-9]{64}$/);
-await handleEnquiry(request(), dependencies);
+assert.equal(accepted.receipt,(await (await handleEnquiry(request(),dependencies)).json()).receipt,'Provider-idempotent responses return a stable opaque receipt');
 assert.equal(calls[0].options.idempotencyKey, calls[1].options.idempotencyKey, 'Retries including lost responses reuse provider key');
 assert.notEqual(prepareEnquiry({ ...sample, message: 'A different enquiry.' }, secret).idempotencyKey, calls[0].options.idempotencyKey);
 

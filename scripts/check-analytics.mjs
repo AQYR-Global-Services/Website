@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { initAnalytics, measurementId, containerId, readPreference, safePageLocation, safeReferrer } from '../public/analytics.mjs';
+import { initAnalytics, createEnquiryTracker, measurementId, containerId, readPreference, safePageLocation, safeReferrer } from '../public/analytics.mjs';
 
 const key = 'aqyr-analytics-consent-v1';
 const now = Date.now();
@@ -47,10 +47,10 @@ function harness(url = 'https://www.hiremiiglobal.com/contact?email=private#deta
   const win = { location, localStorage: { getItem(k) { if (blocked) throw Error('blocked'); return entries.get(k) ?? null; }, setItem(k,v) { if (blocked) throw Error('blocked'); entries.set(k,v); } },
     MutationObserver: class { constructor(fn) { win.languageChanged = fn; } observe() {} },
     addEventListener(name, fn) { win[name] = fn; } };
-  initAnalytics(win, doc);
+  const analytics = initAnalytics(win, doc);
   const panel = doc.getElementById('analytics-choice');
   const settings = nodes.find(node => node.className === 'analytics-settings');
-  return { win, doc, entries, panel, settings, nodes, reloads: () => reloads,
+  return { win, doc, entries, panel, settings, nodes, analytics, reloads: () => reloads,
     choose(choice) { panel.events.click({ target: panel.querySelector('[data-analytics="' + choice + '"]') }); } };
 }
 
@@ -104,3 +104,30 @@ assert.deepEqual(reopened.panel.querySelector('button').focusOptions, { preventS
 reopened.choose('accepted');
 assert.deepEqual(reopened.settings.focusOptions, { preventScroll: true }, 'Explicit preferences restore focus without scrolling');
 console.log('GTM checks passed: consent, withdrawal, expiry, bilingual UI, production-only, sanitised defaults, one container and no direct GA4 duplication.');
+
+const success = harness();
+const receipt = 'a'.repeat(64);
+assert.equal(success.analytics.trackEnquirySuccess(receipt), false, 'No measurement before consent');
+success.choose('rejected');
+assert.equal(success.analytics.trackEnquirySuccess(receipt), false);
+success.choose('accepted');
+assert.equal(success.win.dataLayer.length, 4, 'Past successes are never replayed on consent');
+assert.equal(success.analytics.trackEnquirySuccess(receipt), true);
+assert.equal(success.analytics.trackEnquirySuccess(receipt), false, 'Idempotent retries count once');
+const event = [...success.win.dataLayer.at(-1)];
+assert.deepEqual(event, ['event', 'generate_lead', {send_to:measurementId,form_id:'website_enquiry',page_location:'https://www.hiremiiglobal.com/contact',page_referrer:'https://example.com/'}]);
+assert(!JSON.stringify(event).includes(receipt), 'Receipt is never transmitted');
+success.choose('rejected');
+assert.equal(success.analytics.trackEnquirySuccess('b'.repeat(64)), false, 'Withdrawal stops conversion measurement');
+for (const url of ['http://localhost:3000/contact','https://preview.vercel.app/contact']) {
+  assert.equal(harness(url,saved('accepted')).analytics.trackEnquirySuccess(receipt),false);
+}
+const measured = new Map(), events=[];
+const fakeWin={location:new URL('https://www.hiremiiglobal.com/zh/contact?private=x'),sessionStorage:{getItem:k=>measured.get(k),setItem:(k,v)=>measured.set(k,v)},gtag:(...args)=>events.push(args)};
+const track=createEnquiryTracker(fakeWin,{referrer:''},()=>true);
+assert.equal(track(receipt),true);
+assert.equal(createEnquiryTracker(fakeWin,{referrer:''},()=>true)(receipt),false,'Reloading the tab does not count the same accepted enquiry again');
+for(const invalid of [undefined,null,'provider-id','x'.repeat(64),{email:'private'}]) assert.equal(track(invalid),false);
+assert.equal(events.length,1);
+assert.equal(events[0][2].page_location,'https://www.hiremiiglobal.com/zh/contact');
+console.log('PASS: successful-enquiry events require consent and server receipts, deduplicate retries/reloads, exclude form data and never replay pre-consent successes.');

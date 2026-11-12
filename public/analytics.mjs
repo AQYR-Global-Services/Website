@@ -1,5 +1,6 @@
 // Keep Enhanced Measurement OFF in this GA4 stream: no automatic form,
-// outbound-link or history tracking. Only consented, sanitised page views.
+// outbound-link or history tracking. Only consented, sanitised page views
+// and server-confirmed enquiry successes.
 import { isPublicPagePath, localizedHref, publicRouteLanguage } from './site-language.mjs';
 export const measurementId = 'G-DNQXKBP0ZC';
 export const containerId = 'GTM-WZ9XZFHL';
@@ -21,6 +22,30 @@ export function readPreference(storage, now = Date.now()) {
         value.at <= now && now - value.at < lifetime) return value.choice;
   } catch { /* Blocked storage must not break the site. */ }
   return null;
+}
+
+// The receipt is an opaque server HMAC, used locally only. Never send it, the
+// provider message ID or any submitted fields to Google. Do not replay successes
+// that occurred before consent. Storage failures must never block an enquiry.
+export function createEnquiryTracker(win, doc, enabled) {
+  const seen = new Set();
+  const key = 'aqyr-enquiry-measured-v1';
+  return receipt => {
+    if (!enabled() || typeof win.gtag !== 'function' || typeof receipt !== 'string' || !/^[a-f0-9]{64}$/.test(receipt)) return false;
+    let entries = [];
+    try {
+      const saved = JSON.parse(win.sessionStorage.getItem(key));
+      if (Array.isArray(saved)) entries = saved.filter(item => /^[a-f0-9]{64}$/.test(item?.id || '') && Number.isFinite(item.at) && item.at <= Date.now() && Date.now() - item.at < 86400000);
+    } catch { /* In-memory deduplication still works when storage is blocked. */ }
+    if (seen.has(receipt) || entries.some(item => item.id === receipt)) return false;
+    seen.add(receipt);
+    try { win.sessionStorage.setItem(key, JSON.stringify([...entries.slice(-99), { id: receipt, at: Date.now() }])); } catch {}
+    win.gtag('event', 'generate_lead', {
+      send_to: measurementId, form_id: 'website_enquiry',
+      page_location: safePageLocation(win.location), page_referrer: safeReferrer(doc.referrer),
+    });
+    return true;
+  };
 }
 
 export function initAnalytics(win = window, doc = document) {
@@ -81,8 +106,8 @@ export function initAnalytics(win = window, doc = document) {
     const zh = doc.documentElement.dataset.lang === 'zh';
     panel.querySelector('h2').textContent = zh ? '访问统计，由您选择。' : 'Your choice on analytics.';
     panel.querySelector('p').textContent = zh
-      ? '经您同意，我们使用 Google Analytics 了解网站访问情况，帮助改进网站。不向统计系统发送咨询内容或打分答案。拒绝不影响使用网站。'
-      : 'With your permission, we use Google Analytics to understand visits and improve this website. We do not send enquiry details or calculator answers to analytics. You can decline and use the site as usual.';
+      ? '经您同意，我们使用 Google Analytics 了解网站访问和咨询成功提交情况，帮助改进网站。不向统计系统发送咨询内容或打分答案。拒绝不影响使用网站。'
+      : 'With your permission, we use Google Analytics to understand visits and successful enquiry submissions. We do not send enquiry details or calculator answers to analytics. You can decline and use the site as usual.';
     const policy = panel.querySelector('a');
     policy.textContent = zh ? '隐私政策' : 'Privacy policy';
     policy.href = win.location.pathname.endsWith('.html') ? 'privacy.html' : localizedHref('/privacy', publicRouteLanguage(win.location.pathname));
@@ -137,4 +162,6 @@ export function initAnalytics(win = window, doc = document) {
   });
   if (choice === 'rejected') removeCookies();
   start();
+  return { trackEnquirySuccess: createEnquiryTracker(win, doc,
+    () => production && started && choice === 'accepted' && win['ga-disable-' + measurementId] === false) };
 }

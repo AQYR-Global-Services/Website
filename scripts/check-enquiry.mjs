@@ -36,32 +36,36 @@ async function setup(hash='',lang='en',options={}) {
     }
   }
   const clipboard={writes:[],async writeText(text){if(options.clipboardDenied)throw Error('Denied');this.writes.push(text);}};
-  const submissions=[];
+  const submissions=[], tracked=[];
   let lastMail=null;
-  const fetch=async(_url,init)=>{submissions.push(JSON.parse(init.body));lastMail=prepareEnquiry(submissions.at(-1),'unit-only-secret').mail.text;return options.sendResponse || {ok:true,status:200,json:async()=>({ok:true})};};
+  const fetch=async(_url,init)=>{submissions.push(JSON.parse(init.body));lastMail=prepareEnquiry(submissions.at(-1),'unit-only-secret').mail.text;return options.sendResponse || {ok:true,status:200,json:async()=>({ok:true,receipt:'a'.repeat(64)})};};
   let verificationCallback;
   const turnstile={render(_node,config){verificationCallback=config.callback;config.callback('unit-token');return 'unit-widget';},reset(){verificationCallback('unit-token');}};
   const context = {form,root:{dataset:{lang,routeLanguage:lang,enquirySitekey:'unit-site'}},location,window:{location,turnstile},navigator:{clipboard},URLSearchParams,FormData,pointsEnquiry,Promise,fetch,AbortSignal,Object,JSON,MutationObserver:class{observe(){}},
+    analyticsClient:{trackEnquirySuccess(receipt){if(options.trackingThrows)throw Error('blocked analytics');tracked.push(receipt);}},
     history:{state:null,replaceState(_state,_title,url){location.hash=new URL(url,'https://example.test').hash;}},
     document:{querySelector(){return {scrollIntoView(){}};}},requestAnimationFrame(fn){fn();}};
   vm.runInNewContext(handler,context);
   await new Promise(resolve=>setImmediate(resolve));
   for(const [name,value] of Object.entries({name:'Test visitor',email:'test@example.test',message:'Please review my estimate.'})) node('[name="'+name+'"]').value=value;
-  return {node,location,form,clipboard,submissions,async submit(action='send'){location.href='';await form.events.submit({preventDefault(){},submitter:action===null?null:{value:action}});assert.equal(location.href,'','Submitting never opens a mail application');return lastMail;}};
+  return {node,location,form,clipboard,submissions,tracked,async submit(action='send'){location.href='';await form.events.submit({preventDefault(){},submitter:action===null?null:{value:action}});await Promise.resolve();assert.equal(location.href,'','Submitting never opens a mail application');return lastMail;}};
 }
 for(const language of ['en','zh']){
   const direct=await setup('',language);
   await direct.submit('send');
   assert.equal(direct.submissions.length,1);
+  assert.deepEqual(direct.tracked,['a'.repeat(64)],'Only server-confirmed success triggers measurement');
   assert.equal(direct.submissions[0].language,language);
   assert.equal(direct.submissions[0].email,'test@example.test');
   assert(!('to' in direct.submissions[0]));
   assert.match(direct.node('#enquiry-status').textContent,language==='zh'?/咨询已提交/:/has been submitted/);
   await direct.submit('send');assert.equal(direct.submissions.length,1,'Repeated clicks after acceptance do not submit again');
+  assert.equal(direct.tracked.length,1,'Repeated clicks do not trigger conversion again');
   direct.node('[name="message"]').value='New enquiry';direct.form.events.input();await direct.submit('send');
   assert.equal(direct.submissions.length,2);
   const failed=await setup('',language,{sendResponse:{ok:false,status:503,json:async()=>({code:'unavailable'})}});
   await failed.submit('send');
+  assert.equal(failed.tracked.length,0,'Failed requests never count as conversions');
   assert.equal(failed.node('[name="message"]').value,'Please review my estimate.');
   assert(!failed.node('#enquiry-send').disabled);
   assert(!failed.node('#enquiry-fallback').hidden);
@@ -69,10 +73,14 @@ for(const language of ['en','zh']){
   await failed.submit('send');assert.equal(failed.submissions.length,2,'Failed or uncertain requests remain retryable');
   const limited=await setup('',language,{sendResponse:{ok:false,status:429,json:async()=>{throw new SyntaxError('HTML firewall response');}}});
   await limited.submit('send');
+  assert.equal(limited.tracked.length,0,'Blocked and limited submissions never count');
   assert.match(limited.node('#enquiry-status').textContent,language==='zh'?/提交过于频繁/:/Too many submissions/);
   assert.equal(limited.node('[name="message"]').value,'Please review my estimate.');
   assert(!limited.node('#enquiry-send').disabled);
 }
+const analyticsFailure=await setup('','en',{trackingThrows:true});
+await analyticsFailure.submit();
+assert.match(analyticsFailure.node('#enquiry-status').textContent,/has been submitted/,'Analytics failures cannot turn accepted enquiries into errors');
 const formTree=parse(html);
 const submitButtons=[];
 function findSubmitButtons(n){

@@ -31,7 +31,24 @@ page_view event tag, or an extra Google tag for the same measurement ID.
   their language path. Unknown paths are still replaced with `/`.
   Referrer is origin-only. No enquiry fields, score, salary, occupation or breakdown
   is included. This intentionally sacrifices campaign/query-level attribution.
-- This is basic traffic measurement, not a successful enquiry/conversion tracker.
+- `generate_lead` is sent only after `/api/enquiries` returns HTTP success,
+  `ok: true` and an opaque 64-character receipt following Resend acceptance.
+  A click, invalid form, failed challenge, rate limit, transport failure or
+  uncertain response never counts. This measures provider acceptance, not
+  inbox placement, a staff reply, eligibility or a signed client.
+- The event is sent through the existing consent-loaded Google tag to
+  `G-DNQXKBP0ZC`, with only `form_id: website_enquiry` and the existing safe
+  page location/referrer. Do not add a GTM event tag for this event: it would
+  duplicate the direct gtag event. No extra Google tag/config is installed.
+- The server signs the provider message ID with HMAC; the provider ID and
+  submitted values are not returned. The receipt stays local to the tab and
+  is never included in the analytics event. It prevents repeat events for
+  provider-idempotent retries and tab reloads for 24 hours, capped at 100
+  receipts. Blocked session storage falls back to in-memory deduplication;
+  separate tabs/devices are not guaranteed to deduplicate.
+- Consent must already be granted when the success is handled. Earlier
+  successes are not queued or replayed after acceptance. Local/preview hosts
+  never send events, and analytics loading/errors never block submission.
 - Consent preference storage is independent of the URL-selected language.
   Offline HTML previews alone remember a language preference. Calculator language
   navigation uses a single-use, five-minute tab-storage handoff for scoring
@@ -55,3 +72,25 @@ site, check one page_view in browser network and GA4 Realtime, navigate to anoth
 page, then withdraw and verify no further analytics requests. Confirm Enhanced
 measurement is off before performing this live check. A local test does not prove
 that Google has received production data. Ad blockers may prevent collection.
+
+## Successful-enquiry verification and baseline (WEB-2)
+
+Run `node scripts/check-analytics.mjs`, `node scripts/check-enquiry-api.mjs`
+and `node scripts/check-enquiry.mjs`. These use fixtures and send no real mail.
+After explicit production synchronization, verify a clearly identified internal
+form submission with consent, one `generate_lead` in the correct GA4 property,
+and no second event on an identical retry. Repeat with declined consent and
+an invalid/blocked request and verify no success event. Keep automatic form
+measurement off and mark `generate_lead` as a GA4 key event (once per event).
+Do not call a button click a conversion or fabricate a backdated conversion baseline.
+
+Capture GSC search clicks, impressions, CTR and average position, plus GA4 active
+users, sessions, views and key events, for the same fixed completed 28-day period
+and prior period. Record property/stream identity, timezone, extraction date,
+filters, consent/ad-blocker limits and GSC latency. Separate internal tests from
+business enquiries and avoid collecting personal enquiry contents. An unavailable
+report is pending, never zero. Historical successful-enquiry figures are unavailable
+before this release; begin the conversion baseline at verified live activation.
+
+12 November 2026: implementation checks passed locally. Production receipt,
+GA4 key-event configuration and dated real GSC/GA4 baseline remain unverified.

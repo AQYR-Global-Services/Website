@@ -413,8 +413,9 @@
   }
 
   // Local previews show the preference UI without sending production analytics.
-  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261106-locales' : '/analytics.mjs?v=20261106-locales')
-    .then(module => module.initAnalytics())
+  let analyticsClient;
+  import(location.pathname.endsWith('.html') ? './public/analytics.mjs?v=20261112-success' : '/analytics.mjs?v=20261112-success')
+    .then(module => { analyticsClient = module.initAnalytics(); })
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
     import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261106-locales' : '/points-calculator.mjs?v=20261106-locales')
@@ -667,6 +668,9 @@
           return;
         }
         lastSentPayload = encoded;
+        // Only a confirmed API success can count. Tracking never changes the
+        // submission result and receives no form values or calculator details.
+        try { analyticsClient?.trackEnquirySuccess(result.receipt); } catch { /* Tracking must not affect delivery. */ }
         setEnquiryStatus('Your enquiry has been submitted. Our team will reply using the contact details you provided.',
           '咨询已提交。团队将通过您填写的联系方式回复。');
       } catch {
