@@ -418,7 +418,7 @@
     .then(module => { analyticsClient = module.initAnalytics(); })
     .catch(() => { /* Analytics must never block navigation, enquiries or scoring. */ });
   if (document.querySelector('#points-calculator')) {
-    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261106-locales' : '/points-calculator.mjs?v=20261106-locales')
+    import(location.pathname.endsWith('.html') ? './public/points-calculator.mjs?v=20261117-wa-sa-guidance' : '/points-calculator.mjs?v=20261117-wa-sa-guidance')
       .then(module => module.initialisePointsCalculator())
       .catch(() => {
         const status = document.querySelector('#pc-live-score');

@@ -147,3 +147,6 @@ Local edits do not update GitHub or Vercel. Pushing the production branch trigge
 ### Additional registered migration agent · checked 29 October 2026
 
 The owner identified Fengxiao (Belle) Zhang, MARN 2619517. On 29 October 2026 the live OMARA register returned Registered, with HIREMII GLOBAL SERVICES PTY LTD as the business. The company introduction, bilingual footer and Person structured data link directly to that official record. At the owner’s request, the team card keeps its existing uniform layout without a MARN link or extra registration block. The prior ABN/ACN and Leon verification dates are unchanged. Official record: https://portal.mara.gov.au/search-the-register-of-migration-agents/register-of-migration-agent-details/?ContactID=810913f1-166e-f111-ab0d-00224892f740
+# Approved WA / SA calculator guidance · 17 November 2026
+
+Western Australian invitation ordering, WA-only EOI and Defence 190 guidance, plus South Australian onshore minimum-versus-selection guidance, are maintained together with the internal CRM calculator. This update changes guidance rather than numerical scoring; ACT remains deferred. Tracking: [WEB-5](https://aqyrai.atlassian.net/browse/WEB-5) and [CRM-22](https://aqyrai.atlassian.net/browse/CRM-22). See [the rule snapshot](docs/points-calculator-rules.md).

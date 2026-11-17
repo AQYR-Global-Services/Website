@@ -280,4 +280,4 @@ for(const program of ['act-resident-491','act-overseas-491','tas-tse-491','tas-t
     assert.match(body,lang==='zh'?/有条件州提名: 仅在获得州提名后计入 — 15 分/:/Conditional state nomination: Only if state nomination is granted — 15 points/);
   }
 }
-console.log('PASS: 24 scoring modes and 30 nomination paths; independent EOI/ROI attachments, 491 regional validation and subclass-safe imported scores.');
+console.log('PASS: 24 scoring modes and 31 nomination paths; independent EOI/ROI attachments, 491 regional validation and subclass-safe imported scores.');

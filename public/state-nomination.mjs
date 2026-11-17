@@ -4,7 +4,7 @@ export const states = {
   vic:{en:'Victoria',zh:'维多利亚州',url:'https://liveinmelbourne.vic.gov.au/migrate/skilled-migration-visas/vpt',note:['Victoria ranks ROIs using its separate VPT. VPT points are not federal EOI points. Check nomination eligibility and current program status separately.','维州使用独立 VPT 排序 ROI。VPT 不是联邦 EOI 分数；提名资格及当前项目状态须另行核对。']},
   nsw:{en:'New South Wales',zh:'新南威尔士州',url:'https://www.nsw.gov.au/visas-and-migration/skilled-visas/skilled-nominated-visa-subclass-190',note:['NSW selects candidates from SkillSelect rather than accepting direct 190 nomination applications. Occupation, age, English, qualifications and experience affect selection; an EOI total is not an invitation ranking or guarantee.','新州从 SkillSelect 择优邀请，不能直接申请 190 提名。职业、年龄、英语、学历及经验影响筛选；EOI 总分不等于邀请排名或获邀保证。']},
   qld:{en:'Queensland',zh:'昆士兰州',url:'https://www.migration.qld.gov.au/visa-options/skilled-visas',note:['Queensland has different streams for local workers, offshore workers, graduates and construction workers. Occupation, residence, employment and other stream conditions must be checked. The regional small-business stream is 491 only, not 190.','昆州分别设境内工作者、境外申请人、毕业生及建筑行业路径。需核对对应职业、居住、工作及其他条件；偏远地区小企业路径仅适用 491，不适用 190。']},
-  wa:{en:'Western Australia',zh:'西澳大利亚州',url:'https://migration.wa.gov.au/our-services-support/state-nominated-migration-program',note:['WA uses General and Graduate streams, occupation lists and invitation priorities. Check the current stream, residence priority, employment requirements and invitation criteria. Federal points alone do not establish nomination eligibility.','西澳按 General／Graduate 路径、职业清单及邀请优先级筛选。需核对当前路径、居住优先级、工作要求和邀请标准；联邦分数不代表已满足州提名资格。']},
+  wa:{en:'Western Australia',zh:'西澳大利亚州',url:'https://migration.wa.gov.au/our-services-support/state-nominated-migration-program',note:['WA uses General, Graduate and the 190-only Defence industry stream. Occupation/industry priority precedes residence for General and Graduate invitations. Check each stream’s current list and requirements; federal points alone do not establish nomination eligibility.','西澳设 General、Graduate 及仅适用 190 的 Defence 国防行业路径。General／Graduate 邀请先比较职业／行业优先类别，再比较居住地；须核对各路径当前清单及条件，联邦分数不代表已满足州提名资格。']},
   sa:{en:'South Australia',zh:'南澳大利亚州',url:'https://migration.sa.gov.au/before-applying/visa-options-and-pathways/skilled-migrants',note:['South Australia applies stream-specific occupation, residence, employment and graduate criteria. Onshore ROI selection and offshore EOI selection are separate processes. No extra numerical SA ranking score is inferred from the federal total.','南澳按路径核对职业、居住、工作及毕业生条件；境内 ROI 与境外 EOI 筛选流程不同。这里不把联邦分数换算成自行推定的南澳排名分。']},
   tas:{en:'Tasmania',zh:'塔斯马尼亚州',url:'https://www.migration.tas.gov.au/skilled_migration',note:['Tasmania ranks ROIs by pathway-specific priority attributes and pass categories, separately from federal EOI points. TSE, TSG and TER have different criteria. The offshore 190 health/education job-offer pathway has separate requirements.','塔州按具体路径的优先属性及通行类别排序 ROI，与联邦 EOI 分开。TSE、TSG 和 TER 条件不同；境外医疗／教育工作邀约 190 路径另有要求。']},
   act:{en:'Australian Capital Territory',zh:'澳大利亚首都领地',url:'https://www.act.gov.au/migration/skilled-migrants/canberra-matrix',note:['ACT uses the Canberra Matrix, with different tables for Canberra residents and overseas applicants. Matrix and federal EOI totals are separate. Meeting Matrix points does not establish ACT eligibility or guarantee selection.','ACT 使用 Canberra Matrix，堪培拉居民与境外申请人采用不同表格。Matrix 与联邦 EOI 分开；Matrix 分数不代表已满足 ACT 资格或保证获邀。']},
@@ -13,15 +13,21 @@ export const states = {
 export const stateCodes = Object.keys(states);
 // Program availability is dated guidance, not a federal scoring or eligibility gate.
 const saProgramNotice={
-  published:'2026-10-22',checked:'2026-10-23',
+  published:'2026-10-22',checked:'2026-11-17',
   url:'https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update',
   title:['South Australia · 2026–27 program update','南澳 · 2026–27 项目更新'],
   items:[
     {label:['Onshore · ROI','境内 · ROI'],body:['Currently open to people living and working in South Australia whose current visas expire on or before 31 January 2027. The relevant stream and occupation requirements still apply.','目前向在南澳居住、工作，且当前签证于 2027 年 1 月 31 日或之前到期的人士开放。仍须满足相应路径及职业要求。']},
+    {label:['Onshore · Minimum versus selection','境内 · 门槛与择优'],body:['For SA graduates, skilled employment in SA and outer-regional skilled employment, at least 65 EOI points including nomination points remain a minimum. Higher EOI points are not an onshore selection factor. This does not replace the separate offshore selection rules.','南澳毕业生、当地技术就业及外偏远地区技术就业三条境内路径，EOI 至少 65 分（含提名加分）仍是门槛；更高 EOI 分数不作为境内择优因素。此说明不替代境外路径的独立筛选规则。']},
     {label:['Offshore · EOI','境外 · EOI'],body:['Candidates can continue to lodge an EOI through SkillSelect. South Australia selects suitable candidates from EOIs; offshore applicants do not submit an ROI.','申请人可继续通过 SkillSelect 提交 EOI，南澳从 EOI 中筛选合适人选；境外申请人无需提交 ROI。']},
     {label:['Priority sectors','优先行业'],body:['Building and construction, defence, education, engineering, health and manufacturing. High-ranking candidates in other sectors may also be considered.','建筑、国防、教育、工程、医疗及制造业；其他行业中排名较高的申请人亦可能获考虑。']},
   ],
-  note:['This is a program-status notice, not an eligibility decision or invitation guarantee. It does not change federal EOI points. Check the latest announcement and stream requirements before applying.','此为项目状态提示，不代表符合提名资格或保证获邀，也不改变联邦 EOI 计分。申请前请核对最新公告及具体路径条件。'],
+  sources:[
+    {label:['SA graduates · Official selection rules ↗','南澳毕业生 · 官方筛选说明 ↗'],url:'https://migration.sa.gov.au/before-applying/visa-options-and-pathways/skilled-migrants/south-australian-graduates'},
+    {label:['Skilled employment in SA · Official selection rules ↗','南澳技术就业 · 官方筛选说明 ↗'],url:'https://migration.sa.gov.au/before-applying/visa-options-and-pathways/skilled-migrants/skilled-employment-in-south-australia'},
+    {label:['Outer regional employment · Official selection rules ↗','外偏远地区就业 · 官方筛选说明 ↗'],url:'https://migration.sa.gov.au/before-applying/visa-options-and-pathways/skilled-migrants/outer-regional-skilled-employment'},
+  ],
+  note:['This is guidance, not an eligibility decision or invitation guarantee. It does not change federal EOI points. The onshore selection clarification has no separately stated commencement or transition date; the announcement date above refers to the program-status notice. Check current stream requirements before applying.','此为说明，不代表资格判断或保证获邀，也不改变联邦 EOI 计分。境内筛选说明未另列生效或过渡日期；上方公告日期指项目状态公告。申请前须核对当前具体路径条件。'],
 };
 const qldProgramNotice={
   published:'2026-10-30',checked:'2026-11-04',
@@ -51,13 +57,18 @@ const tasAssessmentNotice={
   note:['This does not change the priority-attribute calculator. The source does not resolve equality or intermediate revised-score cases; no automatic approval or refusal is inferred here. Check the live figures and evidence before applying.','此说明不改变优先属性计分。官方未明确等于阈值或介于两项参考值之间的处理，工具不据此自动判定获批或拒绝；申请前须核对最新数据及证据。'],
 };
 const waProcessNotice={
-  published:null,checked:'2026-11-04',
+  published:null,checked:'2026-11-17',
   url:'https://migration.wa.gov.au/our-services-support/state-nominated-migration-program',
-  title:['Western Australia · Nomination places','西澳 · 提名名额与顺延'],
+  title:['Western Australia · Nomination guidance','西澳 · 州提名说明'],
   items:[
     {label:['Approval and nomination','审批与正式提名'],body:['An approved WA state-nomination application is eligible for nomination subject to places in the current program year. If no places are available, the application is carried over to the next program year.','西澳州提名申请获批后，仍须视当前项目年度名额情况安排正式提名；如无可用名额，申请将顺延至下一项目年度。']},
+    {label:['Invitation priorities','邀请排序'],body:['General and Graduate streams prioritise occupation/industry before residence within each category. Graduate qualification level is considered before EOI points and EOI date. VET qualifications rank Advanced Diploma, Diploma, Certificate IV, then Certificate III.','General／Graduate 先比较职业／行业优先类别，再在类别内比较居住地；Graduate 在 EOI 分数及登记时间之前还比较学历。VET 学历顺序为 Advanced Diploma、Diploma、Certificate IV、Certificate III。']},
+    {label:['EOI state choice','EOI 州别选择'],body:['Your EOI must seek nomination from Western Australia only. Confirm the live occupation list, evidence and intake requirements before applying.','EOI 须仅选择 Western Australia（西澳）提名；申请前核对实时职业清单、证据及当前轮次条件。']},
+    {label:['Defence · 190 only','Defence 国防行业 · 仅 190'],body:['WASMOL Schedule 3 is a separate 190-only stream, with a matching skills assessment and applicable WA employment-contract requirements. It is not a 491 Defence pathway or an automatic eligibility result.','WASMOL 清单 3 是独立、仅适用 190 的路径，须有匹配的职业评估并满足适用的西澳工作合同要求；不适用于 491，也不自动判定资格。']},
+    {label:['Transport Engineer · 233215','交通工程师 · 233215'],body:['The live General Schedule 2 list places this occupation in Building and Construction with priority status; both 190 and 491 remain listed. Confirm the live list before claiming priority.','实时 General 清单 2 将此职业列入 Building and Construction 建筑行业并标为优先；190 与 491 均保留。申报优先类别前须核对实时清单。']},
   ],
-  note:['This process guidance does not change federal EOI points, guarantee nomination timing or guarantee a visa. The source does not state a separate commencement date. Check official Steps 5 and 6 for the current process.','此为流程说明，不改变联邦 EOI 计分，不保证提名时间或签证结果。官方未注明单独生效日期，当前流程请核对官方第 5、6 步。'],
+  sources:[{label:['WA · Current 2026–27 criteria PDF ↗','西澳 · 当前 2026–27 细则 PDF ↗'],url:'https://migration.wa.gov.au/sites/default/files/2026-11/SNMP%20Criteria%2026-27.pdf'}],
+  note:['This guidance does not change federal EOI points, guarantee nomination timing or guarantee a visa. No separate commencement or transition date was verified; a check date does not confirm the intake is open. Check the current official rules and Steps 5 and 6.','此说明不改变联邦 EOI 计分，不保证提名时间或签证结果。尚未核实独立生效或过渡日期，核对日期也不代表项目已开放；须核对当前官方细则及第 5、6 步流程。'],
 };
 export function getNominationProgramNotice(state,visa,now=new Date()){
   if(['190','491'].includes(visa)&&state==='tas')return tasAssessmentNotice;

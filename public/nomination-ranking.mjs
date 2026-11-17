@@ -1,9 +1,9 @@
 // Separate nomination self-assessment, never added to federal EOI or VPT.
 // Sources are the linked ACT calculators and separate Tasmania 190/491 tables.
-import {nominationPathways} from './nomination-pathways.mjs?v=20261104-policy-guidance';
+import {nominationPathways} from './nomination-pathways.mjs?v=20261117-wa-sa-guidance';
 import {create491RankingPrograms} from './nomination-491.mjs?v=20261026-491';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
-import {states} from './state-nomination.mjs?v=20261104-policy-guidance';
+import {states} from './state-nomination.mjs?v=20261117-wa-sa-guidance';
 import {englishLevel} from './english-rules.mjs?v=20261022-all-tests';
 const option = (points,en,zh,tier='') => ({points,en,zh,tier});
 const relatedJobOption = (...args) => ({...option(...args),currentRelatedJob:true});

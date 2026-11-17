@@ -12,13 +12,15 @@ for(const state of stateCodes)for(const visa of ['189','190','491']){
   const notice=getNominationProgramNotice(state,visa);
   assert.equal(!!notice,['sa','qld','tas','wa'].includes(state)&&visa!=='189','Dated guidance appears only for its matching190/491 scenarios');
   if(state==='sa'&&notice){
-    assert.equal(notice.published,'2026-10-22');assert.equal(notice.checked,'2026-10-23');
+    assert.equal(notice.published,'2026-10-22');assert.equal(notice.checked,'2026-11-17');
     assert.equal(notice.url,'https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update');
-    assert.equal(notice.items.length,3);
+    assert.equal(notice.items.length,4);
     assert.match(notice.items[0].body[0],/on or before 31 January 2027/);
     assert.match(notice.items[0].body[1],/2027 年 1 月 31 日或之前/);
-    assert.match(notice.items[1].body[0],/offshore applicants do not submit an ROI/);
-    assert.match(notice.items[1].body[1],/境外申请人无需提交 ROI/);
+    assert.match(notice.items[1].body[0],/Higher EOI points are not an onshore selection factor/);
+    assert.match(notice.items[1].body[1],/更高 EOI 分数不作为境内择优因素/);
+    assert.match(notice.items[2].body[0],/offshore applicants do not submit an ROI/);
+    assert.match(notice.items[2].body[1],/境外申请人无需提交 ROI/);
     assert.match(notice.note[0],/does not change federal EOI points/);
     assert.match(notice.note[1],/不改变联邦 EOI 计分/);
   }
@@ -35,12 +37,21 @@ for(const visa of ['190','491']){
   assert.match(tas.note[0],/does not resolve equality or intermediate/);
   assert.doesNotMatch(JSON.stringify(tas),/326|316|78 points|75 points/,'Live round values must not become fixed cutoffs');
   assert.equal(wa.published,null,'Do not invent a WA publication or commencement date');
-  assert.equal(wa.checked,'2026-11-04');
+  assert.equal(wa.checked,'2026-11-17');
   assert.match(wa.items[0].body[0],/subject to places/);
   assert.match(wa.items[0].body[0],/carried over to the next program year/);
   assert.match(wa.note[0],/does not change federal EOI points/);
   assert.match(wa.note[1],/不保证提名时间或签证结果/);
+  assert.match(wa.items[1].body[0],/occupation\/industry before residence/);
+  assert.match(wa.items[3].body[0],/190-only.*not a 491 Defence pathway/);
+  assert.match(wa.items[4].body[0],/both 190 and 491 remain listed/);
+  assert.equal(wa.sources[0].url,'https://migration.wa.gov.au/sites/default/files/2026-11/SNMP%20Criteria%2026-27.pdf');
 }
+assert(nominationProgramSupports('wa-defence','wa','190'));
+for(const visa of ['189','491'])assert(!nominationProgramSupports('wa-defence','wa',visa),'Defence guidance must not become a 491 or 189 pathway');
+for(const state of stateCodes.filter(s=>s!=='wa'))assert(!nominationProgramSupports('wa-defence',state,'190'));
+for(const id of ['sa-local','sa-graduate','sa-regional'])assert.match(nominationPathways[id].order[0],/65 EOI points, including nomination points.*higher EOI points are not an onshore selection factor/);
+assert.match(nominationPathways['sa-offshore'].order[0],/qualifications and EOI points/,'Onshore clarification must not replace offshore selection guidance');
 for(const visa of ['190','491']){
   const before=getNominationProgramNotice('qld',visa,new Date('2026-11-05T12:59:59Z'));
   const announcedDate=getNominationProgramNotice('qld',visa,new Date('2026-11-05T13:00:00Z'));
@@ -70,7 +81,7 @@ assert.match(qldChecks('qld-construction'),/Both 190 and 491 require at least 3 
 assert.match(qldChecks('qld-offshore'),/Current employment.*not required at ROI, invitation or nomination/);
 assert.doesNotMatch(qldChecks('qld-offshore'),/must be currently.*employment|当前仍从事相关工作/);
 assert.doesNotMatch(nominationPathways['qld-local'].order.join(' '),/2025–26/);
-assert.equal(Object.keys(all).length,30);
+assert.equal(Object.keys(all).length,31);
 for(const state of stateCodes)assert.ok(Object.values(all).some(p=>p.state===state),state);
 for(const [id,path] of Object.entries(nominationPathways)){
   assert.ok(path.en&&path.zh&&path.order.length===2&&path.url.startsWith('https://'),id);
@@ -79,7 +90,7 @@ for(const [id,path] of Object.entries(nominationPathways)){
   assert.equal(calculateRanking(id,{},true).total,null,'Checklist must not become a numerical score');
 }
 assert.equal(Object.values(all).filter(p=>p.state==='qld').length,4);
-assert.equal(Object.values(all).filter(p=>p.state==='wa').length,4);
+assert.equal(Object.values(all).filter(p=>p.state==='wa').length,5);
 assert.equal(Object.values(all).filter(p=>p.state==='sa').length,4);
 assert.equal(Object.values(all).filter(p=>p.state==='tas').length,9);
 assert.ok(!Object.keys(all).some(key=>key==='nt-offshore'));
@@ -140,4 +151,4 @@ assert.ok(!ui.includes('checklistProgress')&&!ui.includes('已自核')&&!ui.incl
 assert.ok(!controller.includes('hasNominationPath'),'Nomination guidance cannot gate the scoring form');
 assert.ok(controller.includes("programNotice.hidden=!notice"),'Program status clears when leaving the matching state or visa');
 assert.ok(controller.includes('federalPanel.hidden=!chosen;')&&controller.includes('federalPanel.open=true;'),'EOI/VPT inputs are directly available');
-console.log('PASS: 30 bilingual paths; eleven separate numeric ranking programs, subclass-safe selections and optional guidance.');
+console.log('PASS: 31 bilingual paths; eleven separate numeric ranking programs, subclass-safe selections and optional guidance.');
