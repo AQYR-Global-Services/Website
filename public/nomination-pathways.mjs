@@ -1,5 +1,5 @@
 // Optional editorial guidance, not an eligibility test or an invented points table.
-import {states} from './state-nomination.mjs?v=20261117-wa-sa-guidance';
+import {states} from './state-nomination.mjs?v=20261120-wa-transport';
 const check = (en,zh) => [en,zh];
 const route = (state,en,zh,checks,order,url=states[state].url) => ({state,en,zh,checks,order,url});
 const occupation=check('The assessed occupation must be eligible for 190 under this stream’s current occupation list.','职业范围：评估职业须符合该路径当前的 190 职业清单要求。');

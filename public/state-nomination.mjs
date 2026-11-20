@@ -57,7 +57,7 @@ const tasAssessmentNotice={
   note:['This does not change the priority-attribute calculator. The source does not resolve equality or intermediate revised-score cases; no automatic approval or refusal is inferred here. Check the live figures and evidence before applying.','此说明不改变优先属性计分。官方未明确等于阈值或介于两项参考值之间的处理，工具不据此自动判定获批或拒绝；申请前须核对最新数据及证据。'],
 };
 const waProcessNotice={
-  published:null,checked:'2026-11-17',
+  published:null,checked:'2026-11-20',
   url:'https://migration.wa.gov.au/our-services-support/state-nominated-migration-program',
   title:['Western Australia · Nomination guidance','西澳 · 州提名说明'],
   items:[
@@ -65,7 +65,7 @@ const waProcessNotice={
     {label:['Invitation priorities','邀请排序'],body:['General and Graduate streams prioritise occupation/industry before residence within each category. Graduate qualification level is considered before EOI points and EOI date. VET qualifications rank Advanced Diploma, Diploma, Certificate IV, then Certificate III.','General／Graduate 先比较职业／行业优先类别，再在类别内比较居住地；Graduate 在 EOI 分数及登记时间之前还比较学历。VET 学历顺序为 Advanced Diploma、Diploma、Certificate IV、Certificate III。']},
     {label:['EOI state choice','EOI 州别选择'],body:['Your EOI must seek nomination from Western Australia only. Confirm the live occupation list, evidence and intake requirements before applying.','EOI 须仅选择 Western Australia（西澳）提名；申请前核对实时职业清单、证据及当前轮次条件。']},
     {label:['Defence · 190 only','Defence 国防行业 · 仅 190'],body:['WASMOL Schedule 3 is a separate 190-only stream, with a matching skills assessment and applicable WA employment-contract requirements. It is not a 491 Defence pathway or an automatic eligibility result.','WASMOL 清单 3 是独立、仅适用 190 的路径，须有匹配的职业评估并满足适用的西澳工作合同要求；不适用于 491，也不自动判定资格。']},
-    {label:['Transport Engineer · 233215','交通工程师 · 233215'],body:['The live General Schedule 2 list places this occupation in Building and Construction with priority status; both 190 and 491 remain listed. Confirm the live list before claiming priority.','实时 General 清单 2 将此职业列入 Building and Construction 建筑行业并标为优先；190 与 491 均保留。申报优先类别前须核对实时清单。']},
+    {label:['Transport Engineer · 233215','交通工程师 · 233215'],body:['Both streams list Transport Engineer under Building and Construction for subclass 190 and 491. General Schedule 2 marks it as a priority occupation. The Graduate stream lists it as non-priority.','交通工程师在两条路径下均归入建筑与施工行业（Building and Construction），均适用于 190 和 491。General Schedule 2（普通路径清单 2）将其列为优先职业，Graduate（毕业生路径）将其列为非优先职业。']},
   ],
   sources:[{label:['WA · Current 2026–27 criteria PDF ↗','西澳 · 当前 2026–27 细则 PDF ↗'],url:'https://migration.wa.gov.au/sites/default/files/2026-11/SNMP%20Criteria%2026-27.pdf'}],
   note:['This guidance does not change federal EOI points, guarantee nomination timing or guarantee a visa. No separate commencement or transition date was verified; a check date does not confirm the intake is open. Check the current official rules and Steps 5 and 6.','此说明不改变联邦 EOI 计分，不保证提名时间或签证结果。尚未核实独立生效或过渡日期，核对日期也不代表项目已开放；须核对当前官方细则及第 5、6 步流程。'],

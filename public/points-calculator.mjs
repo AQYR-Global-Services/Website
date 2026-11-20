@@ -1,13 +1,13 @@
 import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
-import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261117-wa-sa-guidance';
-import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261117-wa-sa-guidance';
+import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261120-wa-transport';
+import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261120-wa-transport';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';
 import {getOccupation} from './occupation-search.mjs';
 import {localizedHref,publicRouteLanguage} from './site-language.mjs';
 import {saveCalculatorHandoff,takeCalculatorHandoff,restoreCalculatorControls} from './calculator-language-state.mjs';
-import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261117-wa-sa-guidance';
+import {createPointsSnapshot,createNominationSnapshot} from './points-enquiry.mjs?v=20261120-wa-transport';
 
 export function scoreMaximumLabel(input,text) {
   const maximum=estimateLimits[input.state+'-'+input.visa];

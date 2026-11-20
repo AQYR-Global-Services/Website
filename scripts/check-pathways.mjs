@@ -37,14 +37,16 @@ for(const visa of ['190','491']){
   assert.match(tas.note[0],/does not resolve equality or intermediate/);
   assert.doesNotMatch(JSON.stringify(tas),/326|316|78 points|75 points/,'Live round values must not become fixed cutoffs');
   assert.equal(wa.published,null,'Do not invent a WA publication or commencement date');
-  assert.equal(wa.checked,'2026-11-17');
+  assert.equal(wa.checked,'2026-11-20');
   assert.match(wa.items[0].body[0],/subject to places/);
   assert.match(wa.items[0].body[0],/carried over to the next program year/);
   assert.match(wa.note[0],/does not change federal EOI points/);
   assert.match(wa.note[1],/不保证提名时间或签证结果/);
   assert.match(wa.items[1].body[0],/occupation\/industry before residence/);
   assert.match(wa.items[3].body[0],/190-only.*not a 491 Defence pathway/);
-  assert.match(wa.items[4].body[0],/both 190 and 491 remain listed/);
+  const transport=wa.items.find(item=>item.label[0].includes('233215'));
+  assert.match(transport.body[0],/Both streams.*Building and Construction.*190 and 491.*General Schedule 2 marks it as a priority occupation.*Graduate stream lists it as non-priority/);
+  assert.match(transport.body[1],/建筑与施工行业.*190 和 491.*普通路径清单 2.*列为优先职业.*毕业生路径.*列为非优先职业/);
   assert.equal(wa.sources[0].url,'https://migration.wa.gov.au/sites/default/files/2026-11/SNMP%20Criteria%2026-27.pdf');
 }
 assert(nominationProgramSupports('wa-defence','wa','190'));
