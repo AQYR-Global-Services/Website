@@ -1,6 +1,6 @@
 import {calculate, priorityCodes, usesVpt} from './points-rules.mjs?v=20261023-vic491';
 import {englishTests, needsEnglishDate, legacyOet, englishBands, englishEvidenceIssue} from './english-rules.mjs?v=20261022-all-tests';
-import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261120-wa-transport';
+import {states, stateCodes, regional491, getNominationProgramNotice, estimateLimits} from './state-nomination.mjs?v=20261123-sa-intake';
 import {initialiseRankingTool, rankingPrograms} from './nomination-ranking.mjs?v=20261120-wa-transport';
 import {lookupRegionalPostcode,regionalPostcodeCanProceed} from './regional-postcodes.mjs';
 import {initialiseOccupationPicker} from './occupation-picker.mjs';

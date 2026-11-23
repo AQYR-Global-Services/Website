@@ -13,13 +13,14 @@ export const states = {
 export const stateCodes = Object.keys(states);
 // Program availability is dated guidance, not a federal scoring or eligibility gate.
 const saProgramNotice={
-  published:'2026-10-22',checked:'2026-11-17',
-  url:'https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update',
+  published:'2026-11-20',checked:'2026-11-23',
+  url:'https://migration.sa.gov.au/news/south-australias-general-skilled-migration-program-update-20-11',
   title:['South Australia · 2026–27 program update','南澳 · 2026–27 项目更新'],
   items:[
-    {label:['Onshore · ROI','境内 · ROI'],body:['Currently open to people living and working in South Australia whose current visas expire on or before 31 January 2027. The relevant stream and occupation requirements still apply.','目前向在南澳居住、工作，且当前签证于 2027 年 1 月 31 日或之前到期的人士开放。仍须满足相应路径及职业要求。']},
+    {label:['Onshore · ROI','境内 · ROI'],body:['Registrations of Interest are open to people living and working in South Australia. The relevant stream and occupation requirements still apply.','已向在南澳居住并工作的人士开放 ROI 登记。仍须满足相应路径及职业要求。']},
+    {label:['All applicants · Current EOI','所有申请人 · 有效 EOI'],body:['Keep a current Expression of Interest in SkillSelect.','须在 SkillSelect 保持有效的 EOI。']},
     {label:['Onshore · Minimum versus selection','境内 · 门槛与择优'],body:['For SA graduates, skilled employment in SA and outer-regional skilled employment, at least 65 EOI points including nomination points remain a minimum. Higher EOI points are not an onshore selection factor. This does not replace the separate offshore selection rules.','南澳毕业生、当地技术就业及外偏远地区技术就业三条境内路径，EOI 至少 65 分（含提名加分）仍是门槛；更高 EOI 分数不作为境内择优因素。此说明不替代境外路径的独立筛选规则。']},
-    {label:['Offshore · EOI','境外 · EOI'],body:['Candidates can continue to lodge an EOI through SkillSelect. South Australia selects suitable candidates from EOIs; offshore applicants do not submit an ROI.','申请人可继续通过 SkillSelect 提交 EOI，南澳从 EOI 中筛选合适人选；境外申请人无需提交 ROI。']},
+    {label:['Offshore · EOI','境外 · EOI'],body:['South Australia invites suitable offshore candidates directly from their SkillSelect EOI. Offshore applicants do not need to lodge an ROI.','南澳直接从 SkillSelect 的 EOI 中邀请符合条件的境外申请人。境外申请人无需提交 ROI。']},
     {label:['Priority sectors','优先行业'],body:['Building and construction, defence, education, engineering, health and manufacturing. High-ranking candidates in other sectors may also be considered.','建筑、国防、教育、工程、医疗及制造业；其他行业中排名较高的申请人亦可能获考虑。']},
   ],
   sources:[
