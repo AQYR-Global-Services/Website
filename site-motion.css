@@ -1,0 +1,45 @@
+.brand-wordmark { display: inline-grid; position: relative; }
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .brand-wordmark::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    mask: var(--wordmark-mask) center / contain no-repeat;
+    /* The symbol ends before 29% of the artwork. Light only the letters. */
+    clip-path: inset(0 0 0 29%);
+    background: linear-gradient(109deg, transparent 44%, #8ae3b6 50%, transparent 56%) no-repeat;
+    background-size: 245% 100%;
+    animation: brand-letter-sweep 6s linear infinite;
+  }
+
+  @keyframes brand-letter-sweep {
+    0%, 13% { background-position: 100% center; }
+    46%, 100% { background-position: 0% center; }
+  }
+
+  .ambient-backdrop::before {
+    translate: 0 calc(var(--scroll-depth, 0) * 5%);
+  }
+
+  .ambient-backdrop::after {
+    translate: 0 calc(var(--scroll-depth, 0) * 10%);
+  }
+
+  :is(.hero-photo, .scene-photo) > img {
+    /* Extra crop keeps the frame filled even at the ends of the scroll range. */
+    scale: 1.10;
+    translate: 0 calc(var(--scroll-depth, 0) * 4%);
+  }
+
+  @media (max-width: 600px) {
+    .ambient-backdrop::before { translate: 0 calc(var(--scroll-depth, 0) * 2%); }
+    .ambient-backdrop::after { translate: 0 calc(var(--scroll-depth, 0) * 5%); }
+
+    :is(.hero-photo, .scene-photo) > img {
+      scale: 1.05;
+      translate: 0 calc(var(--scroll-depth, 0) * 2%);
+    }
+  }
+}

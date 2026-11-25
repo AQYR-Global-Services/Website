@@ -51,6 +51,14 @@
     }
   }
   const siteHeader = document.querySelector('.top');
+  const headerLogo = siteHeader?.querySelector('.brand img');
+  if (headerLogo) {
+    const wordmark = document.createElement('span');
+    wordmark.className = 'brand-wordmark';
+    wordmark.style.setProperty('--wordmark-mask', `url("${headerLogo.src}")`);
+    headerLogo.replaceWith(wordmark);
+    wordmark.append(headerLogo);
+  }
   const englishHover = window.matchMedia('(hover: hover) and (pointer: fine)');
   const englishGuides = [...document.querySelectorAll('.visa-english-summary[id]')].map(panel => ({
     panel, question: panel.closest('.faq-item'), button: null,
@@ -167,6 +175,7 @@
   // Decorative layers never intercept input; pause them offscreen and in hidden tabs.
   const ambientSurfaces = [...document.querySelectorAll('main > .hero, main .section.dark, main > .cta')];
   const visibleSurfaces = new Set();
+  const visibleMotionLayers = new Set();
   ambientSurfaces.forEach(surface => {
     const backdrop = document.createElement('div');
     backdrop.className = 'ambient-backdrop';
@@ -180,17 +189,26 @@
       surface.classList.toggle('ambient-running', enabled && visibleSurfaces.has(surface));
     });
   };
-  if ('IntersectionObserver' in window && ambientSurfaces.length) {
+  if ('IntersectionObserver' in window) {
     const ambientObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) visibleSurfaces.add(entry.target);
-        else visibleSurfaces.delete(entry.target);
+        const surface = entry.target;
+        if (entry.isIntersecting) {
+          visibleMotionLayers.add(surface);
+          if (surface.classList.contains('ambient-surface')) visibleSurfaces.add(surface);
+        } else {
+          visibleMotionLayers.delete(surface);
+          visibleSurfaces.delete(surface);
+        }
       });
       updateAmbientMotion();
+      scheduleScrollUpdate();
     });
     ambientSurfaces.forEach(surface => ambientObserver.observe(surface));
+    document.querySelectorAll('.hero-photo, .scene-photo').forEach(photo => ambientObserver.observe(photo));
     document.addEventListener('visibilitychange', updateAmbientMotion);
     motionPreference.addEventListener('change', updateAmbientMotion);
+    motionPreference.addEventListener('change', scheduleScrollUpdate);
   }
 
   const readingProgress = document.createElement('div');
@@ -390,6 +408,16 @@
   });
   function updateScrollState() {
     scrollFrame = 0;
+    if (!motionPreference.matches && !document.hidden) {
+      const viewport = window.innerHeight;
+      // Read all frame positions before writing styles. The frames themselves stay still.
+      const offsets = Array.from(visibleMotionLayers, layer => {
+        const { top, height } = layer.getBoundingClientRect();
+        const progress = (viewport - height - 2 * top) / (viewport + height);
+        return [layer, Math.max(-1, Math.min(1, progress)).toFixed(4)];
+      });
+      offsets.forEach(([layer, value]) => layer.style.setProperty('--scroll-depth', value));
+    }
     siteHeader?.classList.toggle('is-compact', window.scrollY > 64);
     const distance = Math.max(0, root.scrollHeight - window.innerHeight);
     const progress = distance > 0 ? Math.min(1, Math.max(0, window.scrollY / distance)) : 0;

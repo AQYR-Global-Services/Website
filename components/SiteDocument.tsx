@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import "../style.css";
+import "../site-motion.css";
 import "../home-entrance.css";
 import { brandName, shareImage, siteUrl } from "@/lib/site";
 import { siteStructuredData } from "@/lib/structured-data";
