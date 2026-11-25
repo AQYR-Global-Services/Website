@@ -1,5 +1,62 @@
 export const safeCasePreviewSource = value => /^\/case-previews\/[a-z0-9-]+\.webp(?:\?v=[a-f0-9]{12})?$/.test(value || '') ? value : null;
 
+function initHoverPreview(links) {
+  const hoverMode = matchMedia('(hover: hover) and (pointer: fine)');
+  const thumbnail = new Image();
+  thumbnail.className = 'case-hover-preview';
+  thumbnail.hidden = true;
+  thumbnail.alt = '';
+  thumbnail.setAttribute('aria-hidden', 'true');
+  document.body.append(thumbnail);
+  let activeLink = null;
+  let x = 0;
+  let y = 0;
+  function position() {
+    const width = thumbnail.offsetWidth;
+    const height = thumbnail.offsetHeight;
+    const left = x + width + 20 < innerWidth ? x + 16 : x - width - 16;
+    const top = Math.max(8, Math.min(y + 12, innerHeight - height - 8));
+    thumbnail.style.transform = `translate(${Math.max(8, left)}px, ${top}px)`;
+  }
+  function show() {
+    if (!activeLink || !thumbnail.naturalWidth) return;
+    thumbnail.hidden = false;
+    position();
+  }
+  function hide() {
+    activeLink = null;
+    thumbnail.hidden = true;
+  }
+  thumbnail.addEventListener('load', show);
+  thumbnail.addEventListener('error', hide);
+  links.forEach(link => {
+    link.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'mouse' || !hoverMode.matches) return;
+      const source = safeCasePreviewSource(link.dataset.nominationSrc) || safeCasePreviewSource(link.dataset.visaSrc);
+      if (!source) return;
+      activeLink = link;
+      x = event.clientX;
+      y = event.clientY;
+      thumbnail.hidden = true;
+      if (thumbnail.getAttribute('src') !== source) thumbnail.src = source;
+      if (thumbnail.complete) show();
+    });
+    link.addEventListener('pointermove', event => {
+      if (activeLink !== link) return;
+      x = event.clientX;
+      y = event.clientY;
+      if (!thumbnail.hidden) position();
+    });
+    link.addEventListener('pointerleave', hide);
+    link.addEventListener('click', hide);
+  });
+  window.addEventListener('scroll', hide, { passive: true, capture: true });
+  window.addEventListener('blur', hide);
+  window.addEventListener('pagehide', hide);
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') hide(); });
+  hoverMode.addEventListener('change', hide);
+}
+
 export function initCaseDocumentPreview() {
   const dialog = document.getElementById('case-document-dialog');
   if (!dialog || dialog.dataset.ready || typeof dialog.showModal !== 'function') return;
@@ -46,7 +103,9 @@ export function initCaseDocumentPreview() {
     return true;
   }
 
-  document.querySelectorAll('[data-case-preview]').forEach(link => link.addEventListener('click', event => {
+  const previewLinks = document.querySelectorAll('[data-case-preview]');
+  initHoverPreview(previewLinks);
+  previewLinks.forEach(link => link.addEventListener('click', event => {
     // Modified clicks retain the standard, no-JS link to the redacted image.
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     opener = link;

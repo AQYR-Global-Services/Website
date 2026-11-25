@@ -1,6 +1,59 @@
 .brand-wordmark { display: inline-grid; position: relative; }
+.case-hover-preview[hidden] { display: none; }
+
+.case-hover-preview {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 120;
+  pointer-events: none;
+  width: min(220px, 36vw);
+  height: min(300px, 48vh);
+  box-sizing: border-box;
+  padding: 6px;
+  border: 1px solid #bfd5c8;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 42px #143e3538;
+  object-fit: contain;
+}
 
 @media screen and (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(root) { animation-duration: 400ms; }
+  ::view-transition-old(root) {
+    z-index: 1;
+    mix-blend-mode: normal;
+    animation: page-depart 240ms ease-in-out both;
+  }
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: page-arrive 400ms cubic-bezier(.22,.7,.22,1) both;
+  }
+  @keyframes page-depart {
+    to { opacity: 0; transform: translateY(-10px); }
+  }
+  @keyframes page-arrive {
+    /* Keep the incoming snapshot opaque behind the outgoing one. */
+    0%, 20% { transform: translateY(7px) scale(1.025); filter: brightness(.95); }
+    to { transform: none; filter: none; }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :is(.nav .nav-cta, .hero .actions > a.button:first-child, .cta-inner > a.button) {
+      transition: background .2s, box-shadow .2s, scale .15s,
+        translate .22s cubic-bezier(.24, 1.32, .42, 1);
+    }
+  }
+
+  .ambient-surface, .section, .scene-photo, .hero-photo {
+    --depth-back: 60px;
+    --depth-mid: 15px;
+    --depth-front: -18px;
+  }
+  :is(.hero-content, .cta-inner, .section .intro) {
+    translate: 0 calc(var(--scroll-depth, 0) * var(--depth-front));
+  }
+  .case-lens { translate: 0 calc(var(--scroll-depth, 0) * var(--depth-front) * .6); }
   .brand-wordmark::after {
     content: "";
     pointer-events: none;
@@ -20,26 +73,29 @@
   }
 
   .ambient-backdrop::before {
-    translate: 0 calc(var(--scroll-depth, 0) * 5%);
+    translate: 0 calc(var(--scroll-depth, 0) * var(--depth-back));
   }
 
   .ambient-backdrop::after {
-    translate: 0 calc(var(--scroll-depth, 0) * 10%);
+    translate: 0 calc(var(--scroll-depth, 0) * var(--depth-mid));
   }
 
   :is(.hero-photo, .scene-photo) > img {
     /* Extra crop keeps the frame filled even at the ends of the scroll range. */
     scale: 1.10;
-    translate: 0 calc(var(--scroll-depth, 0) * 4%);
+    translate: 0 clamp(-4%, calc(var(--scroll-depth, 0) * var(--depth-mid)), 4%);
   }
 
   @media (max-width: 600px) {
-    .ambient-backdrop::before { translate: 0 calc(var(--scroll-depth, 0) * 2%); }
-    .ambient-backdrop::after { translate: 0 calc(var(--scroll-depth, 0) * 5%); }
+    .ambient-surface, .section, .scene-photo, .hero-photo {
+      --depth-back: 21px;
+      --depth-mid: 6px;
+      --depth-front: -6px;
+    }
 
     :is(.hero-photo, .scene-photo) > img {
       scale: 1.05;
-      translate: 0 calc(var(--scroll-depth, 0) * 2%);
+      translate: 0 clamp(-2%, calc(var(--scroll-depth, 0) * var(--depth-mid)), 2%);
     }
   }
 }

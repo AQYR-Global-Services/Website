@@ -14,6 +14,7 @@
   const replayEntrance = window.location.hostname === '127.0.0.1' &&
     new URLSearchParams(window.location.search).get('preview') === 'entrance';
   if (home && !motionPreference.matches && !window.location.hash && pageTiming?.type !== 'back_forward' &&
+      (replayEntrance || !document.referrer.startsWith(window.location.origin + '/')) &&
       (replayEntrance || performance.now() - (pageTiming?.domInteractive || 0) < 700) && window.scrollY < 40) {
     try {
       const entranceKey = 'aqyr-home-brand-entrance-seen';
@@ -51,6 +52,45 @@
     }
   }
   const siteHeader = document.querySelector('.top');
+  const magnetMode = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+  const primaryButtons = document.querySelectorAll('.nav .nav-cta, .hero .actions > a.button:first-child, .cta-inner > a.button');
+  let attractedButton = null;
+  let magnetFrame = 0;
+  let pointerX = 0;
+  let pointerY = 0;
+  function releaseButton() {
+    cancelAnimationFrame(magnetFrame);
+    magnetFrame = 0;
+    attractedButton?.style.removeProperty('translate');
+    attractedButton = null;
+  }
+  function attractButton() {
+    magnetFrame = 0;
+    for (const button of primaryButtons) {
+      const bounds = button.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) continue;
+      const dx = pointerX - (bounds.left + bounds.width / 2);
+      const dy = pointerY - (bounds.top + bounds.height / 2);
+      const gap = Math.hypot(Math.max(0, Math.abs(dx) - bounds.width / 2), Math.max(0, Math.abs(dy) - bounds.height / 2));
+      if (gap >= 24) continue;
+      if (button !== attractedButton) releaseButton();
+      attractedButton = button;
+      const strength = (1 - gap / 24) / Math.max(1, Math.hypot(dx, dy) / 5);
+      button.style.translate = `${(dx * strength).toFixed(2)}px ${(dy * strength).toFixed(2)}px`;
+      return;
+    }
+    releaseButton();
+  }
+  document.addEventListener('pointermove', event => {
+    if (!magnetMode.matches || event.pointerType !== 'mouse') return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    if (!magnetFrame) magnetFrame = requestAnimationFrame(attractButton);
+  }, { passive: true });
+  document.documentElement.addEventListener('pointerleave', releaseButton);
+  window.addEventListener('scroll', releaseButton, { passive: true });
+  window.addEventListener('blur', releaseButton);
+  magnetMode.addEventListener('change', releaseButton);
   const headerLogo = siteHeader?.querySelector('.brand img');
   if (headerLogo) {
     const wordmark = document.createElement('span');
@@ -204,8 +244,8 @@
       updateAmbientMotion();
       scheduleScrollUpdate();
     });
-    ambientSurfaces.forEach(surface => ambientObserver.observe(surface));
-    document.querySelectorAll('.hero-photo, .scene-photo').forEach(photo => ambientObserver.observe(photo));
+    document.querySelectorAll('main > .hero, main .section, main > .cta, .hero-photo, .scene-photo')
+      .forEach(layer => ambientObserver.observe(layer));
     document.addEventListener('visibilitychange', updateAmbientMotion);
     motionPreference.addEventListener('change', updateAmbientMotion);
     motionPreference.addEventListener('change', scheduleScrollUpdate);
@@ -470,7 +510,7 @@
   setLanguage(language);
 
   if (document.querySelector('[data-case-preview]')) {
-    import(location.pathname.endsWith('.html') ? './public/case-document-preview.mjs?v=20261022-watermark' : '/case-document-preview.mjs?v=20261022-watermark')
+    import(location.pathname.endsWith('.html') ? './public/case-document-preview.mjs?v=hover-preview' : '/case-document-preview.mjs?v=hover-preview')
       .then(module => module.initCaseDocumentPreview())
       .catch(() => { /* Direct links still open the redacted previews. */ });
   }
