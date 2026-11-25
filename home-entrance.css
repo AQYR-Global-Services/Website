@@ -1,0 +1,110 @@
+.home-brand-curtain { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-brand-curtain,
+  .page-home.home-entrance-ready {
+    --entrance-time: 1850ms;
+    --arrival-ease: cubic-bezier(.19, 1, .22, 1);
+  }
+
+  .home-brand-curtain {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    overflow: hidden;
+    pointer-events: none;
+    background: #10362c;
+    isolation: isolate;
+    animation: home-curtain-exit var(--entrance-time) linear both;
+  }
+
+  /* An enlarged silhouette of the Q sits behind the full signature. */
+  .home-brand-curtain::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(340vw, 310vh);
+    aspect-ratio: 150 / 40;
+    mask: var(--entrance-logo) center / contain no-repeat;
+    clip-path: inset(0 75% 0 0);
+    background: linear-gradient(125deg, #286a50, #164536 34%);
+    animation: home-symbol-pass var(--entrance-time) var(--arrival-ease) both;
+  }
+
+  .home-brand-signature {
+    position: relative;
+    width: min(62vw, 680px);
+    aspect-ratio: 150 / 40;
+    overflow: hidden;
+  }
+
+  .home-brand-signature::before,
+  .home-brand-signature::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    mask: var(--entrance-logo) center / contain no-repeat;
+    animation: home-signature-rise var(--entrance-time) var(--arrival-ease) both;
+  }
+
+  .home-brand-signature::before {
+    background: #58d49a;
+    clip-path: inset(0 75% 0 0);
+  }
+
+  .home-brand-signature::after {
+    clip-path: inset(0 0 0 25%);
+    background: linear-gradient(100deg, #e9f6ec 38%, #74e1ad 50%, #e9f6ec 62%);
+    background-size: 330% 100%;
+    animation-name: home-wordmark-rise;
+  }
+
+  .home-entrance-ready .hero-content > h1 {
+    animation: home-title-arrival var(--entrance-time) var(--arrival-ease) both;
+  }
+
+  .home-entrance-ready .hero-case-photo > img {
+    animation: home-photo-reveal var(--entrance-time) var(--arrival-ease) both;
+  }
+
+  @media (max-width: 600px) {
+    .home-brand-curtain,
+    .page-home.home-entrance-ready { --entrance-time: 1420ms; }
+    .home-brand-signature { width: 78vw; }
+  }
+}
+
+@keyframes home-signature-rise {
+  0% { transform: translateY(105%) rotate(-9deg); }
+  36%, 100% { transform: none; }
+}
+
+@keyframes home-wordmark-rise {
+  0%, 8% { transform: translateY(106%); background-position: 100% 0; }
+  43% { transform: none; background-position: 100% 0; }
+  68%, 100% { transform: none; background-position: 0 0; }
+}
+
+@keyframes home-symbol-pass {
+  from { transform: translate(-22%, -36%) rotate(-14deg); }
+  to   { transform: translate(-8%, -49%) rotate(0); }
+}
+
+@keyframes home-curtain-exit {
+  0%, 54% { clip-path: polygon(0 0, 125% 0, 100% 100%, 0 100%); }
+  58% { clip-path: polygon(0 0, 123% 0, 95% 100%, 0 100%); }
+  83%, 100% { clip-path: polygon(0 0, 0 0, -25% 100%, 0 100%); }
+}
+
+@keyframes home-title-arrival {
+  0%, 64% { transform: translateY(.58em); clip-path: inset(0 0 40% 0); }
+  100% { transform: none; clip-path: inset(-5%); }
+}
+
+@keyframes home-photo-reveal {
+  0%, 53% { transform: scale(1.13); }
+  100% { transform: scale(1); }
+}

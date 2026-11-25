@@ -11,7 +11,7 @@ for (const slug of files) {
   source = source.replace(/href="\/(about|employers|visa-services|employer-sponsorship|sponsored-visas|labour-agreements|approach|case-studies|team|contact|privacy|terms|points-calculator)([?#][^"]*)?"/g,
     (_, page, suffix = "") => `href="${page}.html${suffix}"`);
   source = source.replace(/href="\/"/g, 'href="index.html"')
-    .replace(/href="\/style.css"/g, 'href="style.css"')
+    .replace(/href="\/(style\.css|home-entrance\.css)"/g, 'href="$1"')
     .replace(/href="\/(aqyr-favicon\.(?:png|webp)|favicon\.ico)"/g, 'href="public/$1"')
     .replace(/src="\/script.js"/g, 'src="script.js"')
     .replace(/src="\/(?!script.js)([^"]+)"/g, 'src="public/$1"');

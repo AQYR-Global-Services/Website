@@ -9,6 +9,47 @@
   const navHoverTimers = new Map();
   const form = document.querySelector('#enquiry-form');
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const home = document.querySelector('main.page-home');
+  const pageTiming = performance.getEntriesByType('navigation')[0];
+  const replayEntrance = window.location.hostname === '127.0.0.1' &&
+    new URLSearchParams(window.location.search).get('preview') === 'entrance';
+  if (home && !motionPreference.matches && !window.location.hash && pageTiming?.type !== 'back_forward' &&
+      (replayEntrance || performance.now() - (pageTiming?.domInteractive || 0) < 700) && window.scrollY < 40) {
+    try {
+      const entranceKey = 'aqyr-home-brand-entrance-seen';
+      const logo = document.querySelector('.top img[src$="aqyr-header-logo.svg"]');
+      if (logo && (replayEntrance || !window.sessionStorage.getItem(entranceKey))) {
+        window.sessionStorage.setItem(entranceKey, '1');
+        const curtain = document.createElement('div');
+        curtain.className = 'home-brand-curtain';
+        curtain.setAttribute('aria-hidden', 'true');
+        curtain.style.setProperty('--entrance-logo', `url("${logo.src}")`);
+        const signature = document.createElement('span');
+        signature.className = 'home-brand-signature';
+        curtain.append(signature);
+        document.body.append(curtain);
+        home.classList.add('home-entrance-ready');
+        const listeners = new AbortController();
+        const finish = () => {
+          listeners.abort();
+          window.clearTimeout(fallback);
+          curtain.remove();
+          home.classList.remove('home-entrance-ready');
+        };
+        const fallback = window.setTimeout(finish, 2400);
+        const options = { signal: listeners.signal };
+        curtain.addEventListener('animationend', event => {
+          if (event.animationName === 'home-curtain-exit') finish();
+        }, options);
+        for (const event of ['pointerdown', 'keydown', 'wheel', 'touchstart', 'pagehide']) {
+          window.addEventListener(event, finish, { ...options, capture: true, passive: true });
+        }
+        motionPreference.addEventListener('change', finish, options);
+      }
+    } catch {
+      // With storage unavailable, the home page stays in its default state.
+    }
+  }
   const siteHeader = document.querySelector('.top');
   const englishHover = window.matchMedia('(hover: hover) and (pointer: fine)');
   const englishGuides = [...document.querySelectorAll('.visa-english-summary[id]')].map(panel => ({
@@ -712,17 +753,6 @@
     } else {
       setEnquiryStatus('The form is temporarily unavailable. Please email our team.', '表单暂时不可用，请直接发邮件联系团队。', true);
     }
-  }
-
-  // Do not re-hide a page someone has already read while slow scripts were loading.
-  // The entrance changes only opacity/transform; links and anchor navigation stay available.
-  const pageInteractiveAt = performance.getEntriesByType('navigation')[0]?.domInteractive || 0;
-  if (!motionPreference.matches && performance.now() - pageInteractiveAt < 1800 && window.scrollY < 40) {
-    root.classList.add('entrance-ready');
-    window.setTimeout(() => root.classList.remove('entrance-ready'), 1500);
-    motionPreference.addEventListener('change', event => {
-      if (event.matches) root.classList.remove('entrance-ready');
-    });
   }
 
   // Content stays visible when JavaScript is unavailable; motion is progressive enhancement.
