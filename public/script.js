@@ -509,6 +509,13 @@
   }
   setLanguage(language);
 
+  const officeMap = document.getElementById('office-map');
+  if (officeMap) {
+    import(location.pathname.endsWith('.html') ? './public/office-map/locator.mjs' : '/office-map/locator.mjs')
+      .then(module => module.initOfficeMap(officeMap))
+      .catch(() => { /* The three server-rendered office cards remain available. */ });
+  }
+
   if (document.querySelector('[data-case-preview]')) {
     import(location.pathname.endsWith('.html') ? './public/case-document-preview.mjs?v=hover-preview' : '/case-document-preview.mjs?v=hover-preview')
       .then(module => module.initCaseDocumentPreview())

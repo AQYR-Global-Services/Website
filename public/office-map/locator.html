@@ -1,0 +1,95 @@
+<div class="atlas">
+  <div class="mapPane">
+    <div class="mapTop">
+      <div class="meta" id="mapTitle">Office locations</div>
+      <span><i class="point hq"></i><span id="legend">Headquarters</span></span>
+    </div>
+    <div class="stage" id="stage">
+      <svg
+        class="pacific"
+        viewBox="0 0 500 565"
+        role="group"
+        aria-label="Asia Pacific"
+      >
+        <image width="500" height="565" href="/office-map/asia-pacific.svg" />
+        <g
+          class="pin"
+          role="button"
+          tabindex="0"
+          data-id="2"
+          transform="translate(196.20 124.79)"
+        >
+          <circle class="hit" r="15" />
+          <path class="leader" d="M0 0 L12.6 -7.8 H21.0" />
+          <circle class="ring" r="6" />
+          <circle class="core" r="2.6" />
+          <text class="label" x="21" y="-12" text-anchor="start"></text>
+        </g>
+        <g
+          class="pin"
+          role="button"
+          tabindex="0"
+          data-id="1"
+          transform="translate(167.59 456.49)"
+        >
+          <circle class="hit" r="15" />
+          <path class="leader" d="M0 0 L-11.4 -0.7 H-19.0" />
+          <circle class="ring" r="6" />
+          <circle class="core" r="2.6" />
+          <text class="label" x="-19" y="-1" text-anchor="end"></text>
+        </g>
+        <g
+          class="pin"
+          role="button"
+          tabindex="0"
+          data-id="0"
+          transform="translate(316.01 487.27)"
+        >
+          <circle class="hit" r="15" />
+          <path class="leader" d="M0 0 L5.4 20.2 H9.0" />
+          <circle class="outer" r="12" />
+          <circle class="ring" r="6" />
+          <circle class="core" r="2.6" />
+          <text class="label" x="9" y="31" text-anchor="end"></text>
+          <text class="tag" x="9" y="46" text-anchor="end"></text>
+        </g></svg
+      ><canvas id="flight" aria-hidden="true"></canvas
+      ><button class="map-back" id="back" hidden></button>
+      <div class="loc" id="loc" hidden>
+        <div class="placard">
+          <b id="officeLabel"></b><small>847 Whitehorse Road</small>
+        </div>
+      </div>
+      <span class="source" id="mapCredit" hidden
+        ><a
+          href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"
+          target="_blank"
+          rel="noopener"
+          >Esri, HERE, Garmin, © OpenStreetMap contributors · Sources</a
+        ></span
+      >
+      <div class="tip" id="tip" hidden><strong></strong><span></span></div>
+    </div>
+    <div class="choices" id="choices"></div>
+  </div>
+  <article class="detail" id="detail" aria-live="polite">
+    <div class="meta" id="kind"></div>
+    <h2 id="city"></h2>
+    <p class="region" id="region"></p>
+    <img
+      class="photo"
+      id="photo"
+      src="/scenes/melbourne-life-640.webp"
+      alt=""
+    />
+    <dl class="rows" id="rows"></dl>
+    <a
+      id="directions"
+      class="go"
+      hidden
+      target="_blank"
+      rel="noopener"
+      href="https://www.google.com/maps/dir/?api=1&amp;destination=847%20Whitehorse%20Road%2C%20Box%20Hill%20VIC%203128%2C%20Australia"
+    ></a>
+  </article>
+</div>
