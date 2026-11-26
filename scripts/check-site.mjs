@@ -292,9 +292,12 @@ for (const route of routes) {
     assert.match(source, /As a registered migration agent/);
     assert.equal((source.match(/class="bio"/g) || []).length, 14);
     const teamNames = [...source.matchAll(/<article class="person[^>]*>[\s\S]*?<h3>([^<]+)<\/h3>/g)].map(([, name]) => name);
-    assert.deepEqual(teamNames, ["Leon Gao", "Andrew Hornby", "Christ Flint", "Gareth Bibby", "Romeo Ye", "Ferris Jin", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Yuyan Zhu", "Catherian Zhang", "Barry Zhang"]);
+    assert.deepEqual(teamNames, ["Leon Gao", "Andrew Hornby", "Chris Flint", "Gareth Bibby", "Romeo Ye", "Ferris Jin", "Flora Zhang", "Belle Zhang", "Dave Yang", "Sam Cui", "Quinten Li", "Yuyan Zhu", "Catherian Zhang", "Barry Zhang"]);
     assert.equal((source.match(/data-en="Executive Director"/g) || []).length, 1);
-    for (const name of ['Andrew Hornby','Christ Flint']) assert(source.includes('<h3>'+name+'</h3><p class="role" data-en="Director" data-zh="董事">Director</p>'));
+    for (const name of ["Andrew Hornby", "Chris Flint"]) {
+      const card = source.split(`<h3>${name}</h3>`)[1].split("</article>")[0];
+      assert(card.includes('<p class="role" data-en="Director" data-zh="董事">Director</p>'));
+    }
     assert.match(source, /id="team-directors-title" data-en="Our directors" data-zh="董事团队"/);
     assert.match(source, /data-en="Principal Consultant" data-zh="首席顾问"/);
     assert.match(source, /20 years of international recruitment/);
